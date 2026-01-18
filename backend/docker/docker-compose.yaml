@@ -1,0 +1,18 @@
+services:
+  redis:
+    image: redis:7.2-alpine  # 使用更轻量、版本明确的镜像
+    container_name: my-redis
+    restart: always          # 随 Docker 守护进程自启
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server 
+      --requirepass 123456
+      --appendonly yes
+    volumes:
+    #      - redis_data:/data      # 挂载数据卷实现持久化
+          - ./redis_data:/data      # 挂载数据卷实现持久化
+      # - ./redis.conf:/usr/local/etc/redis/redis.conf # 如果有自定义配置文件可开启
+
+#volumes:
+#  redis_data:

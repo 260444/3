@@ -1,0 +1,99 @@
+package router
+
+import (
+	"backend/api/handler"
+	"backend/api/middleware"
+	"backend/pkg/utils"
+	"github.com/gin-gonic/gin"
+)
+
+func SetupRouter(
+	userHandler *handler.UserHandler,
+	roleHandler *handler.RoleHandler,
+	menuHandler *handler.MenuHandler,
+	operationLogHandler *handler.OperationLogHandler,
+	permissionHandler *handler.PermissionHandler,
+) *gin.Engine {
+	r := gin.Default()
+
+	// 使用CORS中间件
+	r.Use(middleware.CORSMiddleware())
+
+	// 使用日志中间件
+	r.Use(middleware.LoggerToFile())
+
+	// 公开路由（不需要认证）
+	public := r.Group("/api/v1")
+	{
+		public.POST("/login", userHandler.Login)
+		public.GET("/captcha", GenerateCaptcha) // 验证码接口
+	}
+
+	// 需要认证的路由
+	protected := r.Group("/api/v1")
+	protected.Use(middleware.JWTAuthMiddleware())
+	{
+		// 用户相关路由
+		protected.POST("/logout", userHandler.Logout) // 退出登录
+		protected.POST("/users", userHandler.CreateUser)
+		protected.GET("/users", userHandler.GetUsers)
+		protected.GET("/users/:id", userHandler.GetUserInfo)
+		protected.PUT("/users/:id", userHandler.UpdateUser)
+		protected.PUT("/users/:id/status", userHandler.UpdateUserStatus)
+		protected.DELETE("/users/:id", userHandler.DeleteUser)
+		protected.PUT("/users/change-password", userHandler.ChangePassword)
+		protected.PUT("/users/:id/reset-password", userHandler.ResetPassword)
+
+		// 角色相关路由
+		protected.POST("/roles", roleHandler.CreateRole)
+		protected.GET("/roles", roleHandler.GetRoles)
+		protected.GET("/roles/:id", roleHandler.GetRole)
+		protected.PUT("/roles/:id", roleHandler.UpdateRole)
+		protected.DELETE("/roles/:id", roleHandler.DeleteRole)
+
+		// 菜单相关路由
+		protected.POST("/menus", menuHandler.CreateMenu)
+		protected.GET("/menus", menuHandler.GetUserMenus)
+		protected.GET("/menus/tree", menuHandler.GetMenuTree)
+		protected.GET("/menus/all", menuHandler.GetAllMenus)
+		protected.GET("/menus/:id", menuHandler.GetMenu)
+		protected.PUT("/menus/:id", menuHandler.UpdateMenu)
+		protected.DELETE("/menus/:id", menuHandler.DeleteMenu)
+
+		// 操作日志相关路由
+		protected.GET("/operation-logs", operationLogHandler.GetOperationLogs)
+		protected.DELETE("/operation-logs/:id", operationLogHandler.DeleteOperationLog)
+
+		// 权限管理相关路由
+		protected.POST("/roles/:id/menus", permissionHandler.AssignMenuToRole)         // 为角色分配菜单权限
+		protected.GET("/roles/:id/menus", permissionHandler.GetRoleMenus)              // 获取角色的菜单权限
+		protected.DELETE("/roles/:id/menus", permissionHandler.RemoveMenuFromRole)     // 移除角色的菜单权限
+		protected.POST("/roles/:id/policies", permissionHandler.AddPolicy)             // 添加Casbin策略
+		protected.DELETE("/roles/:id/policies", permissionHandler.RemovePolicy)        // 移除Casbin策略
+		protected.GET("/roles/:id/policies", permissionHandler.GetPolicies)            // 获取角色的Casbin策略
+		protected.GET("/policies", permissionHandler.GetAllPolicies)                   // 获取所有Casbin策略
+	}
+
+	return r
+}
+
+// GenerateCaptcha 生成验证码
+func GenerateCaptcha(c *gin.Context) {
+	// 生成验证码
+	id, b64s, err := utils.GenerateCaptcha()
+	if err != nil {
+		c.JSON(500, gin.H{
+			"message": "验证码生成失败",
+		})
+		return
+	}
+
+	// 返回验证码数据
+	c.JSON(200, gin.H{
+		"message": "验证码生成成功",
+		"data": gin.H{
+			"id":    id,
+			"image": b64s,
+		},
+	})
+}

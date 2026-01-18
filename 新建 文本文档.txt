@@ -1,0 +1,73 @@
+基于Go语言开发的后台管理系统，采用前后端分离的架构设计。系统提供了完整的用户管理、角色管理、权限管理、菜单管理等功能，是一个企业级的后台管理解决方案。
+后端技术栈
+
+语言: Go 1.24.0
+Web框架: Gin
+数据库: MySQL + GORM
+缓存:Redis
+权限管理:Casbin
+认证:session
+配置管理:Viper
+日志: Zap + Lumberjack
+API文档: Swagger
+验证码:Base64Captcha
+
+前端技术栈
+框架:Vue 3 + TypeScript
+Ul组件库: Element Plus
+构建工具:Vite
+路由:Vue Router
+状态管理:Pinia
+HTTP客户端:Axios
+
+
+
+golang后台管理项目/
+├── backend/                 # 后端代码
+│   ├── api/                # API层
+│   │   ├── handler/        # 处理器
+│   │   ├── middleware/     # 中间件
+│   │   └── router/         # 路由
+│   ├── config/             # 配置管理
+│   ├── internal/           # 内部包
+│   │   ├── model/          # 数据模型
+│   │   ├── repository/     # 数据访问层
+│   │   └── service/        # 业务逻辑层
+│   ├── pkg/                # 公共包
+│   │   ├── cache/          # 缓存
+│   │   ├── casbin/         # 权限管理
+│   │   ├── database/       # 数据库
+│   │   ├── logger/         # 日志
+│   │   ├── redis/          # Redis
+│   │   └── utils/          # 工具函数
+│   └── main.go             # 程序入口
+├── frontend/               # 前端代码
+│   ├── src/
+│   │   ├── api/            # API接口
+│   │   ├── components/     # 组件
+│   │   ├── views/          # 页面
+│   │   ├── router/         # 路由
+│   │   └── utils/          # 工具函数
+│   └── package.json
+└── docs/                   # 项目文档
+
+
+核心功能
+1.用户管理
+用户注册、登录、注销·用户信息管理·密码修改
+用户状态管理
+2.角色管理
+角色创建、编辑、删除
+角色权限分配·角色用户关联
+3.权限管理
+基于RBAC的权限控制
+细粒度权限管理
+动态权限加载
+4.菜单管理
+动态菜单配置
+菜单权限控制
+多级菜单支持
+5.系统功能
+操作日志记录
+系统监控
+数据统计

@@ -1,0 +1,22 @@
+server:
+  port: ":8080"
+  mode: "debug"
+  read_timeout: 60
+  write_timeout: 60
+
+database:
+  host: "localhost"
+  port: 3306
+  user: "root"
+  password: "123456"
+  dbname: "admin_system"
+  charset: "utf8mb4"
+
+redis:
+  addr: "localhost:6379"
+  password: "123456"
+  db: 0
+
+jwt:
+  secret: "your-secret-key"
+  timeout: 7200
