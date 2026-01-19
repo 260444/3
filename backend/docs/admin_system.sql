@@ -3,15 +3,15 @@
 
  Source Server         : localhost
  Source Server Type    : MySQL
- Source Server Version : 80027 (8.0.27)
+ Source Server Version : 80042 (8.0.42)
  Source Host           : localhost:3306
  Source Schema         : admin_system
 
  Target Server Type    : MySQL
- Target Server Version : 80027 (8.0.27)
+ Target Server Version : 80042 (8.0.42)
  File Encoding         : 65001
 
- Date: 18/01/2026 22:17:43
+ Date: 19/01/2026 15:09:42
 */
 
 SET NAMES utf8mb4;
@@ -32,7 +32,7 @@ CREATE TABLE `casbin_rule`  (
   `v5` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_casbin_rule`(`ptype` ASC, `v0` ASC, `v1` ASC, `v2` ASC, `v3` ASC, `v4` ASC, `v5` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of casbin_rule
@@ -45,37 +45,39 @@ INSERT INTO `casbin_rule` VALUES (2, 'p', 'role_4', '/api/users', 'GET', '', '',
 DROP TABLE IF EXISTS `menus`;
 CREATE TABLE `menus`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `created_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `updated_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `created_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  `updated_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
   `deleted_at` datetime(3) NULL DEFAULT NULL,
-  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `path` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `component` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `redirect` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `path` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `component` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+  `redirect` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `parent_id` bigint UNSIGNED NULL DEFAULT NULL,
-  `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `sort` bigint NULL DEFAULT 0,
   `is_hidden` tinyint(1) NULL DEFAULT 0,
   `is_link` tinyint(1) NULL DEFAULT 0,
-  `link_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `link_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
   `status` bigint NULL DEFAULT 1,
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_menus_deleted_at`(`deleted_at` ASC) USING BTREE,
-  INDEX `fk_menus_children`(`parent_id` ASC) USING BTREE,
-  CONSTRAINT `fk_menus_children` FOREIGN KEY (`parent_id`) REFERENCES `menus` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 35 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+  INDEX `fk_menus_parent`(`parent_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of menus
 -- ----------------------------
-INSERT INTO `menus` VALUES (1, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'dashboard', '控制台', '/dashboard', 'DashboardView', NULL, NULL, 'House', 1, 0, 0, NULL, 1);
-INSERT INTO `menus` VALUES (2, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'system', '系统管理', '/system', '', NULL, NULL, 'Setting', 100, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (1, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'dashboard', '控制台', '/dashboard', 'DashboardView', NULL, 0, 'House', 1, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (2, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'system', '系统管理', '/system', '', NULL, 0, 'Setting', 100, 0, 0, NULL, 1);
 INSERT INTO `menus` VALUES (11, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'users', '用户管理', '/users', 'UserManageView', NULL, 2, 'User', 1, 0, 0, NULL, 1);
 INSERT INTO `menus` VALUES (12, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'roles', '角色管理', '/roles', 'RoleManageView', NULL, 2, 'Avatar', 2, 0, 0, NULL, 1);
 INSERT INTO `menus` VALUES (13, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'menus', '菜单管理', '/menus', 'MenuManageView', NULL, 2, 'Menu', 3, 0, 0, NULL, 1);
 INSERT INTO `menus` VALUES (14, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'operation-logs', '操作日志', '/operation-logs', 'OperationLogView', NULL, 2, 'Document', 4, 0, 0, NULL, 1);
 INSERT INTO `menus` VALUES (15, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'permissions', '权限管理', '/permissions', 'PermissionManageView', NULL, 2, 'Lock', 5, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (16, '', '', NULL, 'ceshi22', '测试22', 'ceshi22', 'ceshi22', '', 1, 'Link', 3, 0, 0, '', 1);
+INSERT INTO `menus` VALUES (17, '', '', '2026-01-19 14:44:25.585', 'ceshi2', 'ceshi2', 'ceshi2', 'cshi2', '', 1, 'House', 2, 0, 0, '', 1);
+INSERT INTO `menus` VALUES (18, '', '', NULL, 'ceshi3', 'ceshi3', 'ceshi3', 'ceshi3', '', 16, 'House', 1, 0, 0, '', 1);
 
 -- ----------------------------
 -- Table structure for operation_logs
@@ -97,7 +99,7 @@ CREATE TABLE `operation_logs`  (
   `response_body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `response_time` bigint NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of operation_logs
@@ -130,7 +132,7 @@ CREATE TABLE `role_menus`  (
   `role_id` bigint UNSIGNED NOT NULL,
   `menu_id` bigint UNSIGNED NOT NULL,
   PRIMARY KEY (`role_id`, `menu_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of role_menus
@@ -168,7 +170,7 @@ CREATE TABLE `roles`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_roles_name`(`name` ASC) USING BTREE,
   INDEX `idx_roles_deleted_at`(`deleted_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of roles
@@ -204,7 +206,7 @@ CREATE TABLE `users`  (
   INDEX `idx_users_deleted_at`(`deleted_at` ASC) USING BTREE,
   INDEX `fk_roles_users`(`role_id` ASC) USING BTREE,
   CONSTRAINT `fk_roles_users` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of users
@@ -218,7 +220,7 @@ INSERT INTO `users` VALUES (6, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.0
 INSERT INTO `users` VALUES (7, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', NULL, 'lisi', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'lisi@example.com', '13800138006', '李四', '', 1, NULL, NULL, 3);
 INSERT INTO `users` VALUES (8, '2026-01-18 19:07:49.000', '2026-01-18 19:22:14.965', NULL, 'wangwu', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', 'wangwu@example.com', '13800138007', '王五', '', 1, NULL, NULL, 3);
 INSERT INTO `users` VALUES (9, '2026-01-18 19:07:49.000', '2026-01-18 19:24:28.961', NULL, 'disabled', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lE9lBOsl7iKTVKIUi', '132@example.com', '123', '禁用用户', '', 1, NULL, '', 3);
-INSERT INTO `users` VALUES (10, '2026-01-18 19:07:49.000', '2026-01-18 21:55:15.651', NULL, 'admin', '$2a$10$ocZQAxtwX0K8aSywcLjICeMqyWv8KqvqJ7ZeoKSu9bMSIKjKhpkAq', 'admin2@example.com', '13800138009', '管理员2', '', 1, '2026-01-18 21:55:15.650', '', 2);
+INSERT INTO `users` VALUES (10, '2026-01-18 19:07:49.000', '2026-01-19 14:54:57.250', NULL, 'admin', '$2a$10$ocZQAxtwX0K8aSywcLjICeMqyWv8KqvqJ7ZeoKSu9bMSIKjKhpkAq', 'admin2@example.com', '13800138009', '管理员2', '', 1, '2026-01-19 14:54:57.248', '', 2);
 INSERT INTO `users` VALUES (14, '2026-01-18 19:20:14.750', '2026-01-18 19:20:14.750', '2026-01-18 19:20:34.435', 'ceshi', '$2a$10$UVGAcMTvIU6xWteku4lBdOrw8OMTThhAh0PBltB50aruK2K6ogPCy', '2603485744@qq.com', '', '测试', '', 1, NULL, '', 2);
 
 SET FOREIGN_KEY_CHECKS = 1;
