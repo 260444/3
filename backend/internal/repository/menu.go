@@ -28,52 +28,43 @@ func (r *MenuRepository) GetByID(id uint) (*model.Menu, error) {
 }
 
 // GetByParentID 根据父级ID获取菜单列表
-func (r *MenuRepository) GetByParentID(parentID *uint) ([]model.Menu, error) {
-	var menus []model.Menu
-	query := r.DB.Where("status = ?", 1)
-	if parentID != nil {
-		query = query.Where("parent_id = ?", *parentID)
-	} else {
-		query = query.Where("parent_id IS NULL")
-	}
-	err := query.Order("sort ASC").Find(&menus).Error
+//func (r *MenuRepository) GetByParentID(parentID *uint) ([]model.Menu, error) {
+//	var menus []model.Menu
+//	query := r.DB.Where("status = ?", 1)
+//	if parentID != nil {
+//		query = query.Where("parent_id = ?", *parentID)
+//	} else {
+//		query = query.Where("parent_id IS NULL")
+//	}
+//	err := query.Order("sort ASC").Find(&menus).Error
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	// 递归加载子菜单
+//	for i := range menus {
+//		r.loadAllChildren(&menus[i])
+//	}
+//
+//	return menus, nil
+//}
+
+// GetAll 递归加载所有子菜单（用于菜单管理）
+func (r *MenuRepository) GetAll() ([]model.Menu, error) {
+	var allMenus []model.Menu
+	// 获取所有菜单
+	err := r.DB.Where("parent_id=?", 0).Find(&allMenus).Error
 	if err != nil {
 		return nil, err
 	}
 
-	// 递归加载子菜单
-	for i := range menus {
-		r.loadAllChildren(&menus[i])
+	for i := range allMenus {
+		var children []model.Menu
+		r.DB.Where("parent_id=?", allMenus[i].ID).Order("sort ASC").Find(&children)
+		allMenus[i].Children = append(children)
 	}
+	return allMenus, nil
 
-	return menus, nil
-}
-
-// loadAllChildren 递归加载所有子菜单（用于菜单管理）
-func (r *MenuRepository) loadAllChildren(menu *model.Menu) error {
-	var children []model.Menu
-	err := r.DB.Where("parent_id = ? AND status = ?", menu.ID, 1).
-		Order("sort ASC").
-		Find(&children).Error
-	if err != nil {
-		return err
-	}
-
-	menu.Children = children
-
-	// 递归加载子菜单的子菜单
-	for i := range children {
-		r.loadAllChildren(&children[i])
-	}
-
-	return nil
-}
-
-// GetAll 获取所有菜单
-func (r *MenuRepository) GetAll() ([]model.Menu, error) {
-	var menus []model.Menu
-	err := r.DB.Preload("Children").Find(&menus).Error
-	return menus, err
 }
 
 // Update 更新菜单
@@ -89,25 +80,37 @@ func (r *MenuRepository) Delete(id uint) error {
 // GetByUserID 根据用户ID获取菜单（通过角色关联）
 func (r *MenuRepository) GetByUserID(userID uint) ([]model.Menu, error) {
 	var menus []model.Menu
-	
-	// 通过用户 -> 角色 -> 菜单的关联查询
-	err := r.DB.Table("menus").
-		Select("menus.*, menus.id as id, menus.name as name, menus.title as title, menus.path as path, menus.component as component, menus.redirect as redirect, menus.parent_id as parent_id, menus.icon as icon, menus.sort as sort, menus.is_hidden as is_hidden, menus.is_link as is_link, menus.link_url as link_url, menus.status as status, menus.created_at as created_at, menus.updated_at as updated_at").
-		Joins("INNER JOIN role_menus ON menus.id = role_menus.menu_id").
-		Joins("INNER JOIN roles ON role_menus.role_id = roles.id").
-		Joins("INNER JOIN users ON users.role_id = roles.id").
-		Where("users.id = ? AND menus.status = 1 AND roles.status = 1", userID).
-		Where("menus.parent_id IS NULL").
-		Order("menus.sort ASC").
-		Find(&menus).Error
-	
+
+	// 获取用户有权限的菜单ID
+	var menuIDs []uint
+	err := r.DB.Table("role_menus").
+		Select("menu_id").
+		Where("role_id IN (SELECT role_id FROM users WHERE id = ?)", userID).
+		Find(&menuIDs).Error
+
 	if err != nil {
 		return nil, err
 	}
 
-	// 递归加载子菜单
+	if len(menuIDs) == 0 {
+		return []model.Menu{}, nil
+	}
+
+	// 获取父级菜单（parent_id = 0 且在用户有权限的菜单列表中）
+	err = r.DB.Where("parent_id = ? AND status = ? AND id IN ?", 0, 1, menuIDs).
+		Order("sort ASC").
+		Find(&menus).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	//为每个父菜单加载子菜单
 	for i := range menus {
-		r.loadChildren(&menus[i], userID)
+		err = r.loadChildren(&menus[i], userID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return menus, nil
@@ -116,7 +119,7 @@ func (r *MenuRepository) GetByUserID(userID uint) ([]model.Menu, error) {
 // loadChildren 递归加载子菜单
 func (r *MenuRepository) loadChildren(menu *model.Menu, userID uint) error {
 	var children []model.Menu
-	
+
 	err := r.DB.Table("menus").
 		Select("menus.*, menus.id as id, menus.name as name, menus.title as title, menus.path as path, menus.component as component, menus.redirect as redirect, menus.parent_id as parent_id, menus.icon as icon, menus.sort as sort, menus.is_hidden as is_hidden, menus.is_link as is_link, menus.link_url as link_url, menus.status as status, menus.created_at as created_at, menus.updated_at as updated_at").
 		Joins("INNER JOIN role_menus ON menus.id = role_menus.menu_id").
@@ -126,7 +129,7 @@ func (r *MenuRepository) loadChildren(menu *model.Menu, userID uint) error {
 		Where("menus.parent_id = ?", menu.ID).
 		Order("menus.sort ASC").
 		Find(&children).Error
-	
+
 	if err != nil {
 		return err
 	}
@@ -134,9 +137,9 @@ func (r *MenuRepository) loadChildren(menu *model.Menu, userID uint) error {
 	menu.Children = children
 
 	// 递归加载子菜单的子菜单
-	for i := range children {
-		r.loadChildren(&children[i], userID)
-	}
+	//for i := range children {
+	//	r.loadChildren(&children[i], userID)
+	//}
 
 	return nil
 }

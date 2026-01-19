@@ -6,25 +6,44 @@ import (
 
 // Menu 菜单模型
 type Menu struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	CreatedAt string         `json:"created_at"`
-	UpdatedAt string         `json:"updated_at"`
+	// ID 菜单唯一标识
+	ID uint `gorm:"primaryKey" json:"id"`
+	// CreatedAt 创建时间
+	CreatedAt string `json:"created_at"`
+	// UpdatedAt 更新时间
+	UpdatedAt string `json:"updated_at"`
+	// DeletedAt 软删除标记
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-	Name      string         `gorm:"size:50;not null" json:"name"`
-	Title     string         `gorm:"size:50;not null" json:"title"`
-	Path      string         `gorm:"size:100" json:"path"`
-	Component string         `gorm:"size:100" json:"component"`
-	Redirect  string         `gorm:"size:100" json:"redirect"`
-	ParentID  *uint          `json:"parent_id"` // 父级菜单ID
-	Parent    *Menu          `gorm:"foreignKey:ParentID" json:"parent"`
-	Children  []Menu         `gorm:"foreignKey:ParentID" json:"children"`
-	Icon      string         `gorm:"size:50" json:"icon"`
-	Sort      int            `gorm:"default:0" json:"sort"`
-	IsHidden  bool           `gorm:"default:false" json:"is_hidden"`
-	IsLink    bool           `gorm:"default:false" json:"is_link"`
-	LinkUrl   string         `gorm:"size:255" json:"link_url"`
-	Status    int            `gorm:"default:1" json:"status"` // 1: 正常, 0: 禁用
-	Roles     []Role         `gorm:"many2many:role_menus;" json:"roles"`
+	// Name 菜单名称
+	Name string `gorm:"size:50;not null" json:"name"`
+	// Title 菜单标题
+	Title string `gorm:"size:50;not null" json:"title"`
+	// Path 路由路径
+	Path string `gorm:"size:100" json:"path"`
+	// Component 组件路径
+	Component string `gorm:"size:100" json:"component"`
+	// Redirect 重定向路径
+	Redirect string `gorm:"size:100" json:"redirect"`
+	// ParentID 父级菜单ID
+	ParentID *uint `json:"parent_id"`
+	// Parent 父级菜单
+	Parent *Menu `gorm:"-" json:"parent"`
+	// Children 子菜单列表
+	Children []Menu `gorm:"-" json:"children"`
+	// Icon 菜单图标
+	Icon string `gorm:"size:50" json:"icon"`
+	// Sort 排序值
+	Sort int `gorm:"default:0" json:"sort"`
+	// IsHidden 是否隐藏
+	IsHidden bool `gorm:"default:false" json:"is_hidden"`
+	// IsLink 是否为外链
+	IsLink bool `gorm:"default:false" json:"is_link"`
+	// LinkUrl 外链地址
+	LinkUrl string `gorm:"size:255" json:"link_url"`
+	// Status 状态: 1-正常, 0-禁用
+	Status int `gorm:"default:1" json:"status"`
+	// Roles 关联角色列表
+	Roles []Role `gorm:"many2many:role_menus;" json:"roles"`
 }
 
 // TableName 指定表名

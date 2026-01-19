@@ -193,8 +193,9 @@ const menuRules = {
 const getMenuTree = async () => {
   loading.value = true
   try {
-    const response = await fetchMenuTree()
-    menuTree.value = buildMenuTree(response.data)
+    const response = await getAllMenus() // 使用 /api/v1/menus/all 接口获取所有菜单
+    // 后端已返回完整的树形结构，直接使用即可
+    menuTree.value = addLevelInfo(response.data, 0)
     buildMenuOptions()
   } catch (error) {
     console.error('获取菜单树失败:', error)
@@ -204,33 +205,29 @@ const getMenuTree = async () => {
   }
 }
 
-// 构建菜单树形结构（添加层级信息）
-const buildMenuTree = (menus: any[], parentId: number | null = null, level = 0): any[] => {
-  return menus
-    .filter(menu => menu.parent_id === parentId)
-    .map(menu => ({
-      ...menu,
-      level,
-      children: buildMenuTree(menus, menu.id, level + 1)
-    }))
+
+
+// 为菜单树添加层级信息（用于显示缩进）
+const addLevelInfo = (menus: any[], level: number): any[] => {
+  return menus.map(menu => ({
+    ...menu,
+    level,
+    children: menu.children ? addLevelInfo(menu.children, level + 1) : []
+  }))
 }
 
 // 构建菜单选项（用于级联选择器）
 const buildMenuOptions = () => {
-  const buildOptions = (menus: any[], parentId: number | null = null): any[] => {
-    return menus
-      .filter(menu => menu.parent_id === parentId)
-      .map(menu => ({
-        id: menu.id,
-        title: menu.title,
-        children: buildOptions(menus, menu.id)
-      }))
+  const buildOptions = (menus: any[]): any[] => {
+    return menus.map(menu => ({
+      id: menu.id,
+      title: menu.title,
+      children: menu.children ? buildOptions(menu.children) : []
+    }))
   }
   
-  // 获取所有菜单用于构建选项
-  getAllMenus().then(response => {
-    menuOptions.value = buildOptions(response.data)
-  })
+  // 使用当前菜单树数据构建选项
+  menuOptions.value = buildOptions(menuTree.value)
 }
 
 // 处理添加菜单

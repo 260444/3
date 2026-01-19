@@ -126,9 +126,8 @@ func runTests() {
 
 	// 菜单管理测试
 	//testCreateMenu()
-	//testGetMenuTree()
-	//testGetAllMenus()
-	//testGetMenu()
+	testGetMenuTree()
+	testGetAllMenus()
 	//testUpdateMenu()
 
 	// 权限管理测试
@@ -522,7 +521,10 @@ func testCreateMenu() {
 
 // 测试获取菜单树
 func testGetMenuTree() {
-	resp, err := makeRequest("GET", "/menus", nil, getAuthHeaders())
+	url := "/menus"
+	fmt.Printf("请求URL: %s%s\n", APIBase, url)
+
+	resp, err := makeRequest("GET", url, nil, getAuthHeaders())
 	if err != nil {
 		printResult("获取菜单树", false, nil, err)
 		return
@@ -535,7 +537,10 @@ func testGetMenuTree() {
 
 // 测试获取所有菜单
 func testGetAllMenus() {
-	resp, err := makeRequest("GET", "/menus/all", nil, getAuthHeaders())
+	url := "/menus/all"
+	fmt.Printf("请求URL: %s%s\n", APIBase, url)
+
+	resp, err := makeRequest("GET", url, nil, getAuthHeaders())
 	if err != nil {
 		printResult("获取所有菜单", false, nil, err)
 		return
@@ -548,7 +553,10 @@ func testGetAllMenus() {
 
 // 测试获取菜单详情
 func testGetMenu() {
-	resp, err := makeRequest("GET", fmt.Sprintf("/menus/%d", testData.MenuID), nil, getAuthHeaders())
+	url := fmt.Sprintf("/menus/%d", testData.MenuID)
+	fmt.Printf("请求URL: %s%s\n", APIBase, url)
+
+	resp, err := makeRequest("GET", url, nil, getAuthHeaders())
 	if err != nil {
 		printResult("获取菜单详情", false, nil, err)
 		return

@@ -390,27 +390,27 @@ func (h *MenuHandler) GetMenu(c *gin.Context) {
 	})
 }
 
-func (h *MenuHandler) GetMenuTree(c *gin.Context) {
-	var parentID *uint
-	parentIDStr := c.Query("parent_id")
-	if parentIDStr != "" {
-		id, err := strconv.Atoi(parentIDStr)
-		if err == nil {
-			parentID = &[]uint{uint(id)}[0]
-		}
-	}
-
-	menus, err := h.MenuService.GetMenuTree(parentID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "获取成功",
-		"data":    menus,
-	})
-}
+//func (h *MenuHandler) GetMenuTree(c *gin.Context) {
+//	var parentID *uint
+//	parentIDStr := c.Query("parent_id")
+//	if parentIDStr != "" {
+//		id, err := strconv.Atoi(parentIDStr)
+//		if err == nil {
+//			parentID = &[]uint{uint(id)}[0]
+//		}
+//	}
+//
+//	menus, err := h.MenuService.GetMenuTree(parentID)
+//	if err != nil {
+//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+//		return
+//	}
+//
+//	c.JSON(http.StatusOK, gin.H{
+//		"message": "获取成功",
+//		"data":    menus,
+//	})
+//}
 
 func (h *MenuHandler) GetUserMenus(c *gin.Context) {
 	userID, _ := c.Get("userID")

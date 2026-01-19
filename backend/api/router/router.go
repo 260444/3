@@ -54,7 +54,7 @@ func SetupRouter(
 		// 菜单相关路由
 		protected.POST("/menus", menuHandler.CreateMenu)
 		protected.GET("/menus", menuHandler.GetUserMenus)
-		protected.GET("/menus/tree", menuHandler.GetMenuTree)
+		//protected.GET("/menus/tree", menuHandler.GetMenuTree)
 		protected.GET("/menus/all", menuHandler.GetAllMenus)
 		protected.GET("/menus/:id", menuHandler.GetMenu)
 		protected.PUT("/menus/:id", menuHandler.UpdateMenu)
@@ -65,13 +65,13 @@ func SetupRouter(
 		protected.DELETE("/operation-logs/:id", operationLogHandler.DeleteOperationLog)
 
 		// 权限管理相关路由
-		protected.POST("/roles/:id/menus", permissionHandler.AssignMenuToRole)         // 为角色分配菜单权限
-		protected.GET("/roles/:id/menus", permissionHandler.GetRoleMenus)              // 获取角色的菜单权限
-		protected.DELETE("/roles/:id/menus", permissionHandler.RemoveMenuFromRole)     // 移除角色的菜单权限
-		protected.POST("/roles/:id/policies", permissionHandler.AddPolicy)             // 添加Casbin策略
-		protected.DELETE("/roles/:id/policies", permissionHandler.RemovePolicy)        // 移除Casbin策略
-		protected.GET("/roles/:id/policies", permissionHandler.GetPolicies)            // 获取角色的Casbin策略
-		protected.GET("/policies", permissionHandler.GetAllPolicies)                   // 获取所有Casbin策略
+		protected.POST("/roles/:id/menus", permissionHandler.AssignMenuToRole)     // 为角色分配菜单权限
+		protected.GET("/roles/:id/menus", permissionHandler.GetRoleMenus)          // 获取角色的菜单权限
+		protected.DELETE("/roles/:id/menus", permissionHandler.RemoveMenuFromRole) // 移除角色的菜单权限
+		protected.POST("/roles/:id/policies", permissionHandler.AddPolicy)         // 添加Casbin策略
+		protected.DELETE("/roles/:id/policies", permissionHandler.RemovePolicy)    // 移除Casbin策略
+		protected.GET("/roles/:id/policies", permissionHandler.GetPolicies)        // 获取角色的Casbin策略
+		protected.GET("/policies", permissionHandler.GetAllPolicies)               // 获取所有Casbin策略
 	}
 
 	return r

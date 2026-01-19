@@ -28,9 +28,9 @@ func (s *MenuService) GetMenuByID(id uint) (*model.Menu, error) {
 }
 
 // GetMenuTree 获取菜单树
-func (s *MenuService) GetMenuTree(parentID *uint) ([]model.Menu, error) {
-	return s.MenuRepo.GetByParentID(parentID)
-}
+//func (s *MenuService) GetMenuTree(parentID *uint) ([]model.Menu, error) {
+//	return s.MenuRepo.GetByParentID(parentID)
+//}
 
 // GetAllMenus 获取所有菜单
 func (s *MenuService) GetAllMenus() ([]model.Menu, error) {
