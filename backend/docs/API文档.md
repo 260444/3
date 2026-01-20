@@ -1570,6 +1570,244 @@ GET /policies
 
 ---
 
+## 权限资源管理接口
+
+### 1. 创建权限
+
+**接口地址**: `POST /permissions`
+
+**请求头**:
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| path | string | 是 | 请求路径 |
+| method | string | 是 | 请求方法（GET、POST、PUT、DELETE等） |
+| description | string | 否 | 权限描述 |
+| status | int8 | 否 | 状态(1:正常, 0:禁用)，默认1 |
+
+**请求示例**:
+```json
+{
+  "path": "/api/v1/users",
+  "method": "GET",
+  "description": "获取用户列表权限",
+  "status": 1
+}
+```
+
+**成功响应**:
+```json
+{
+  "message": "权限创建成功",
+  "data": {
+    "id": 1,
+    "path": "/api/v1/users",
+    "method": "GET",
+    "description": "获取用户列表权限",
+    "status": 1,
+    "created_at": "2026-01-18T10:00:00Z"
+  }
+}
+```
+
+---
+
+### 2. 获取权限列表
+
+**接口地址**: `GET /permissions`
+
+**请求头**:
+```
+Authorization: Bearer <token>
+```
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 默认值 | 说明 |
+|--------|------|------|--------|------|
+| page | int | 否 | 1 | 页码 |
+| page_size | int | 否 | 10 | 每页数量(最大100) |
+
+**请求示例**:
+```
+GET /permissions?page=1&page_size=10
+```
+
+**成功响应**:
+```json
+{
+  "message": "获取成功",
+  "data": {
+    "list": [
+      {
+        "id": 1,
+        "path": "/api/v1/users",
+        "method": "GET",
+        "description": "获取用户列表权限",
+        "status": 1,
+        "created_at": "2026-01-18T10:00:00Z"
+      }
+    ],
+    "total": 100,
+    "page": 1,
+    "page_size": 10
+  }
+}
+```
+
+---
+
+### 3. 获取权限详情
+
+**接口地址**: `GET /permissions/:id`
+
+**请求头**:
+```
+Authorization: Bearer <token>
+```
+
+**路径参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| id | int | 是 | 权限ID |
+
+**请求示例**:
+```
+GET /permissions/1
+```
+
+**成功响应**:
+```json
+{
+  "message": "获取成功",
+  "data": {
+    "id": 1,
+    "path": "/api/v1/users",
+    "method": "GET",
+    "description": "获取用户列表权限",
+    "status": 1,
+    "created_at": "2026-01-18T10:00:00Z"
+  }
+}
+```
+
+---
+
+### 4. 更新权限
+
+**接口地址**: `PUT /permissions/:id`
+
+**请求头**:
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+**路径参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| id | int | 是 | 权限ID |
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| path | string | 否 | 请求路径 |
+| method | string | 否 | 请求方法 |
+| description | string | 否 | 权限描述 |
+| status | int8 | 否 | 状态(1:正常, 0:禁用) |
+
+**请求示例**:
+```json
+{
+  "path": "/api/v1/users",
+  "method": "POST",
+  "description": "创建用户权限"
+}
+```
+
+**成功响应**:
+```json
+{
+  "message": "更新成功"
+}
+```
+
+---
+
+### 5. 更新权限状态
+
+**接口地址**: `PUT /permissions/:id/status`
+
+**请求头**:
+```
+Authorization: Bearer <token>
+Content-Type: application/x-www-form-urlencoded
+```
+
+**路径参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| id | int | 是 | 权限ID |
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| status | int8 | 是 | 状态(1:正常, 0:禁用) |
+
+**请求示例**:
+```
+status=0
+```
+
+**成功响应**:
+```json
+{
+  "message": "更新状态成功"
+}
+```
+
+---
+
+### 6. 删除权限
+
+**接口地址**: `DELETE /permissions/:id`
+
+**请求头**:
+```
+Authorization: Bearer <token>
+```
+
+**路径参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| id | int | 是 | 权限ID |
+
+**请求示例**:
+```
+DELETE /permissions/1
+```
+
+**成功响应**:
+```json
+{
+  "message": "删除成功"
+}
+```
+
+---
+
 ## 更新日志
 
 ### v1.0.0 (2026-01-18)
@@ -1579,3 +1817,4 @@ GET /policies
 - 支持 JWT 认证和 RBAC 权限控制
 - 提供完整的 RESTful API 接口
 - 新增权限管理接口（菜单权限分配、Casbin 策略管理）
+- 新增权限资源管理接口（权限的CRUD操作）

@@ -35,6 +35,7 @@ func InitDB() (*gorm.DB, error) {
 		&model.Menu{},
 		&model.RoleMenu{},
 		&model.OperationLog{},
+		&model.Permission{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("数据库迁移失败: %w", err)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/casbin/casbin/v3"
-	fileadapter "github.com/casbin/casbin/v3/persist/file-adapter"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"gorm.io/gorm"
 )
@@ -36,23 +35,10 @@ func InitCasbinWithGormAdapter(db *gorm.DB) error {
 	return nil
 }
 
-// InitCasbinWithFileAdapter 初始化Casbin（使用文件适配器）
-func InitCasbinWithFileAdapter() error {
-	// 使用文件适配器
-	adapter := fileadapter.NewAdapter("config/policy.csv")
-
-	var err error
-	Enforcer, err = casbin.NewEnforcer("config/rbac_model.conf", adapter)
-	if err != nil {
-		fmt.Println(err)
-		return fmt.Errorf("创建Casbin Enforcer失败: %w", err)
-	}
-
-	// 加载策略
-	err = Enforcer.LoadPolicy()
-	if err != nil {
-		return fmt.Errorf("加载Casbin策略失败: %w", err)
-	}
-
-	return nil
-}
+//检查权限
+//添加策略
+//删除策略
+//为用户添加角色
+//删除用户的角色
+//获取用户的所有角色
+//获取角色的所有用户

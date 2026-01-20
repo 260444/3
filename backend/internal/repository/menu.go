@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/model"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -106,40 +107,15 @@ func (r *MenuRepository) GetByUserID(userID uint) ([]model.Menu, error) {
 	}
 
 	//为每个父菜单加载子菜单
-	for i := range menus {
-		err = r.loadChildren(&menus[i], userID)
-		if err != nil {
-			return nil, err
-		}
+	for i, menu := range menus {
+		var c []model.Menu
+		r.DB.Where("parent_id = ? AND status = ? AND id IN ?", menus[i].ID, 1, menuIDs).
+			Order("sort ASC").
+			Find(&c)
+		fmt.Println("c:", c)
+		menu.Children = c
+		menus[i] = menu
 	}
 
 	return menus, nil
-}
-
-// loadChildren 递归加载子菜单
-func (r *MenuRepository) loadChildren(menu *model.Menu, userID uint) error {
-	var children []model.Menu
-
-	err := r.DB.Table("menus").
-		Select("menus.*, menus.id as id, menus.name as name, menus.title as title, menus.path as path, menus.component as component, menus.redirect as redirect, menus.parent_id as parent_id, menus.icon as icon, menus.sort as sort, menus.is_hidden as is_hidden, menus.is_link as is_link, menus.link_url as link_url, menus.status as status, menus.created_at as created_at, menus.updated_at as updated_at").
-		Joins("INNER JOIN role_menus ON menus.id = role_menus.menu_id").
-		Joins("INNER JOIN roles ON role_menus.role_id = roles.id").
-		Joins("INNER JOIN users ON users.role_id = roles.id").
-		Where("users.id = ? AND menus.status = 1 AND roles.status = 1", userID).
-		Where("menus.parent_id = ?", menu.ID).
-		Order("menus.sort ASC").
-		Find(&children).Error
-
-	if err != nil {
-		return err
-	}
-
-	menu.Children = children
-
-	// 递归加载子菜单的子菜单
-	//for i := range children {
-	//	r.loadChildren(&children[i], userID)
-	//}
-
-	return nil
 }

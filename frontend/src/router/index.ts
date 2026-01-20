@@ -10,6 +10,7 @@ import RoleManageView from '@/views/role/RoleManageView.vue'
 import MenuManageView from '@/views/menu/MenuManageView.vue'
 import OperationLogView from '@/views/OperationLogView.vue'
 import PermissionManageView from '@/views/permission/PermissionManageView.vue'
+import PermissionResourceView from '@/views/permission/PermissionResourceView.vue'
 
 // 静态路由（不需要权限）
 const constantRoutes: RouteRecordRaw[] = [
@@ -39,7 +40,8 @@ const componentMap: Record<string, any> = {
   'RoleManageView': RoleManageView,
   'MenuManageView': MenuManageView,
   'OperationLogView': OperationLogView,
-  'PermissionManageView': PermissionManageView
+  'PermissionManageView': PermissionManageView,
+  'PermissionResourceView': PermissionResourceView
 }
 
 const router = createRouter({
@@ -110,6 +112,9 @@ function resetRouter() {
 }
 
 // 路由守卫
+let menuFetchRetryCount = 0
+const maxRetryCount = 3
+
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
   const token = localStorage.getItem('token')
@@ -129,7 +134,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // 检查是否已经添加了动态路由
-  const hasDynamicRoutes = router.getRoutes().some(r => r.name === 'dashboard')
+  const hasDynamicRoutes = router.getRoutes().some(r => r.name === 'dashboard' || r.name === 'layout')
   
   // 如果已经有动态路由，直接放行
   if (hasDynamicRoutes) {
@@ -139,21 +144,61 @@ router.beforeEach(async (to, from, next) => {
 
   try {
     // 获取用户菜单
-    const response = await getUserMenus()
-    console.log('获取到的菜单数据:', response.data)
-    userStore.setMenus(response.data)
+    const response: any = await getUserMenus()
+    console.log('获取到的菜单数据:', response)
+    
+    let menus = []
+    // 检查响应数据结构并处理
+    if (response && response.data) {
+      if (Array.isArray(response.data)) {
+        // 如果直接返回数组
+        menus = response.data
+      } else if (response.data.data && Array.isArray(response.data.data)) {
+        // 如果有嵌套的data结构
+        menus = response.data.data
+      } else if (response.data.list && Array.isArray(response.data.list)) {
+        // 如果是分页结构，获取列表部分
+        menus = response.data.list
+      } else {
+        // 其他情况尝试直接使用response.data
+        menus = response.data || []
+      }
+    }
+
+    // 设置菜单到store
+    userStore.setMenus(menus)
 
     // 添加动态路由
-    addDynamicRoutes(response.data)
+    addDynamicRoutes(menus)
     console.log('当前路由列表:', router.getRoutes())
 
+    // 重置重试计数
+    menuFetchRetryCount = 0
+    
     // 重新跳转，确保路由已加载
     next({ ...to, replace: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取菜单失败:', error)
-    ElMessage.error('获取菜单失败，请重新登录')
-    await userStore.logout()
-    next('/login')
+    menuFetchRetryCount++
+    
+    if (menuFetchRetryCount >= maxRetryCount) {
+      console.error('获取菜单失败次数达到上限，跳转到登录页')
+      ElMessage.error('获取菜单失败次数过多，请重新登录')
+      await userStore.logout()
+      menuFetchRetryCount = 0
+      next('/login')
+    } else {
+      console.warn(`获取菜单失败，重试次数: ${menuFetchRetryCount}`)
+      // 可能是因为用户没有菜单权限，继续执行
+      // 设置空菜单列表以避免无限重试
+      userStore.setMenus([])
+      
+      // 添加基础路由（即使没有菜单）
+      addDynamicRoutes([])
+      
+      // 允许导航继续，避免无限循环
+      next()
+    }
   }
 })
 

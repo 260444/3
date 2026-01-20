@@ -13,15 +13,25 @@
             v-model="loginForm.username" 
             placeholder="请输入用户名"
             prefix-icon="User"
+            clearable
           />
         </el-form-item>
         <el-form-item prop="password">
           <el-input 
             v-model="loginForm.password" 
-            type="password" 
+            :type="showPassword ? 'text' : 'password'" 
             placeholder="请输入密码"
             prefix-icon="Lock"
+            :show-password="true"
           />
+        </el-form-item>
+        <el-form-item>
+          <div class="login-options">
+            <el-checkbox v-model="rememberMe">记住密码</el-checkbox>
+            <el-tooltip content="在公共设备上请勿勾选" placement="top" effect="light">
+              <el-icon><Warning /></el-icon>
+            </el-tooltip>
+          </div>
         </el-form-item>
         <el-form-item>
           <el-button 
@@ -39,9 +49,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Warning } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 interface LoginForm {
@@ -68,6 +79,23 @@ const loginRules = {
 }
 
 const loading = ref(false)
+const showPassword = ref(false)
+const rememberMe = ref(false)
+
+// 从localStorage加载记住的用户名和密码
+onMounted(() => {
+  const savedUsername = localStorage.getItem('remembered_username')
+  const savedPassword = localStorage.getItem('remembered_password')
+  const savedRememberMe = localStorage.getItem('remember_me') === 'true'
+  
+  if (savedUsername) {
+    loginForm.username = savedUsername
+  }
+  if (savedPassword && savedRememberMe) {
+    loginForm.password = savedPassword
+    rememberMe.value = savedRememberMe
+  }
+})
 
 const handleLogin = async () => {
   // 简单验证
@@ -80,6 +108,18 @@ const handleLogin = async () => {
   try {
     const result = await userStore.loginAction(loginForm.username, loginForm.password)
     if (result.success) {
+      // 如果勾选了记住密码，则保存用户名和密码到localStorage
+      if (rememberMe.value) {
+        localStorage.setItem('remembered_username', loginForm.username)
+        localStorage.setItem('remembered_password', loginForm.password)
+        localStorage.setItem('remember_me', 'true')
+      } else {
+        // 如果没有勾选，则清除保存的信息
+        localStorage.removeItem('remembered_username')
+        localStorage.removeItem('remembered_password')
+        localStorage.removeItem('remember_me')
+      }
+      
       ElMessage.success('登录成功')
       router.push('/')
     } else {
@@ -111,5 +151,16 @@ const handleLogin = async () => {
 .login-title {
   text-align: center;
   margin-bottom: 30px;
+}
+
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.el-icon {
+  color: #e6a23c;
+  cursor: pointer;
 }
 </style>

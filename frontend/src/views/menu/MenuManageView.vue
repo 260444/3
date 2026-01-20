@@ -251,10 +251,10 @@ const handleAdd = (parentMenu?: any) => {
 
 // 处理编辑菜单
 const handleEdit = (row: any) => {
-  menuForm.value = { ...row }
-  // 如果没有父菜单，设置为null而不是undefined
-  if (!menuForm.value.parent_id) {
-    menuForm.value.parent_id = null
+  // 复制菜单数据，确保parent_id字段正确处理
+  menuForm.value = {
+    ...row,
+    parent_id: row.parent_id || null
   }
   dialogTitle.value = '编辑菜单'
   dialogVisible.value = true

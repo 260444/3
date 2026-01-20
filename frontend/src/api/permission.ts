@@ -36,3 +36,35 @@ export const getPolicies = (roleId: number) => {
 export const getAllPolicies = () => {
   return request.get('/policies')
 }
+
+// 权限资源管理相关接口
+
+// 创建权限
+export const createPermission = (data: { path: string; method: string; description?: string; status?: number }) => {
+  return request.post('/permissions', data)
+}
+
+// 获取权限列表
+export const getPermissions = (params?: { page?: number; page_size?: number }) => {
+  return request.get('/permissions', { params })
+}
+
+// 获取权限详情
+export const getPermission = (id: number) => {
+  return request.get(`/permissions/${id}`)
+}
+
+// 更新权限
+export const updatePermission = (id: number, data: { path?: string; method?: string; description?: string; status?: number }) => {
+  return request.put(`/permissions/${id}`, data)
+}
+
+// 更新权限状态
+export const updatePermissionStatus = (id: number, status: number) => {
+  return request.put(`/permissions/${id}/status`, { status })
+}
+
+// 删除权限
+export const deletePermission = (id: number) => {
+  return request.delete(`/permissions/${id}`)
+}

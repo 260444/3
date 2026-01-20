@@ -72,9 +72,18 @@ func SetupRouter(
 		protected.DELETE("/roles/:id/policies", permissionHandler.RemovePolicy)    // 移除Casbin策略
 		protected.GET("/roles/:id/policies", permissionHandler.GetPolicies)        // 获取角色的Casbin策略
 		protected.GET("/policies", permissionHandler.GetAllPolicies)               // 获取所有Casbin策略
+
+		// 权限资源管理相关路由
+		protected.POST("/permissions", permissionHandler.CreatePermission)                 // 创建权限
+		protected.GET("/permissions", permissionHandler.GetPermissions)                    // 获取权限列表
+		protected.GET("/permissions/:id", permissionHandler.GetPermission)                 // 获取权限详情
+		protected.PUT("/permissions/:id", permissionHandler.UpdatePermission)              // 更新权限
+		protected.PUT("/permissions/:id/status", permissionHandler.UpdatePermissionStatus) // 更新权限状态
+		protected.DELETE("/permissions/:id", permissionHandler.DeletePermission)           // 删除权限	}
+
+		return r
 	}
 
-	return r
 }
 
 // GenerateCaptcha 生成验证码

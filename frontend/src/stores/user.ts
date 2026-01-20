@@ -4,6 +4,11 @@ import { ref } from 'vue'
 import { login, getUserInfo, logout as logoutApi } from '@/api/user'
 
 export const useUserStore = defineStore('user', () => {
+  // 记住密码相关
+  const rememberPassword = ref<boolean>(localStorage.getItem('rememberPassword') === 'true')
+  const savedUsername = ref<string>(localStorage.getItem('savedUsername') || '')
+  const savedPassword = ref<string>(localStorage.getItem('savedPassword') || '')
+
   const userInfo = ref<any>(null)
   const token = ref<string | null>(localStorage.getItem('token'))
   const isAuthenticated = ref<boolean>(!!token.value)
@@ -18,6 +23,18 @@ export const useUserStore = defineStore('user', () => {
       userInfo.value = response.data.user
       isAuthenticated.value = true
       localStorage.setItem('token', token.value)
+      
+      // 保存用户名和密码（如果用户选择记住密码）
+      if (rememberPassword.value) {
+        localStorage.setItem('rememberPassword', 'true')
+        localStorage.setItem('savedUsername', username)
+        localStorage.setItem('savedPassword', password)
+      } else {
+        localStorage.removeItem('rememberPassword')
+        localStorage.removeItem('savedUsername')
+        localStorage.removeItem('savedPassword')
+      }
+      
       return { success: true, data: response.data }
     } catch (error: any) {
       return { success: false, error: error.message }
@@ -44,6 +61,14 @@ export const useUserStore = defineStore('user', () => {
       isAuthenticated.value = true
       // 可以选择获取用户信息
       // fetchUserInfo()
+    }
+    
+    // 检查是否记住密码
+    const storedRemember = localStorage.getItem('rememberPassword')
+    if (storedRemember) {
+      rememberPassword.value = storedRemember === 'true'
+      savedUsername.value = localStorage.getItem('savedUsername') || ''
+      savedPassword.value = localStorage.getItem('savedPassword') || ''
     }
   }
 
@@ -90,6 +115,9 @@ export const useUserStore = defineStore('user', () => {
     isAuthenticated,
     permissions,
     menus,
+    rememberPassword,
+    savedUsername,
+    savedPassword,
     loginAction,
     logout,
     checkLoginStatus,

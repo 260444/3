@@ -56,13 +56,14 @@ func main() {
 	roleRepo := repository.NewRoleRepository(db)
 	menuRepo := repository.NewMenuRepository(db)
 	operationLogRepo := repository.NewOperationLogRepository(db)
+	permissionRepo := repository.NewPermissionRepository(db)
 
 	// 初始化服务层
 	userService := service.NewUserService(userRepo, roleRepo)
 	roleService := service.NewRoleService(roleRepo)
 	menuService := service.NewMenuService(menuRepo)
 	operationLogService := service.NewOperationLogService(operationLogRepo)
-	permissionService := service.NewPermissionService(roleRepo, menuRepo)
+	permissionService := service.NewPermissionService(roleRepo, menuRepo, permissionRepo)
 
 	// 初始化处理器层
 	userHandler := handler.NewUserHandler(userService)

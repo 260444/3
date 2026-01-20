@@ -9,16 +9,58 @@ import (
 
 // PermissionService 权限管理服务
 type PermissionService struct {
-	RoleRepo *repository.RoleRepository
-	MenuRepo *repository.MenuRepository
+	RoleRepo       *repository.RoleRepository
+	MenuRepo       *repository.MenuRepository
+	PermissionRepo *repository.PermissionRepository
 }
 
 // NewPermissionService 创建权限管理服务
-func NewPermissionService(roleRepo *repository.RoleRepository, menuRepo *repository.MenuRepository) *PermissionService {
+func NewPermissionService(roleRepo *repository.RoleRepository, menuRepo *repository.MenuRepository, permissionRepo *repository.PermissionRepository) *PermissionService {
 	return &PermissionService{
-		RoleRepo: roleRepo,
-		MenuRepo: menuRepo,
+		RoleRepo:       roleRepo,
+		MenuRepo:       menuRepo,
+		PermissionRepo: permissionRepo,
 	}
+}
+
+// CreatePermission 创建权限
+func (s *PermissionService) CreatePermission(permission *model.Permission) error {
+	return s.PermissionRepo.Create(permission)
+}
+
+// GetPermissionByID 根据ID获取权限
+func (s *PermissionService) GetPermissionByID(id uint) (*model.Permission, error) {
+	return s.PermissionRepo.GetByID(id)
+}
+
+// GetPermissions 获取权限列表
+func (s *PermissionService) GetPermissions(limit, offset int) ([]model.Permission, error) {
+	return s.PermissionRepo.List(limit, offset)
+}
+
+// GetPermissionTotal 获取权限总数
+func (s *PermissionService) GetPermissionTotal() (int64, error) {
+	return s.PermissionRepo.GetTotal()
+}
+
+// UpdatePermission 更新权限
+func (s *PermissionService) UpdatePermission(permission *model.Permission) error {
+	return s.PermissionRepo.Update(permission)
+}
+
+// UpdatePermissionStatus 更新权限状态
+func (s *PermissionService) UpdatePermissionStatus(id uint, status int8) error {
+	return s.PermissionRepo.UpdateStatus(id, status)
+}
+
+// DeletePermission 删除权限
+func (s *PermissionService) DeletePermission(id uint) error {
+	return s.PermissionRepo.Delete(id)
+}
+
+// GetPermissionByPathAndMethod 根据路径和方法获取权限
+func (s *PermissionService) GetPermissionByPathAndMethod(path, method string) (*model.Permission, error) {
+	return s.PermissionRepo.GetByPathAndMethod(path, method)
 }
 
 // AssignMenuToRole 为角色分配菜单权限
