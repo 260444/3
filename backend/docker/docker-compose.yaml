@@ -13,6 +13,19 @@ services:
     #      - redis_data:/data      # 挂载数据卷实现持久化
           - ./redis_data:/data      # 挂载数据卷实现持久化
       # - ./redis.conf:/usr/local/etc/redis/redis.conf # 如果有自定义配置文件可开启
+  #volumes:
+  #  redis_data:
+  mysql:
+    image: mysql:8.0.27
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: admin_system
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # 可选：初始化 SQL 脚本
+    command: --default-authentication-plugin=mysql_native_password  # 兼容旧客户端（可选）
 
-#volumes:
-#  redis_data:

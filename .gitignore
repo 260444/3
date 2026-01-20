@@ -53,3 +53,4 @@ coverage/
 .cache/
 .parcel-cache/
 .eslintcache
+/backend/docker/redis_data/
