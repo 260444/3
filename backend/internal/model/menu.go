@@ -1,19 +1,8 @@
 package model
 
-import (
-	"gorm.io/gorm"
-)
-
 // Menu 菜单模型
 type Menu struct {
-	// ID 菜单唯一标识
-	ID uint `gorm:"primaryKey" json:"id"`
-	// CreatedAt 创建时间
-	CreatedAt string `json:"created_at"`
-	// UpdatedAt 更新时间
-	UpdatedAt string `json:"updated_at"`
-	// DeletedAt 软删除标记
-	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	BaseModel
 	// Name 菜单名称
 	Name string `gorm:"size:50;not null" json:"name"`
 	// Title 菜单标题
@@ -25,7 +14,7 @@ type Menu struct {
 	// Redirect 重定向路径
 	//Redirect string `gorm:"size:100" json:"redirect"`
 	// ParentID 父级菜单ID
-	ParentID *uint `json:"parent_id"`
+	ParentID *uint `json:"parent_id" gorm:"default:0"`
 	// Parent 父级菜单
 	Parent *Menu `gorm:"-" json:"parent"`
 	// Children 子菜单列表
@@ -37,7 +26,7 @@ type Menu struct {
 	// IsHidden 是否隐藏
 	IsHidden bool `gorm:"default:false" json:"is_hidden"`
 	// IsLink 是否为外链
-	//IsLink bool `gorm:"default:false" json:"is_link"`
+	//IsLink bool `gorm:"default: k" json:"is_link"`
 	// LinkUrl 外链地址
 	//LinkUrl string `gorm:"size:255" json:"link_url"`
 	// Status 状态: 1-正常, 0-禁用

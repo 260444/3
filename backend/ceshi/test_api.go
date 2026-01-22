@@ -23,6 +23,7 @@ type TestData struct {
 	UserID       uint
 	RoleID       uint
 	MenuID       uint
+	MenuIDs      []uint
 	LogID        uint
 	Username     string
 	Password     string
@@ -55,6 +56,7 @@ var testData = &TestData{
 	Password:     "Zhy20250730!",
 	TestUsername: fmt.Sprintf("testuser_%d", time.Now().Unix()),
 	TestPassword: "Test123456",
+	MenuIDs:      []uint{116, 117},
 }
 
 // HTTP 客户端
@@ -126,12 +128,12 @@ func runTests() {
 
 	// 菜单管理测试
 	//testCreateMenu()
-	testGetMenuTree()
-	testGetAllMenus()
+	//testGetMenuTree()
+	//testGetAllMenus()
 	//testUpdateMenu()
 
 	// 权限管理测试
-	//testAssignMenuToRole()
+	testAssignMenuToRole()
 	//testGetRoleMenus()
 	//testAddPolicy()
 	//testGetPolicies()
@@ -595,7 +597,7 @@ func testUpdateMenu() {
 // 测试为角色分配菜单权限
 func testAssignMenuToRole() {
 	data := map[string]interface{}{
-		"menu_ids": []uint{testData.MenuID},
+		"menu_ids": []uint{testData.MenuIDs[0]},
 	}
 
 	resp, err := makeRequest("POST", fmt.Sprintf("/roles/%d/menus", testData.RoleID), data, getAuthHeaders())

@@ -1334,27 +1334,14 @@ GET /roles/1/menus
   "message": "获取成功",
   "data": [
     {
-      "id": 1,
-      "name": "system",
-      "title": "系统管理",
-      "path": "/system",
-      "icon": "setting",
-      "sort": 1,
-      "status": 1,
-      "created_at": "2026-01-18T10:00:00Z",
-      "updated_at": "2026-01-18T10:00:00Z"
+      "role_id": 2 ,
+      "menu_id" : 1,
+      "title": "控制台"
     },
     {
-      "id": 2,
-      "name": "user",
-      "title": "用户管理",
-      "path": "/system/user",
-      "component": "system/user/index",
-      "parent_id": 1,
-      "sort": 1,
-      "status": 1,
-      "created_at": "2026-01-18T10:00:00Z",
-      "updated_at": "2026-01-18T10:00:00Z"
+      "role_id": 2 ,
+      "menu_id" : 2,
+      "title": "系统管理"
     }
   ]
 }

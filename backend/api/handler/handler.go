@@ -549,8 +549,18 @@ func NewPermissionHandler(permissionService *service.PermissionService) *Permiss
 	}
 }
 
+type RoleMeanHandler struct {
+	RoleMenuService *service.RoleMenuService
+}
+
+func NewRoleMeanHandler(roleMeanHandler *service.RoleMenuService) *RoleMeanHandler {
+	return &RoleMeanHandler{
+		RoleMenuService: roleMeanHandler,
+	}
+}
+
 // AssignMenuToRole 为角色分配菜单权限
-func (h *PermissionHandler) AssignMenuToRole(c *gin.Context) {
+func (h *RoleMeanHandler) AssignMenuToRole(c *gin.Context) {
 	roleID, _ := strconv.Atoi(c.Param("id"))
 
 	var req struct {
@@ -562,7 +572,7 @@ func (h *PermissionHandler) AssignMenuToRole(c *gin.Context) {
 		return
 	}
 
-	err := h.PermissionService.AssignMenuToRole(uint(roleID), req.MenuIDs)
+	err := h.RoleMenuService.AssignMenuToRole(uint(roleID), req.MenuIDs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -574,10 +584,10 @@ func (h *PermissionHandler) AssignMenuToRole(c *gin.Context) {
 }
 
 // GetRoleMenus 获取角色的菜单权限
-func (h *PermissionHandler) GetRoleMenus(c *gin.Context) {
+func (h *RoleMeanHandler) GetRoleMenus(c *gin.Context) {
 	roleID, _ := strconv.Atoi(c.Param("id"))
 
-	menus, err := h.PermissionService.GetRoleMenus(uint(roleID))
+	menus, err := h.RoleMenuService.GetUserMenusByID(uint(roleID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -590,19 +600,18 @@ func (h *PermissionHandler) GetRoleMenus(c *gin.Context) {
 }
 
 // RemoveMenuFromRole 移除角色的菜单权限
-func (h *PermissionHandler) RemoveMenuFromRole(c *gin.Context) {
+func (h *RoleMeanHandler) RemoveMenuFromRole(c *gin.Context) {
 	roleID, _ := strconv.Atoi(c.Param("id"))
 
 	var req struct {
 		MenuIDs []uint `json:"menu_ids" binding:"required"`
 	}
-
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := h.PermissionService.RemoveMenuFromRole(uint(roleID), req.MenuIDs)
+	err := h.RoleMenuService.RemoveMenuFromRole(uint(roleID), req.MenuIDs)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

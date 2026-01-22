@@ -58,6 +58,7 @@ golang后台管理项目/
 用户状态管理
 2.角色管理
 角色创建、编辑、删除
+分配菜单权限
 角色权限分配·角色用户关联
 3.权限管理
 基于RBAC的权限控制
@@ -71,3 +72,6 @@ golang后台管理项目/
 操作日志记录
 系统监控
 数据统计
+
+
+根据/menus/all api获取所有的菜单，根据/roles/:id/menus get接口获取当前角色的菜单，根据 /roles/:id/menus post分配权限，根据 /roles/:id/menus delete删除权限

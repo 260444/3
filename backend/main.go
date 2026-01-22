@@ -57,6 +57,7 @@ func main() {
 	menuRepo := repository.NewMenuRepository(db)
 	operationLogRepo := repository.NewOperationLogRepository(db)
 	permissionRepo := repository.NewPermissionRepository(db)
+	roleMenuRepository := repository.NewRoleMenuRepository(db)
 
 	// 初始化服务层
 	userService := service.NewUserService(userRepo, roleRepo)
@@ -64,6 +65,7 @@ func main() {
 	menuService := service.NewMenuService(menuRepo)
 	operationLogService := service.NewOperationLogService(operationLogRepo)
 	permissionService := service.NewPermissionService(roleRepo, menuRepo, permissionRepo)
+	roleMenuService := service.NewRoleMenuService(roleMenuRepository)
 
 	// 初始化处理器层
 	userHandler := handler.NewUserHandler(userService)
@@ -71,9 +73,10 @@ func main() {
 	menuHandler := handler.NewMenuHandler(menuService)
 	operationLogHandler := handler.NewOperationLogHandler(operationLogService)
 	permissionHandler := handler.NewPermissionHandler(permissionService)
+	roleMenuHandler := handler.NewRoleMeanHandler(roleMenuService)
 
 	// 设置路由
-	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler)
+	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler, roleMenuHandler)
 
 	// 启动服务器
 	port := config.GlobalConfig.Server.Port
