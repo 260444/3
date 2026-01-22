@@ -74,4 +74,4 @@ golang后台管理项目/
 数据统计
 
 
-根据/menus/all api获取所有的菜单，根据/roles/:id/menus get接口获取当前角色的菜单，根据 /roles/:id/menus post分配权限，根据 /roles/:id/menus delete删除权限
+阅读api文档，编写前端页面，不需要测试，角色管理页面操作按钮增加一个分配菜单的选项，点击后弹出表单，根据/menus/all api获取所有的菜单，根据/roles/:id/menus get接口获取当前角色的菜单，勾选提交后 根据 /roles/:id/menus post分配权限，取消勾选根据 /roles/:id/menus delete删除权限

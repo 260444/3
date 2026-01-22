@@ -43,6 +43,6 @@ func (r *RoleMenuRepository) GetRoleMenuByID(roleId uint) (roleMeans []*model.Ro
 		FROM role_menus AS a 
 		LEFT JOIN menus AS b ON a.menu_id = b.id 
 		WHERE a.role_id = ?
-    `).Scan(&roleMeans).Error
+    `, roleId).Scan(&roleMeans).Error
 	return roleMeans, err
 }

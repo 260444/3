@@ -25,3 +25,18 @@ export const updateRole = (id: number, data: any) => {
 export const deleteRole = (id: number) => {
   return request.delete(`/roles/${id}`)
 }
+
+// 获取角色的菜单权限
+export const getRoleMenus = (roleId: number) => {
+  return request.get(`/roles/${roleId}/menus`)
+}
+
+// 为角色分配菜单权限
+export const assignRoleMenus = (roleId: number, menuIds: number[]) => {
+  return request.post(`/roles/${roleId}/menus`, { menu_ids: menuIds })
+}
+
+// 移除角色的菜单权限
+export const removeRoleMenus = (roleId: number, menuIds: number[]) => {
+  return request.delete(`/roles/${roleId}/menus`, { data: { menu_ids: menuIds } })
+}

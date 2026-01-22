@@ -19,10 +19,10 @@
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="创建时间" width="180" />
-        <el-table-column label="操作" width="300">
+        <el-table-column label="操作" width="320">
           <template #default="{ row }">
             <el-button size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button size="small" type="primary" @click="handlePermission(row)">权限</el-button>
+            <el-button size="small" type="primary" @click="handleAssignMenus(row)">分配菜单</el-button>
             <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -65,14 +65,41 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 分配菜单弹窗 -->
+    <el-dialog v-model="menuDialogVisible" :title="`为【${currentRoleName}】分配菜单`" width="600px">
+      <el-tree
+        :data="allMenus"
+        :props="{ children: 'children', label: 'title', value: 'id' }"
+        node-key="id"
+        show-checkbox
+        ref="menuTreeRef"
+        :loading="menuTreeLoading"
+        @check="onMenuCheckChange"
+      >
+        <template #default="{ node, data }">
+          <span class="custom-tree-node">
+            <span>{{ data.title }}</span>
+            <span v-if="data.name" class="menu-name">({{ data.name }})</span>
+          </span>
+        </template>
+      </el-tree>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="menuDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitMenuAssignment">确定分配</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getRoles, createRole, updateRole, deleteRole } from '@/api/role'
+import { getRoles, createRole, updateRole, deleteRole, getRoleMenus, assignRoleMenus, removeRoleMenus } from '@/api/role'
+import { getAllMenus } from '@/api/menu'
 
 const router = useRouter()
 
@@ -87,7 +114,7 @@ const pagination = reactive({
 const roleList = ref<any[]>([])
 const loading = ref(false)
 
-// 弹窗相关
+// 角色编辑弹窗相关
 const dialogVisible = ref(false)
 const dialogTitle = ref('')
 const roleFormRef = ref()
@@ -97,6 +124,15 @@ const roleForm = ref<any>({
   description: '',
   status: 1
 })
+
+// 分配菜单弹窗相关
+const menuDialogVisible = ref(false)
+const currentRoleId = ref(0)
+const currentRoleName = ref('')
+const allMenus = ref<any[]>([])
+const checkedMenuIds = ref<number[]>([])
+const menuTreeLoading = ref(false)
+const menuTreeRef = ref()
 
 // 表单验证规则
 const roleRules = {
@@ -203,12 +239,76 @@ const handleDelete = async (row: any) => {
   }
 }
 
-// 处理权限管理
-const handlePermission = (row: any) => {
-  router.push({
-    name: 'permissions',
-    query: { roleId: row.id, roleName: row.name }
-  })
+// 处理分配菜单
+const handleAssignMenus = async (row: any) => {
+  currentRoleId.value = row.id
+  currentRoleName.value = row.name
+  menuDialogVisible.value = true
+  await loadMenuData()
+}
+
+// 加载菜单数据
+const loadMenuData = async () => {
+  menuTreeLoading.value = true
+  try {
+    // 获取所有菜单
+    const allMenusResponse = await getAllMenus()
+    allMenus.value = allMenusResponse.data
+
+    // 获取当前角色已分配的菜单
+    const roleMenusResponse = await getRoleMenus(currentRoleId.value)
+    checkedMenuIds.value = roleMenusResponse.data.map((item: any) => item.menu_id)
+
+    // 等待DOM更新后设置默认选中状态
+    await nextTick()
+    if (menuTreeRef.value) {
+      menuTreeRef.value.setCheckedKeys(checkedMenuIds.value)
+    }
+  } catch (error) {
+    console.error('加载菜单数据失败:', error)
+    ElMessage.error('加载菜单数据失败')
+  } finally {
+    menuTreeLoading.value = false
+  }
+}
+
+// 提交菜单分配
+const submitMenuAssignment = async () => {
+  try {
+    // 获取当前选中的菜单ID
+    const currentCheckedIds = menuTreeRef.value.getCheckedKeys()
+
+    // 获取当前角色已有的菜单权限
+    const roleMenusResponse = await getRoleMenus(currentRoleId.value)
+    const existingMenuIds = roleMenusResponse.data.map((item: any) => item.menu_id)
+
+    // 计算需要新增的菜单ID
+    const menusToAdd = currentCheckedIds.filter((id: number) => !existingMenuIds.includes(id))
+
+    // 计算需要移除的菜单ID
+    const menusToRemove = existingMenuIds.filter((id: number) => !currentCheckedIds.includes(id))
+
+    // 执行添加操作
+    if (menusToAdd.length > 0) {
+      await assignRoleMenus(currentRoleId.value, menusToAdd)
+    }
+
+    // 执行移除操作
+    if (menusToRemove.length > 0) {
+      await removeRoleMenus(currentRoleId.value, menusToRemove)
+    }
+
+    ElMessage.success('菜单权限分配成功')
+    menuDialogVisible.value = false
+  } catch (error) {
+    console.error('分配菜单权限失败:', error)
+    ElMessage.error('分配菜单权限失败')
+  }
+}
+
+// 菜单选中状态变化处理
+const onMenuCheckChange = () => {
+  checkedMenuIds.value = menuTreeRef.value.getCheckedKeys()
 }
 
 onMounted(() => {
@@ -231,5 +331,20 @@ onMounted(() => {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+.custom-tree-node {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding-right: 8px;
+}
+
+.menu-name {
+  color: #999;
+  font-size: 12px;
+  margin-left: 8px;
 }
 </style>
