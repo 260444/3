@@ -10,7 +10,6 @@ func (RoleMenu) TableName() string {
 }
 
 type RoleMenuRequest struct {
-	RoleID uint   `json:"role_id"`
-	MenuID uint   `json:"menu_id"`
-	Title  string `json:"title"`
+	RoleID uint  `json:"role_id"`
+	MenuID *uint `json:"menu_id"`
 }

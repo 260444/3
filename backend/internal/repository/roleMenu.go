@@ -38,11 +38,10 @@ func (r *RoleMenuRepository) DeleteRoleMenus(roleId uint, roleMeans []uint) erro
 
 // GetRoleMenuByID 根据ID获取记录RoleMenu
 func (r *RoleMenuRepository) GetRoleMenuByID(roleId uint) (roleMeans []*model.RoleMenuRequest, err error) {
-	err = r.DB.Raw(`
-		SELECT a.role_id, a.menu_id, b.title 
-		FROM role_menus AS a 
-		LEFT JOIN menus AS b ON a.menu_id = b.id 
-		WHERE a.role_id = ?
+	err = r.DB.Raw(`SELECT a.id, b.menu_id
+FROM menus AS a
+         LEFT JOIN role_menus AS b ON a.id = b.menu_id
+where (b.role_id = ? or b.menu_id is null)
     `, roleId).Scan(&roleMeans).Error
 	return roleMeans, err
 }

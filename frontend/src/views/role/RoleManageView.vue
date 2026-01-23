@@ -257,7 +257,31 @@ const loadMenuData = async () => {
 
     // 获取当前角色已分配的菜单
     const roleMenusResponse = await getRoleMenus(currentRoleId.value)
-    checkedMenuIds.value = roleMenusResponse.data.map((item: any) => item.menu_id)
+    
+    // 检查响应数据是否为数组，如果为空数组也视为成功
+    if (Array.isArray(roleMenusResponse.data)) {
+      // 根据API返回格式，可能返回的是完整的菜单对象或菜单ID数组
+      if (roleMenusResponse.data.length > 0) {
+        // 如果返回的是完整菜单对象（有id字段），则提取ID
+        if (roleMenusResponse.data[0].id) {
+          checkedMenuIds.value = roleMenusResponse.data.map((item: any) => item.id)
+        } 
+        // 如果返回的是包含menu_id字段的对象
+        else if (roleMenusResponse.data[0].menu_id) {
+          checkedMenuIds.value = roleMenusResponse.data.map((item: any) => item.menu_id)
+        }
+        // 如果返回的是直接的ID数组
+        else {
+          checkedMenuIds.value = roleMenusResponse.data
+        }
+      } else {
+        // 如果返回空数组
+        checkedMenuIds.value = []
+      }
+    } else {
+      // 如果数据不是数组格式，则为空数组
+      checkedMenuIds.value = []
+    }
 
     // 等待DOM更新后设置默认选中状态
     await nextTick()
@@ -280,7 +304,31 @@ const submitMenuAssignment = async () => {
 
     // 获取当前角色已有的菜单权限
     const roleMenusResponse = await getRoleMenus(currentRoleId.value)
-    const existingMenuIds = roleMenusResponse.data.map((item: any) => item.menu_id)
+    let existingMenuIds: number[] = []
+    
+    // 检查响应数据是否为数组，如果为空数组也视为成功
+    if (Array.isArray(roleMenusResponse.data)) {
+      if (roleMenusResponse.data.length > 0) {
+        // 如果返回的是完整菜单对象（有id字段），则提取ID
+        if (roleMenusResponse.data[0].id) {
+          existingMenuIds = roleMenusResponse.data.map((item: any) => item.id)
+        } 
+        // 如果返回的是包含menu_id字段的对象
+        else if (roleMenusResponse.data[0].menu_id) {
+          existingMenuIds = roleMenusResponse.data.map((item: any) => item.menu_id)
+        }
+        // 如果返回的是直接的ID数组
+        else {
+          existingMenuIds = roleMenusResponse.data
+        }
+      } else {
+        // 如果返回空数组
+        existingMenuIds = []
+      }
+    } else {
+      // 如果数据不是数组格式，则为空数组
+      existingMenuIds = []
+    }
 
     // 计算需要新增的菜单ID
     const menusToAdd = currentCheckedIds.filter((id: number) => !existingMenuIds.includes(id))

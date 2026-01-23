@@ -185,7 +185,15 @@ const fetchMenuList = async () => {
 const fetchRoleMenus = async (roleId: number) => {
   try {
     const response: any = await permissionApi.getRoleMenus(roleId)
-    const roleMenus = response.data
+    
+    // 检查响应数据是否为数组，如果为空数组也视为成功
+    let roleMenus: any[] = []
+    if (Array.isArray(response.data)) {
+      roleMenus = response.data
+    } else {
+      // 如果数据不是数组格式，则为空数组
+      roleMenus = []
+    }
 
     // 重置所有菜单的选中状态
     const resetMenuChecked = (menus: any[]) => {
