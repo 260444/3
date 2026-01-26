@@ -4,7 +4,6 @@
 *.dll
 *.so
 *.dylib
-backend
 
 # Test binary, built with `go test -c`
 *.test
@@ -54,3 +53,4 @@ coverage/
 .parcel-cache/
 .eslintcache
 /backend/docker/redis_data/
+AGENTS.md
