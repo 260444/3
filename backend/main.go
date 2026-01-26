@@ -73,7 +73,7 @@ func main() {
 	menuHandler := handler.NewMenuHandler(menuService)
 	operationLogHandler := handler.NewOperationLogHandler(operationLogService)
 	permissionHandler := handler.NewPermissionHandler(permissionService)
-	roleMenuHandler := handler.NewRoleMeanHandler(roleMenuService)
+	roleMenuHandler := handler.NewRoleMenuHandler(roleMenuService)
 
 	// 设置路由
 	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler, roleMenuHandler)

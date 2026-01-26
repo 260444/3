@@ -13,7 +13,7 @@ func SetupRouter(
 	menuHandler *handler.MenuHandler,
 	operationLogHandler *handler.OperationLogHandler,
 	permissionHandler *handler.PermissionHandler,
-	roleMenuHandler *handler.RoleMeanHandler,
+	roleMenuHandler *handler.RoleMenuHandler,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -70,10 +70,9 @@ func SetupRouter(
 		//protected.PUT("/roles/menus", roleMenuHandler.UpdateMenuInRole)
 		protected.DELETE("/roles/:id/menus", roleMenuHandler.RemoveMenuFromRole) // 移除角色的菜单权限
 
-		//protected.POST("/roles/:id/policies", permissionHandler.AddPolicy)      // 添加Casbin策略
-		//protected.DELETE("/roles/:id/policies", permissionHandler.RemovePolicy) // 移除Casbin策略
-		//protected.GET("/roles/:id/policies", permissionHandler.GetPolicies)     // 获取角色的Casbin策略
-		//protected.GET("/policies", permissionHandler.GetAllPolicies)            // 获取所有Casbin策略
+		protected.POST("/roles/:id/policies", permissionHandler.AddPolicy)      // 添加Casbin策略
+		protected.DELETE("/roles/:id/policies", permissionHandler.RemovePolicy) // 移除Casbin策略
+		protected.GET("/roles/:id/policies", permissionHandler.GetPolicies)     // 获取角色的Casbin策略
 
 		// 权限资源管理相关路由
 		protected.POST("/permissions", permissionHandler.CreatePermission)                 // 创建权限

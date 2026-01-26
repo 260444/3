@@ -19,10 +19,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="created_at" label="创建时间" width="180" />
-        <el-table-column label="操作" width="320">
+        <el-table-column label="操作" width="420">
           <template #default="{ row }">
             <el-button size="small" @click="handleEdit(row)">编辑</el-button>
             <el-button size="small" type="primary" @click="handleAssignMenus(row)">分配菜单</el-button>
+            <el-button size="small" type="warning" @click="handleAssignPermissions(row)">分配权限</el-button>
             <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -92,15 +93,62 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 分配权限弹窗 -->
+    <el-dialog v-model="permissionDialogVisible" :title="`为【${currentRoleName}】分配权限`" width="800px">
+      <div class="permission-filter">
+        <el-input
+          v-model="permissionSearch"
+          placeholder="搜索权限路径或描述"
+          clearable
+          style="width: 300px; margin-bottom: 20px;"
+        />
+        <el-button type="primary" @click="loadPermissions">刷新</el-button>
+      </div>
+      
+      <el-table
+        :data="filteredPermissions"
+        v-loading="permissionLoading"
+        ref="permissionTableRef"
+        @selection-change="handlePermissionSelectionChange"
+        max-height="400"
+      >
+        <el-table-column type="selection" width="55" />
+        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="path" label="路径" min-width="150" />
+        <el-table-column prop="method" label="方法" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getMethodType(row.method)">{{ row.method }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="description" label="描述" min-width="150" />
+        <el-table-column label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
+              {{ row.status === 1 ? '正常' : '禁用' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="created_at" label="创建时间" width="180" />
+      </el-table>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="permissionDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitPermissionAssignment" :disabled="selectedPermissions.length === 0">确定分配</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRoles, createRole, updateRole, deleteRole, getRoleMenus, assignRoleMenus, removeRoleMenus } from '@/api/role'
 import { getAllMenus } from '@/api/menu'
+import { getPermissions, getPolicies, addPolicy, removePolicy } from '@/api/permission'
 
 // 从API响应中提取菜单ID的辅助函数
 // 根据API文档，响应格式为: [{"p_id":1,"m_id":null},{"p_id":2,"m_id":[11,12,14]}]
@@ -160,6 +208,30 @@ const allMenus = ref<any[]>([])
 const checkedMenuIds = ref<number[]>([])
 const menuTreeLoading = ref(false)
 const menuTreeRef = ref()
+
+// 分配权限弹窗相关
+const permissionDialogVisible = ref(false)
+const permissionLoading = ref(false)
+const permissions = ref<any[]>([])
+const selectedPermissions = ref<any[]>([])
+const permissionSearch = ref('')
+const permissionTableRef = ref()
+
+// 获取方法类型用于标签显示
+const getMethodType = (method: string) => {
+  switch (method.toUpperCase()) {
+    case 'GET':
+      return 'success'
+    case 'POST':
+      return 'primary'
+    case 'PUT':
+      return 'warning'
+    case 'DELETE':
+      return 'danger'
+    default:
+      return 'info'
+  }
+}
 
 // 表单验证规则
 const roleRules = {
@@ -347,6 +419,107 @@ const onMenuCheckChange = () => {
   checkedMenuIds.value = menuTreeRef.value.getCheckedKeys()
 }
 
+// 处理分配权限
+const handleAssignPermissions = async (row: any) => {
+  currentRoleId.value = row.id
+  currentRoleName.value = row.name
+  permissionDialogVisible.value = true
+  await loadPermissions()
+}
+
+// 加载权限列表
+const loadPermissions = async () => {
+  permissionLoading.value = true
+  try {
+    const params = {
+      page: 1,
+      page_size: 1000 // 获取所有权限
+    }
+    const response = await getPermissions(params)
+    permissions.value = response.data.list || []
+    
+    // 获取当前角色已有的权限策略
+    const policiesResponse = await getPolicies(currentRoleId.value)
+    const existingPolicies = policiesResponse.data || []
+    
+    // 设置已选中的权限
+    await nextTick()
+    if (permissionTableRef.value) {
+      const selectedIds = existingPolicies.map((policy: any) => policy.obj + policy.act)
+      // 根据已有策略设置选中状态
+      permissions.value.forEach(permission => {
+        const permissionKey = permission.path + permission.method
+        if (selectedIds.includes(permissionKey)) {
+          permissionTableRef.value.toggleRowSelection(permission, true)
+        }
+      })
+    }
+  } catch (error) {
+    console.error('加载权限列表失败:', error)
+    ElMessage.error('加载权限列表失败')
+  } finally {
+    permissionLoading.value = false
+  }
+}
+
+// 过滤后的权限列表
+const filteredPermissions = computed(() => {
+  if (!permissionSearch.value) {
+    return permissions.value
+  }
+  return permissions.value.filter(permission => 
+    permission.path.toLowerCase().includes(permissionSearch.value.toLowerCase()) ||
+    (permission.description && permission.description.toLowerCase().includes(permissionSearch.value.toLowerCase()))
+  )
+})
+
+// 处理权限表格选中状态变化
+const handlePermissionSelectionChange = (selection: any[]) => {
+  selectedPermissions.value = selection
+}
+
+// 提交权限分配
+const submitPermissionAssignment = async () => {
+  try {
+    // 获取当前角色已有的权限策略
+    const policiesResponse = await getPolicies(currentRoleId.value)
+    const existingPolicies = policiesResponse.data || []
+    
+    // 当前选中的权限
+    const currentSelected = permissionTableRef.value.getSelectionRows()
+    
+    // 计算需要添加的权限
+    const permissionsToAdd = currentSelected.filter((current: any) => 
+      !existingPolicies.some((existing: any) => 
+        existing.obj === current.path && existing.act === current.method
+      )
+    )
+    
+    // 计算需要移除的权限
+    const permissionsToRemove = existingPolicies.filter((existing: any) => 
+      !currentSelected.some((current: any) => 
+        existing.obj === current.path && existing.act === current.method
+      )
+    )
+    
+    // 执行添加操作
+    for (const permission of permissionsToAdd) {
+      await addPolicy(currentRoleId.value, permission.path, permission.method)
+    }
+    
+    // 执行移除操作
+    for (const policy of permissionsToRemove) {
+      await removePolicy(currentRoleId.value, policy.obj, policy.act)
+    }
+    
+    ElMessage.success('权限分配成功')
+    permissionDialogVisible.value = false
+  } catch (error) {
+    console.error('分配权限失败:', error)
+    ElMessage.error('分配权限失败')
+  }
+}
+
 onMounted(() => {
   getRoleList()
 })
@@ -382,5 +555,12 @@ onMounted(() => {
   color: #999;
   font-size: 12px;
   margin-left: 8px;
+}
+
+.permission-filter {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 </style>

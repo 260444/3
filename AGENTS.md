@@ -2,10 +2,11 @@
 
 ## 项目概述
 
-这是一个基于 Go 语言开发的企业级后台管理系统后端，采用前后端分离架构。系统提供了完整的用户管理、角色管理、权限管理、菜单管理和操作日志功能，使用 RBAC（基于角色的访问控制）模型进行权限管理。
+这是一个全栈企业级后台管理系统，包含前后端分离架构的完整解决方案。系统提供了用户管理、角色管理、菜单管理、权限分配和操作日志等核心功能，使用 RBAC（基于角色的访问控制）模型进行权限管理。
 
-### 核心技术栈
+### 技术栈
 
+**后端技术栈**：
 - **语言**: Go 1.24.12
 - **Web 框架**: Gin
 - **ORM**: GORM
@@ -17,45 +18,65 @@
 - **认证**: JWT (golang-jwt/jwt/v5)
 - **验证码**: base64Captcha
 
+**前端技术栈**：
+- **框架**: Vue 3 (Composition API)
+- **语言**: TypeScript
+- **构建工具**: Vite
+- **UI 组件库**: Element Plus
+- **路由**: Vue Router 4
+- **状态管理**: Pinia
+- **HTTP 客户端**: Axios
+
 ### 项目架构
 
-采用经典的分层架构设计：
+项目采用前后端分离架构，包含以下目录结构：
 
 ```
-├── api/              # API 层
-│   ├── handler/      # HTTP 处理器（处理请求和响应）
-│   ├── middleware/   # 中间件（JWT 认证、CORS、日志）
-│   └── router/       # 路由定义
-├── config/           # 配置管理
-├── internal/         # 内部包，不可被外部引用
-│   ├── model/        # 数据模型定义
-│   ├── repository/   # 数据访问层
-│   └── service/      # 业务逻辑层
-├── pkg/              # 可被外部引用的公共包
-│   ├── cache/        # 缓存相关
-│   ├── casbin/       # 权限管理
-│   ├── database/     # 数据库初始化
-│   ├── logger/       # 日志配置
-│   ├── redis/        # Redis 配置
-│   └── utils/        # 工具函数（JWT、验证码）
-├── docs/             # 项目文档
-├── logs/             # 日志文件
-├── main.go           # 应用入口
-├── go.mod            # Go 模块定义
-└── go.sum            # 依赖锁定文件
+├── backend/          # 后端项目
+│   ├── api/          # API 层
+│   │   ├── handler/  # HTTP 处理器
+│   │   ├── middleware/ # 中间件
+│   │   └── router/   # 路由定义
+│   ├── config/       # 配置管理
+│   ├── internal/     # 内部包
+│   │   ├── model/    # 数据模型
+│   │   ├── repository/ # 数据访问层
+│   │   └── service/  # 业务逻辑层
+│   ├── pkg/          # 可被外部引用的公共包
+│   ├── docs/         # 项目文档
+│   ├── logs/         # 日志文件
+│   ├── main.go       # 应用入口
+│   └── go.mod        # Go 模块定义
+├── frontend/         # 前端项目
+│   ├── src/
+│   │   ├── api/      # API 接口层
+│   │   ├── components/ # 公共组件
+│   │   ├── router/   # 路由配置
+│   │   ├── stores/   # 状态管理
+│   │   ├── utils/    # 工具函数
+│   │   ├── views/    # 页面组件
+│   │   ├── App.vue   # 根组件
+│   │   └── main.ts   # 应用入口
+│   ├── index.html
+│   ├── package.json
+│   ├── tsconfig.json # TypeScript 配置
+│   └── vite.config.ts # Vite 配置
+└── AGENTS.md         # 项目上下文文件
 ```
 
 ## 构建和运行
 
-### 前置条件
+### 后端
+
+#### 前置条件
 
 - Go 1.24.0 或更高版本
 - MySQL 5.7 或更高版本
 - Redis 5.0 或更高版本（可选）
 
-### 配置文件
+#### 配置文件
 
-配置文件位于 `config/config.yaml`，包含以下配置项：
+配置文件位于 `backend/config/config.yaml`，包含以下配置项：
 
 ```yaml
 server:
@@ -82,10 +103,11 @@ jwt:
   timeout: 7200              # Token 过期时间（秒）
 ```
 
-### 构建命令
+#### 构建命令
 
 ```bash
-# 安装依赖
+# 后端
+cd backend
 go mod tidy
 
 # 构建
@@ -98,114 +120,27 @@ go build -o backend main.go
 go run main.go
 ```
 
-### 开发模式
+### 前端
+
+#### 前置条件
+
+- Node.js 16+ (推荐使用 LTS 版本)
+
+#### 构建命令
 
 ```bash
-# 直接运行开发服务器
-go run main.go
-```
+# 前端
+cd frontend
+npm install
 
-### 生产模式
+# 开发模式
+npm run dev
 
-```bash
-# 构建
-go build -ldflags="-s -w" -o backend main.go
+# 生产构建
+npm run build
 
-# 使用 systemd 启动（需要创建服务文件）
-sudo systemctl start golang-backend
-```
-
-## 开发规范
-
-### 命名约定
-
-- **包名**: 小写字母，简洁明了（如 `config`, `model`, `service`）
-- **结构体名**: 驼峰命名，导出结构体首字母大写
-- **接口名**: 通常以 `er` 结尾（如 `UserService`）
-- **函数名**: 导出函数首字母大写，私有函数首字母小写
-- **变量名**: 驼峰命名，首字母小写
-
-### 代码格式
-
-- 使用 `go fmt` 自动格式化代码
-- 每行代码长度不超过 120 个字符
-
-### 分层架构职责
-
-- **Handler 层**: 处理 HTTP 请求和响应，参数验证，调用 Service 层
-- **Service 层**: 业务逻辑处理，事务管理，调用 Repository 层
-- **Repository 层**: 数据访问操作，数据库 CRUD
-- **Model 层**: 数据结构定义，GORM 标签
-- **中间件层**: 请求处理前后的中间件（认证、日志、CORS）
-
-### 数据库规范
-
-- **表名**: 使用复数形式（如 `users`, `roles`, `menus`）
-- **字段名**: 小写蛇形命名（如 `user_name`, `created_at`）
-- **主键**: 使用 `uint` 类型，`gorm:"primaryKey"`
-- **时间戳**: `time.Time` 类型，GORM 自动处理
-- **软删除**: 使用 `gorm.DeletedAt` 类型
-
-### API 设计规范
-
-- 使用 RESTful 风格
-- 路由使用名词复数形式：`/api/v1/users`, `/api/v1/roles`
-- 使用 HTTP 动词表示操作：GET、POST、PUT、DELETE
-- 响应格式统一：
-  ```json
-  {
-    "message": "操作成功",
-    "data": { ... }
-  }
-  ```
-- 错误响应：
-  ```json
-  {
-    "error": "错误信息"
-  }
-  ```
-
-### 错误处理
-
-- 错误信息应清晰明了
-- 使用 `errors.New()` 或 `fmt.Errorf()` 创建错误
-- 统一错误处理格式
-
-### 日志规范
-
-使用 Zap 日志库，输出 JSON 格式日志：
-
-```go
-logger.Logger.Info("用户登录",
-    zap.String("username", username),
-    zap.String("ip", ip),
-)
-```
-
-日志级别：
-- DEBUG: 调试信息
-- INFO: 一般信息
-- WARN: 警告信息
-- ERROR: 错误信息
-- FATAL: 致命错误
-
-### Git 提交规范
-
-- `feat`: 新功能
-- `fix`: 修复 bug
-- `docs`: 文档更新
-- `style`: 代码格式调整
-- `refactor`: 代码重构
-- `test`: 测试相关
-- `chore`: 构建过程或辅助工具的变动
-
-示例：
-```
-feat(user): 添加用户注册功能
-
-- 实现用户注册接口
-- 添加密码加密逻辑
-- 完善错误处理机制
+# 预览生产构建
+npm run preview
 ```
 
 ## 核心功能模块
@@ -238,6 +173,7 @@ feat(user): 添加用户注册功能
 - JWT 认证
 - 中间件权限验证
 - 细粒度权限控制
+- 权限资源管理
 
 ### 5. 操作日志
 
@@ -249,6 +185,156 @@ feat(user): 添加用户注册功能
 
 - 图形验证码生成
 - 登录验证码验证
+
+## 关键API接口
+
+### 菜单权限管理
+
+**获取角色的菜单权限**:
+- `GET /roles/:id/menus`
+- 响应格式：`{"data":[{"p_id":1,"m_id":null},{"p_id":2,"m_id":[11,12,14]}]}`
+- `p_id` 代表父菜单ID，`m_id` 代表该父菜单下的子菜单ID数组
+
+**分配菜单权限**:
+- `POST /roles/:id/menus`
+- 请求体：`{ "menu_ids": [1, 2, 3] }`
+- 为角色分配指定的菜单权限
+
+**移除菜单权限**:
+- `DELETE /roles/:id/menus`
+- 请求体：`{ "menu_ids": [2, 3] }`
+- 移除角色的指定菜单权限
+
+## 开发规范
+
+### 命名约定
+
+- **包名**: 小写字母，简洁明了（如 `config`, `model`, `service`）
+- **结构体名**: 驼峰命名，导出结构体首字母大写
+- **接口名**: 通常以 `er` 结尾（如 `UserService`）
+- **函数名**: 导出函数首字母大写，私有函数首字母小写
+- **变量名**: 驼峰命名，首字母小写
+
+### 代码格式
+
+- 使用 `go fmt` 自动格式化 Go 代码
+- 使用 `npm run lint` 检查前端代码格式
+- 每行代码长度不超过 120 个字符
+
+### 分层架构职责
+
+**后端**:
+- **Handler 层**: 处理 HTTP 请求和响应，参数验证，调用 Service 层
+- **Service 层**: 业务逻辑处理，事务管理，调用 Repository 层
+- **Repository 层**: 数据访问操作，数据库 CRUD
+- **Model 层**: 数据结构定义，GORM 标签
+- **中间件层**: 请求处理前后的中间件（认证、日志、CORS）
+
+**前端**:
+- **API 层**: 与后端 API 交互的封装
+- **Router 层**: 路由配置和守卫
+- **Store 层**: 状态管理（Pinia）
+- **View 层**: 页面组件和业务逻辑
+- **Component 层**: 可复用的 UI 组件
+
+### 数据库规范
+
+- **表名**: 使用复数形式（如 `users`, `roles`, `menus`）
+- **字段名**: 小写蛇形命名（如 `user_name`, `created_at`）
+- **主键**: 使用 `uint` 类型，`gorm:"primaryKey"`
+- **时间戳**: `time.Time` 类型，GORM 自动处理
+- **软删除**: 使用 `gorm.DeletedAt` 类型
+
+### API 设计规范
+
+- 使用 RESTful 风格
+- 路由使用名词复数形式：`/api/v1/users`, `/api/v1/roles`
+- 使用 HTTP 动词表示操作：GET、POST、PUT、DELETE
+- 响应格式统一：
+  ```json
+  {
+    "message": "操作成功",
+    "data": { ... }
+  }
+  ```
+- 错误响应：
+  ```json
+  {
+    "error": "错误信息"
+  }
+  ```
+
+### 前端路由配置
+
+- `/login` - 登录页面
+- `/` - 主布局（包含子路由）
+  - `/dashboard` - 首页
+  - `/users` - 用户管理
+  - `/roles` - 角色管理
+  - `/menus` - 菜单管理
+  - `/operation-logs` - 操作日志
+
+## 前端菜单权限处理
+
+前端在处理菜单权限时有特殊的逻辑：
+
+1. **API响应格式处理**: `GET /roles/:id/menus` 接口返回格式为 `{"data":[{"p_id":1,"m_id":null},{"p_id":2,"m_id":[11,12,14]}]}`
+   - `p_id` 代表父菜单ID
+   - `m_id` 代表该父菜单下的子菜单ID数组或null
+   - 当收到此格式响应时，前端会将 `p_id` 和 `m_id` 中的所有ID都作为选中的菜单ID
+
+2. **菜单选中逻辑**:
+   - 当 `m_id` 为数组时，选中所有子菜单ID
+   - 当 `m_id` 为null时，仍然选中 `p_id` 代表的父菜单
+   - 使用 `check-strictly="true"` 模式，使父菜单和子菜单独立选择，不相互影响
+
+3. **权限提交逻辑**:
+   - 比较当前选中的菜单与角色已有的权限
+   - 计算需要新增和移除的权限差异
+   - 只对发生变化的权限进行操作
+
+## 错误处理
+
+- 错误信息应清晰明了
+- 使用 `errors.New()` 或 `fmt.Errorf()` 创建错误
+- 统一错误处理格式
+
+## 日志规范
+
+后端使用 Zap 日志库，输出 JSON 格式日志：
+
+```go
+logger.Logger.Info("用户登录",
+    zap.String("username", username),
+    zap.String("ip", ip),
+)
+```
+
+日志级别：
+- DEBUG: 调试信息
+- INFO: 一般信息
+- WARN: 警告信息
+- ERROR: 错误信息
+- FATAL: 致命错误
+
+## Git 提交规范
+
+- `feat`: 新功能
+- `fix`: 修复 bug
+- `docs`: 文档更新
+- `style`: 代码格式调整
+- `refactor`: 代码重构
+- `test`: 测试相关
+- `chore`: 构建过程或辅助工具的变动
+
+示例：
+```
+feat(user): 添加用户注册功能
+
+- 实现用户注册接口
+- 添加密码加密逻辑
+- 完善错误处理机制
+```
 
 ## 数据模型
 
@@ -304,47 +390,6 @@ type Menu struct {
 }
 ```
 
-## API 路由
-
-### 公开路由（无需认证）
-
-- `POST /api/v1/login` - 用户登录
-- `POST /api/v1/register` - 用户注册
-- `GET /api/v1/captcha` - 获取验证码
-
-### 受保护路由（需要 JWT 认证）
-
-#### 用户管理
-
-- `GET /api/v1/users` - 获取用户列表
-- `GET /api/v1/users/:id` - 获取用户详情
-- `PUT /api/v1/users/:id` - 更新用户
-- `PUT /api/v1/users/:id/status` - 更新用户状态
-- `DELETE /api/v1/users/:id` - 删除用户
-- `PUT /api/v1/users/change-password` - 修改密码
-
-#### 角色管理
-
-- `POST /api/v1/roles` - 创建角色
-- `GET /api/v1/roles` - 获取角色列表
-- `GET /api/v1/roles/:id` - 获取角色详情
-- `PUT /api/v1/roles/:id` - 更新角色
-- `DELETE /api/v1/roles/:id` - 删除角色
-
-#### 菜单管理
-
-- `POST /api/v1/menus` - 创建菜单
-- `GET /api/v1/menus` - 获取菜单树
-- `GET /api/v1/menus/all` - 获取所有菜单
-- `GET /api/v1/menus/:id` - 获取菜单详情
-- `PUT /api/v1/menus/:id` - 更新菜单
-- `DELETE /api/v1/menus/:id` - 删除菜单
-
-#### 操作日志
-
-- `GET /api/v1/operation-logs` - 获取操作日志列表
-- `DELETE /api/v1/operation-logs/:id` - 删除操作日志
-
 ## 安全规范
 
 ### 输入验证
@@ -371,23 +416,31 @@ type Menu struct {
 ### 单元测试
 
 ```bash
-# 运行所有测试
+# 后端测试
+cd backend
 go test ./...
 
-# 运行特定包的测试
-go test ./internal/service/
-
-# 查看测试覆盖率
-go test -cover ./...
+# 前端测试
+cd frontend
+npm run test
 ```
 
 ### API 测试
 
-使用 Postman 或类似工具测试 API 接口。参考 `docs/API文档.md` 获取详细的接口说明。
+使用 Postman 或类似工具测试 API 接口。参考 `backend/docs/API文档.md` 获取详细的接口说明。
 
 ## 部署
 
-详细部署说明请参考 `docs/部署文档.md`。
+### 开发环境
+
+- 后端运行在 `http://localhost:8080`
+- 前端运行在 `http://localhost:3000`，通过代理转发 API 请求到后端
+
+### 生产环境
+
+- 构建前端项目并部署到静态服务器
+- 后端服务独立部署
+- 配置反向代理（如 Nginx）统一处理请求
 
 ### 生产环境检查清单
 
@@ -399,42 +452,9 @@ go test -cover ./...
 - [ ] 设置数据库备份策略
 - [ ] 配置监控和告警
 
-## 文档
-
-项目文档位于 `docs/` 目录：
-
-- `使用说明.md` - 系统使用指南
-- `开发规范.md` - 编码规范和最佳实践
-- `部署文档.md` - 部署和运维指南
-- `系统架构.md` - 系统架构设计
-- `API文档.md` - API 接口文档
-
-## 常见问题
-
-### 服务无法启动
-
-1. 检查配置文件是否正确
-2. 确认数据库和 Redis 是否正常运行
-3. 检查端口是否被占用
-4. 查看日志文件 `logs/app.log`
-
-### 数据库连接失败
-
-1. 确认 MySQL 服务是否运行
-2. 检查数据库配置是否正确
-3. 确认数据库用户权限
-4. 检查防火墙设置
-
-### Redis 连接失败
-
-- Redis 是可选的，连接失败不会影响系统运行
-- 检查 Redis 配置是否正确
-- 确认 Redis 服务是否运行
-
 ## 项目状态
 
 - **当前版本**: 1.0.0
-- **Go 版本**: 1.24.12
 - **开发状态**: 活跃开发中
 
 ## 联系方式

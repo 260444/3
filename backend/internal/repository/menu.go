@@ -2,7 +2,6 @@ package repository
 
 import (
 	"backend/internal/model"
-	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -112,7 +111,6 @@ func (r *MenuRepository) GetByUserID(userID uint) ([]model.Menu, error) {
 		r.DB.Where("parent_id = ? AND status = ? AND id IN ?", menus[i].ID, 1, menuIDs).
 			Order("sort ASC").
 			Find(&c)
-		fmt.Println("c:", c)
 		menu.Children = c
 		menus[i] = menu
 	}
