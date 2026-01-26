@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/model"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -38,10 +39,32 @@ func (r *RoleMenuRepository) DeleteRoleMenus(roleId uint, roleMeans []uint) erro
 
 // GetRoleMenuByID 根据ID获取记录RoleMenu
 func (r *RoleMenuRepository) GetRoleMenuByID(roleId uint) (roleMeans []*model.RoleMenuRequest, err error) {
-	err = r.DB.Raw(`SELECT a.id, b.menu_id
-FROM menus AS a
-         LEFT JOIN role_menus AS b ON a.id = b.menu_id
-where (b.role_id = ? or b.menu_id is null)
-    `, roleId).Scan(&roleMeans).Error
+
+	var p []uint
+	//查询出有权限的父菜单
+	//select  menu_id from role_menus where role_id=2 and menu_id in (select id from menus where parent_id = 0);
+	err = r.DB.Raw(`SELECT menu_id FROM role_menus WHERE role_id = ? AND menu_id IN (SELECT id FROM menus WHERE parent_id = 0)`, roleId).Scan(&p).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, err
+	}
+
+	// 初始化切片，设置正确的容量
+	roleMeans = make([]*model.RoleMenuRequest, len(p))
+	// 为每个元素分配内存
+	for i := range roleMeans {
+		roleMeans[i] = &model.RoleMenuRequest{}
+	}
+
+	//递归查询出所有子菜单
+	for i, pid := range p {
+		roleMeans[i].PId = pid
+		err = r.DB.Raw(`select  menu_id from role_menus where  role_id= ? and menu_id in (select id from menus where parent_id = ?)`, roleId, pid).Scan(&roleMeans[i].MId).Error
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println("pid", roleMeans[i])
+		fmt.Println("mids", roleMeans[i].MId)
+	}
+
 	return roleMeans, err
 }

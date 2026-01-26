@@ -1302,7 +1302,8 @@ Content-Type: application/json
 **成功响应**:
 ```json
 {
-  "message": "菜单权限分配成功"
+  "message": "菜单权限分配成功",
+  "data":[{"p_id":1,"m_id":null},{"p_id":2,"m_id":[11,12,14]}]
 }
 ```
 
