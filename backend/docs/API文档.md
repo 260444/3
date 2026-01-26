@@ -1303,7 +1303,7 @@ Content-Type: application/json
 ```json
 {
   "message": "菜单权限分配成功",
-  "data":[{"p_id":1,"m_id":null},{"p_id":2,"m_id":[11,12,14]}]
+  
 }
 ```
 
@@ -1332,20 +1332,10 @@ GET /roles/1/menus
 **成功响应**:
 ```json
 {
-  "message": "获取成功",
-  "data": [
-    {
-      "role_id": 2 ,
-      "menu_id" : 1,
-      "title": "控制台"
-    },
-    {
-      "role_id": 2 ,
-      "menu_id" : 2,
-      "title": "系统管理"
-    }
-  ]
+  "message": "菜单权限分配成功",
+  "data":[{"p_id":1,"m_id":null},{"p_id":2,"m_id":[11,12,14]}]
 }
+
 ```
 
 ---

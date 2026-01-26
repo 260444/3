@@ -76,6 +76,7 @@
         ref="menuTreeRef"
         :loading="menuTreeLoading"
         @check="onMenuCheckChange"
+        :check-strictly="true"
       >
         <template #default="{ node, data }">
           <span class="custom-tree-node">
@@ -100,6 +101,32 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRoles, createRole, updateRole, deleteRole, getRoleMenus, assignRoleMenus, removeRoleMenus } from '@/api/role'
 import { getAllMenus } from '@/api/menu'
+
+// 从API响应中提取菜单ID的辅助函数
+// 根据API文档，响应格式为: [{"p_id":1,"m_id":null},{"p_id":2,"m_id":[11,12,14]}]
+// p_id代表父菜单ID，m_id代表该父菜单下的子菜单ID数组
+// 在业务逻辑中，当p_id有分配的子菜单(m_id数组)时，p_id代表的父菜单也应该被选中
+const extractMenuIdsFromResponse = (responseData: any[]): number[] => {
+  let menuIds: number[] = []
+  
+  if (Array.isArray(responseData)) {
+    for (const item of responseData) {
+      // 将父菜单ID添加到选中列表（无论m_id是数组、单个ID还是null）
+      menuIds.push(item.p_id);
+      
+      if (item.m_id && Array.isArray(item.m_id)) {
+        // 如果m_id是数组，则添加所有子菜单ID
+        menuIds = menuIds.concat(item.m_id)
+      } else if (item.m_id !== null && item.m_id !== undefined) {
+        // 如果m_id是单个ID，则添加
+        menuIds.push(item.m_id)
+      }
+      // 注意：即使item.m_id为null，我们已经添加了item.p_id（父菜单）
+    }
+  }
+  
+  return menuIds
+}
 
 const router = useRouter()
 
@@ -258,34 +285,14 @@ const loadMenuData = async () => {
     // 获取当前角色已分配的菜单
     const roleMenusResponse = await getRoleMenus(currentRoleId.value)
     
-    // 检查响应数据是否为数组，如果为空数组也视为成功
-    if (Array.isArray(roleMenusResponse.data)) {
-      // 根据API返回格式，可能返回的是完整的菜单对象或菜单ID数组
-      if (roleMenusResponse.data.length > 0) {
-        // 如果返回的是完整菜单对象（有id字段），则提取ID
-        if (roleMenusResponse.data[0].id) {
-          checkedMenuIds.value = roleMenusResponse.data.map((item: any) => item.id)
-        } 
-        // 如果返回的是包含menu_id字段的对象
-        else if (roleMenusResponse.data[0].menu_id) {
-          checkedMenuIds.value = roleMenusResponse.data.map((item: any) => item.menu_id)
-        }
-        // 如果返回的是直接的ID数组
-        else {
-          checkedMenuIds.value = roleMenusResponse.data
-        }
-      } else {
-        // 如果返回空数组
-        checkedMenuIds.value = []
-      }
-    } else {
-      // 如果数据不是数组格式，则为空数组
-      checkedMenuIds.value = []
-    }
+    // 使用辅助函数从API响应中提取菜单ID
+    const menuIds = extractMenuIdsFromResponse(roleMenusResponse.data)
+    checkedMenuIds.value = menuIds
 
     // 等待DOM更新后设置默认选中状态
     await nextTick()
     if (menuTreeRef.value) {
+      // 使用setCheckedKeys设置选中状态，Tree组件会自动处理父子关系
       menuTreeRef.value.setCheckedKeys(checkedMenuIds.value)
     }
   } catch (error) {
@@ -299,41 +306,22 @@ const loadMenuData = async () => {
 // 提交菜单分配
 const submitMenuAssignment = async () => {
   try {
-    // 获取当前选中的菜单ID
+    // 获取当前完全选中的菜单ID（包括因子菜单选中而自动选中的父菜单）
     const currentCheckedIds = menuTreeRef.value.getCheckedKeys()
-
+    
+    // 获取当前半选中的菜单ID（父菜单，其部分子菜单被选中）
+    // const currentHalfCheckedIds = menuTreeRef.value.getHalfCheckedKeys() || []
+    
     // 获取当前角色已有的菜单权限
     const roleMenusResponse = await getRoleMenus(currentRoleId.value)
-    let existingMenuIds: number[] = []
     
-    // 检查响应数据是否为数组，如果为空数组也视为成功
-    if (Array.isArray(roleMenusResponse.data)) {
-      if (roleMenusResponse.data.length > 0) {
-        // 如果返回的是完整菜单对象（有id字段），则提取ID
-        if (roleMenusResponse.data[0].id) {
-          existingMenuIds = roleMenusResponse.data.map((item: any) => item.id)
-        } 
-        // 如果返回的是包含menu_id字段的对象
-        else if (roleMenusResponse.data[0].menu_id) {
-          existingMenuIds = roleMenusResponse.data.map((item: any) => item.menu_id)
-        }
-        // 如果返回的是直接的ID数组
-        else {
-          existingMenuIds = roleMenusResponse.data
-        }
-      } else {
-        // 如果返回空数组
-        existingMenuIds = []
-      }
-    } else {
-      // 如果数据不是数组格式，则为空数组
-      existingMenuIds = []
-    }
+    // 使用辅助函数从API响应中提取菜单ID
+    const existingMenuIds = extractMenuIdsFromResponse(roleMenusResponse.data)
 
-    // 计算需要新增的菜单ID
+    // 计算需要新增的菜单ID（用户新选择的）
     const menusToAdd = currentCheckedIds.filter((id: number) => !existingMenuIds.includes(id))
 
-    // 计算需要移除的菜单ID
+    // 计算需要移除的菜单ID（用户取消选择的）
     const menusToRemove = existingMenuIds.filter((id: number) => !currentCheckedIds.includes(id))
 
     // 执行添加操作
