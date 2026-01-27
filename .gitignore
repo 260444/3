@@ -52,4 +52,6 @@ coverage/
 .cache/
 .parcel-cache/
 .eslintcache
+
 /backend/docker/redis_data/
+/backend/docker/mysql_data/
