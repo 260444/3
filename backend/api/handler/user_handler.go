@@ -26,7 +26,6 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		Password string `json:"password" binding:"required"`
 		Email    string `json:"email"`
 		Nickname string `json:"nickname"`
-		RoleID   uint   `json:"role_id"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -34,7 +33,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	user, err := h.UserService.CreateUser(req.Username, req.Password, req.Email, req.Nickname, req.RoleID)
+	user, err := h.UserService.CreateUser(req.Username, req.Password, req.Email, req.Nickname)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -43,6 +42,68 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "用户创建成功",
 		"data":    user,
+	})
+}
+
+// AssignRole 为用户分配角色
+func (h *UserHandler) AssignRole(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("id"))
+	var req struct {
+		RoleIdent string `json:"role_ident" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.UserService.AddRoleForUser(uint(userID), req.RoleIdent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "角色分配成功",
+	})
+}
+
+// GetUserRoles 获取用户的角色列表
+func (h *UserHandler) GetUserRoles(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("id"))
+
+	roles, err := h.UserService.GetUserRoles(uint(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "获取成功",
+		"data":    roles,
+	})
+}
+
+// RemoveRole 移除用户的角色
+func (h *UserHandler) RemoveRole(c *gin.Context) {
+	userID, _ := strconv.Atoi(c.Param("id"))
+	var req struct {
+		RoleIdent string `json:"role_ident" binding:"required"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	err := h.UserService.RemoveRoleForUser(uint(userID), req.RoleIdent)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "角色移除成功",
 	})
 }
 

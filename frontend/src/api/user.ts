@@ -55,3 +55,18 @@ export const resetPassword = (id: number, newPassword: string) => {
 export const logout = () => {
   return request.post('/logout')
 }
+
+// 为用户分配角色
+export const assignRole = (userId: number, roleIdent: string) => {
+  return request.post(`/users/${userId}/roles`, { role_ident: roleIdent })
+}
+
+// 移除用户的角色
+export const removeRole = (userId: number, roleIdent: string) => {
+  return request.delete(`/users/${userId}/roles`, { data: { role_ident: roleIdent } })
+}
+
+// 获取用户的角色列表
+export const getUserRoles = (userId: number) => {
+  return request.get(`/users/${userId}/roles`)
+}

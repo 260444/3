@@ -25,7 +25,6 @@
         <el-table-column prop="nickname" label="昵称" />
         <el-table-column prop="email" label="邮箱" />
         <el-table-column prop="phone" label="手机号" />
-        <el-table-column prop="role.name" label="角色" />
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'">
@@ -34,10 +33,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="last_login_at" label="最后登录时间" />
-        <el-table-column label="操作" width="300">
+        <el-table-column label="操作" width="420">
           <template #default="{ row }">
             <el-button size="small" @click="handleEdit(row)">编辑</el-button>
             <el-button size="small" type="warning" @click="handleResetPassword(row)">重置密码</el-button>
+            <el-button size="small" type="primary" @click="handleAssignRoles(row)">分配角色</el-button>
             <el-button 
               size="small" 
               :type="row.status === 1 ? 'danger' : 'success'" 
@@ -78,16 +78,6 @@
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="userForm.phone" />
-        </el-form-item>
-        <el-form-item label="角色" prop="role_id">
-          <el-select v-model="userForm.role_id" placeholder="请选择角色">
-            <el-option
-              v-for="role in roleList"
-              :key="role.id"
-              :label="role.name"
-              :value="role.id"
-            />
-          </el-select>
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="userForm.status">
@@ -147,13 +137,32 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- 分配角色弹窗 -->
+    <el-dialog v-model="roleDialogVisible" :title="`为【${currentUsername}】分配角色`" width="500px">
+      <el-radio-group v-model="selectedRoleIdent">
+        <el-radio 
+          v-for="role in roleList" 
+          :key="role.id" 
+          :label="role.ident"
+        >
+          {{ role.name }} ({{ role.ident }})
+        </el-radio>
+      </el-radio-group>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="roleDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="confirmAssignRoles">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getUsers, createUser, updateUser, deleteUser, updateUserStatus, resetPassword } from '@/api/user'
+import { getUsers, createUser, updateUser, deleteUser, updateUserStatus, resetPassword, getUserRoles, assignRole, removeRole } from '@/api/user'
 import { getRoles } from '@/api/role'
 
 // 搜索表单
@@ -183,13 +192,19 @@ const userForm = ref<any>({
   nickname: '',
   email: '',
   phone: '',
-  role_id: undefined,
   status: 1,
   password: ''
 })
 
 // 角色列表
 const roleList = ref<any[]>([])
+
+// 分配角色相关
+const roleDialogVisible = ref(false)
+const currentUserId = ref(0)
+const currentUsername = ref('')
+const selectedRoleIdent = ref<string>('')
+const originalRoleIdent = ref<string>('')
 
 // 重置密码弹窗相关
 const resetPasswordVisible = ref(false)
@@ -306,7 +321,6 @@ const handleAdd = () => {
     nickname: '',
     email: '',
     phone: '',
-    role_id: undefined,
     status: 1,
     password: ''
   }
@@ -362,6 +376,51 @@ const handleDelete = async (row: any) => {
       console.error('删除用户失败:', error)
       ElMessage.error('删除失败')
     }
+  }
+}
+
+// 处理分配角色
+const handleAssignRoles = async (row: any) => {
+  currentUserId.value = row.id
+  currentUsername.value = row.username
+  roleDialogVisible.value = true
+  
+  try {
+    const response = await getUserRoles(row.id)
+    const roles = response.data || []
+    // 既然改为单选，我们只取第一个角色（如果存在），或者空
+    selectedRoleIdent.value = roles.length > 0 ? roles[0] : ''
+    originalRoleIdent.value = selectedRoleIdent.value
+  } catch (error) {
+    console.error('获取用户角色失败:', error)
+    ElMessage.error('获取用户角色失败')
+  }
+}
+
+// 确认分配角色
+const confirmAssignRoles = async () => {
+  try {
+    // 如果没有变化，直接关闭
+    if (selectedRoleIdent.value === originalRoleIdent.value) {
+      roleDialogVisible.value = false
+      return
+    }
+
+    // 如果原先有角色，先移除
+    if (originalRoleIdent.value) {
+      await removeRole(currentUserId.value, originalRoleIdent.value)
+    }
+
+    // 如果新选了角色，则添加
+    if (selectedRoleIdent.value) {
+      await assignRole(currentUserId.value, selectedRoleIdent.value)
+    }
+
+    ElMessage.success('角色分配成功')
+    roleDialogVisible.value = false
+  } catch (error) {
+    console.error('分配角色失败:', error)
+    ElMessage.error('分配角色失败')
   }
 }
 

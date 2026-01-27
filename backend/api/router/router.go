@@ -4,6 +4,7 @@ import (
 	"backend/api/handler"
 	"backend/api/middleware"
 	"backend/pkg/utils"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -44,6 +45,9 @@ func SetupRouter(
 		protected.DELETE("/users/:id", userHandler.DeleteUser)
 		protected.PUT("/users/change-password", userHandler.ChangePassword)
 		protected.PUT("/users/:id/reset-password", userHandler.ResetPassword)
+		protected.POST("/users/:id/roles", userHandler.AssignRole)   // 为用户分配角色
+		protected.DELETE("/users/:id/roles", userHandler.RemoveRole) // 移除用户的角色
+		protected.GET("/users/:id/roles", userHandler.GetUserRoles)  // 获取用户的角色列表
 
 		// 角色相关路由
 		protected.POST("/roles", roleHandler.CreateRole)

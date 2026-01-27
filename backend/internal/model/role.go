@@ -7,7 +7,6 @@ type Role struct {
 	Ident       string `gorm:"uniqueIndex;size:50;not null" json:"ident"`
 	Description string `gorm:"size:255" json:"description"`
 	Status      int    `gorm:"default:1" json:"status"` // 1: 正常, 0: 禁用
-	Users       []User `gorm:"foreignKey:RoleID" json:"users"`
 	Menus       []Menu `gorm:"many2many:role_menus;" json:"menus"`
 }
 

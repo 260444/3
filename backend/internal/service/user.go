@@ -3,9 +3,12 @@ package service
 import (
 	"backend/internal/model"
 	"backend/internal/repository"
+	"backend/pkg/casbin"
 	"errors"
-	"golang.org/x/crypto/bcrypt"
+	"fmt"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // UserService 用户服务
@@ -23,7 +26,7 @@ func NewUserService(userRepo *repository.UserRepository, roleRepo *repository.Ro
 }
 
 // CreateUser 创建用户
-func (s *UserService) CreateUser(username, password, email, nickname string, roleID uint) (*model.User, error) {
+func (s *UserService) CreateUser(username, password, email, nickname string) (*model.User, error) {
 	// 检查用户名是否已存在
 	existingUser, err := s.UserRepo.GetByUsername(username)
 
@@ -39,14 +42,6 @@ func (s *UserService) CreateUser(username, password, email, nickname string, rol
 		}
 	}
 
-	// 验证角色是否存在
-	if roleID > 0 {
-		_, err = s.RoleRepo.GetByID(roleID)
-		if err != nil {
-			return nil, errors.New("角色不存在")
-		}
-	}
-
 	// 加密密码
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -58,7 +53,6 @@ func (s *UserService) CreateUser(username, password, email, nickname string, rol
 		Password: string(hashedPassword),
 		Email:    email,
 		Nickname: nickname,
-		RoleID:   roleID,
 		Status:   1, // 默认启用
 	}
 
@@ -113,7 +107,6 @@ func (s *UserService) UpdateUser(id uint, user *model.User) error {
 	existingUser.Nickname = user.Nickname
 	existingUser.Phone = user.Phone
 	existingUser.Avatar = user.Avatar
-	existingUser.RoleID = user.RoleID
 
 	return s.UserRepo.Update(existingUser)
 }
@@ -136,6 +129,46 @@ func (s *UserService) ChangePassword(id uint, oldPassword, newPassword string) e
 	}
 
 	return s.UserRepo.UpdatePassword(id, string(hashedPassword))
+}
+
+// AddRoleForUser 为用户分配角色
+func (s *UserService) AddRoleForUser(userID uint, roleIdent string) error {
+	user, err := s.UserRepo.GetByID(userID)
+	if err != nil {
+		return errors.New("用户不存在")
+	}
+
+	// 构造 Casbin 的 subject，例如 user_1
+	sub := fmt.Sprintf("user_%d", user.ID)
+	// 将用户添加到角色组 (g policy)
+	// g, user_1, role_admin
+	_, err = casbin.Enforcer.AddGroupingPolicy(sub, roleIdent)
+	return err
+}
+
+// RemoveRoleForUser 移除用户的角色
+func (s *UserService) RemoveRoleForUser(userID uint, roleIdent string) error {
+	user, err := s.UserRepo.GetByID(userID)
+	if err != nil {
+		return errors.New("用户不存在")
+	}
+
+	sub := fmt.Sprintf("user_%d", user.ID)
+	_, err = casbin.Enforcer.RemoveGroupingPolicy(sub, roleIdent)
+	return err
+}
+
+// GetUserRoles 获取用户的角色列表
+func (s *UserService) GetUserRoles(userID uint) ([]string, error) {
+	user, err := s.UserRepo.GetByID(userID)
+	if err != nil {
+		return nil, errors.New("用户不存在")
+	}
+
+	sub := fmt.Sprintf("user_%d", user.ID)
+	// 获取用户的所有角色 (g policy 中的第二项)
+	roles, err := casbin.Enforcer.GetRolesForUser(sub)
+	return roles, err
 }
 
 // UpdateUserStatus 更新用户状态

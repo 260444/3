@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/model"
+
 	"gorm.io/gorm"
 )
 
@@ -23,21 +24,21 @@ func (r *UserRepository) Create(user *model.User) error {
 // GetByID 根据ID获取用户
 func (r *UserRepository) GetByID(id uint) (*model.User, error) {
 	var user model.User
-	err := r.DB.Preload("Role").First(&user, id).Error
+	err := r.DB.First(&user, id).Error
 	return &user, err
 }
 
 // GetByUsername 根据用户名获取用户
 func (r *UserRepository) GetByUsername(username string) (*model.User, error) {
 	var user model.User
-	err := r.DB.Preload("Role").Where("username = ?", username).First(&user).Error
+	err := r.DB.Where("username = ?", username).First(&user).Error
 	return &user, err
 }
 
 // GetByEmail 根据邮箱获取用户
 func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
 	var user model.User
-	err := r.DB.Preload("Role").Where("email = ?", email).First(&user).Error
+	err := r.DB.Where("email = ?", email).First(&user).Error
 	return &user, err
 }
 
@@ -54,7 +55,7 @@ func (r *UserRepository) Delete(id uint) error {
 // List 获取用户列表
 func (r *UserRepository) List(limit, offset int) ([]model.User, error) {
 	var users []model.User
-	err := r.DB.Offset(offset).Limit(limit).Preload("Role").Find(&users).Error
+	err := r.DB.Offset(offset).Limit(limit).Find(&users).Error
 	return users, err
 }
 
