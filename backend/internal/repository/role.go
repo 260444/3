@@ -57,3 +57,10 @@ func (r *RoleRepository) GetTotal() (int64, error) {
 	err := r.DB.Model(&model.Role{}).Count(&count).Error
 	return count, err
 }
+
+// GetIdent 根据ID获取角色标识
+func (r *RoleRepository) GetIdent(id uint) (string, error) {
+	var role model.Role
+	err := r.DB.Select("ident").First(&role, id).Error
+	return role.Ident, err
+}

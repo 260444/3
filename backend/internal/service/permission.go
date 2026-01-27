@@ -74,7 +74,14 @@ func (s *PermissionService) GetRoleMenus(roleID uint) ([]model.Menu, error) {
 
 // AddPolicy 添加Casbin策略
 func (s *PermissionService) AddPolicy(roleID uint, path, method string) error {
-	sub := fmt.Sprintf("role_%d", roleID)
+	ident, err := s.RoleRepo.GetIdent(roleID)
+	if err != nil {
+		return err
+	}
+	if ident == "" {
+		return fmt.Errorf("role identifier is missing")
+	}
+	sub := ident
 	policy, err := casbin.Enforcer.AddPolicy(sub, path, method)
 	fmt.Println("policy:", policy)
 	if err != nil {
@@ -85,7 +92,14 @@ func (s *PermissionService) AddPolicy(roleID uint, path, method string) error {
 
 // RemovePolicy 移除Casbin策略
 func (s *PermissionService) RemovePolicy(roleID uint, path, method string) error {
-	sub := fmt.Sprintf("role_%d", roleID)
+	ident, err := s.RoleRepo.GetIdent(roleID)
+	if err != nil {
+		return err
+	}
+	if ident == "" {
+		return fmt.Errorf("role identifier is missing")
+	}
+	sub := ident
 	policy, err := casbin.Enforcer.RemovePolicy(sub, path, method)
 	fmt.Println("policy:", policy)
 	if err != nil {
@@ -96,7 +110,11 @@ func (s *PermissionService) RemovePolicy(roleID uint, path, method string) error
 
 // GetPolicies 获取角色的所有Casbin策略
 func (s *PermissionService) GetPolicies(roleID uint) ([][]string, error) {
-	sub := fmt.Sprintf("role_%d", roleID)
+	ident, err := s.RoleRepo.GetIdent(roleID)
+	if err != nil {
+		return nil, err
+	}
+	sub := ident
 	return casbin.Enforcer.GetFilteredPolicy(0, sub)
 }
 

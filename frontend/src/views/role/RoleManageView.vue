@@ -512,7 +512,16 @@ const submitPermissionAssignment = async () => {
     
     // 执行添加操作
     for (const permission of permissionsToAdd) {
-      await addPolicy(currentRoleId.value, permission.path, permission.method)
+      // 兼容可能的大小写问题
+      const path = permission.path || permission.Path
+      const method = permission.method || permission.Method
+      
+      if (!path || !method) {
+        console.error('权限数据不完整，跳过:', permission)
+        continue
+      }
+      
+      await addPolicy(currentRoleId.value, path, method)
     }
     
     // 执行移除操作

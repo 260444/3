@@ -80,9 +80,26 @@ func (h *PermissionHandler) GetPolicies(c *gin.Context) {
 		return
 	}
 
+	type CasbinPolicy struct {
+		Sub string `json:"sub"`
+		Obj string `json:"obj"`
+		Act string `json:"act"`
+	}
+
+	var result []CasbinPolicy
+	for _, p := range policies {
+		if len(p) >= 3 {
+			result = append(result, CasbinPolicy{
+				Sub: p[0],
+				Obj: p[1],
+				Act: p[2],
+			})
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "获取成功",
-		"data":    policies,
+		"data":    result,
 	})
 }
 
@@ -94,9 +111,26 @@ func (h *PermissionHandler) GetAllPolicies(c *gin.Context) {
 		return
 	}
 
+	type CasbinPolicy struct {
+		Sub string `json:"sub"`
+		Obj string `json:"obj"`
+		Act string `json:"act"`
+	}
+
+	var result []CasbinPolicy
+	for _, p := range policies {
+		if len(p) >= 3 {
+			result = append(result, CasbinPolicy{
+				Sub: p[0],
+				Obj: p[1],
+				Act: p[2],
+			})
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "获取成功",
-		"data":    policies,
+		"data":    result,
 	})
 }
 
