@@ -64,3 +64,10 @@ func (r *RoleRepository) GetIdent(id uint) (string, error) {
 	err := r.DB.Select("ident").First(&role, id).Error
 	return role.Ident, err
 }
+
+// GetByIdent 根据Ident获取角色
+func (r *RoleRepository) GetByIdent(ident string) (*model.Role, error) {
+	var role model.Role
+	err := r.DB.Where("ident = ?", ident).First(&role).Error
+	return &role, err
+}

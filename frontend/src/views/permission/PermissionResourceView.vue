@@ -13,7 +13,7 @@
           <el-form-item label="路径">
             <el-input v-model="searchForm.path" placeholder="请输入路径" clearable />
           </el-form-item>
-          <el-form-item label="方法">
+          <el-form-item label="方法" style="min-width: 220px;">
             <el-select v-model="searchForm.method" placeholder="请选择方法" clearable>
               <el-option label="GET" value="GET" />
               <el-option label="POST" value="POST" />
@@ -169,10 +169,13 @@ const permissionRules = ref<FormRules>({
 const fetchPermissions = async () => {
   loading.value = true
   try {
-    const response: any = await permissionApi.getPermissions({
+    const params = {
       page: currentPage.value,
-      page_size: pageSize.value
-    })
+      page_size: pageSize.value,
+      path: searchForm.value.path || undefined,
+      method: searchForm.value.method || undefined
+    }
+    const response: any = await permissionApi.getPermissions(params)
     permissionList.value = response.data.list
     total.value = response.data.total
   } catch (error) {

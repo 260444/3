@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/model"
+
 	"gorm.io/gorm"
 )
 
@@ -21,33 +22,11 @@ func (r *MenuRepository) Create(menu *model.Menu) error {
 }
 
 // GetByID 根据ID获取菜单
-func (r *MenuRepository) GetByID(id uint) (*model.Menu, error) {
-	var menu model.Menu
-	err := r.DB.Preload("Children").First(&menu, id).Error
-	return &menu, err
-}
-
-// GetByParentID 根据父级ID获取菜单列表
-//func (r *MenuRepository) GetByParentID(parentID *uint) ([]model.Menu, error) {
-//	var menus []model.Menu
-//	query := r.DB.Where("status = ?", 1)
-//	if parentID != nil {
-//		query = query.Where("parent_id = ?", *parentID)
-//	} else {
-//		query = query.Where("parent_id IS NULL")
-//	}
-//	err := query.Order("sort ASC").Find(&menus).Error
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	// 递归加载子菜单
-//	for i := range menus {
-//		r.loadAllChildren(&menus[i])
-//	}
-//
-//	return menus, nil
-//}
+// func (r *MenuRepository) GetByID(id uint) (*model.Menu, error) {
+// 	var menu model.Menu
+// 	err := r.DB.Preload("Children").First(&menu, id).Error
+// 	return &menu, err
+// }
 
 // GetAll 递归加载所有子菜单（用于菜单管理）
 func (r *MenuRepository) GetAll() ([]model.Menu, error) {

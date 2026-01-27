@@ -174,6 +174,8 @@ func (h *PermissionHandler) GetPermission(c *gin.Context) {
 func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
+	path := c.Query("path")
+	method := c.Query("method")
 
 	if page < 1 {
 		page = 1
@@ -184,13 +186,13 @@ func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 
 	offset := (page - 1) * pageSize
 
-	permissions, err := h.PermissionService.GetPermissions(pageSize, offset)
+	permissions, err := h.PermissionService.GetPermissions(pageSize, offset, path, method)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	total, err := h.PermissionService.GetPermissionTotal()
+	total, err := h.PermissionService.GetPermissionTotal(path, method)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -259,3 +261,25 @@ func (h *PermissionHandler) DeletePermission(c *gin.Context) {
 		"message": "删除成功",
 	})
 }
+
+// GetPermissionByPathAndMethod 根据路径和方法获取权限详情
+// func (h *PermissionHandler) GetPermissionByPathAndMethod(c *gin.Context) {
+// 	path := c.Query("path")
+// 	method := c.Query("method")
+
+// 	if path == "" || method == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "path and method are required"})
+// 		return
+// 	}
+
+// 	permission, err := h.PermissionService.GetPermissionByPathAndMethod(path, method)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message": "获取成功",
+// 		"data":    permission,
+// 	})
+// }

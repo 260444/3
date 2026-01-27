@@ -9,7 +9,6 @@ import UserManageView from '@/views/user/UserManageView.vue'
 import RoleManageView from '@/views/role/RoleManageView.vue'
 import MenuManageView from '@/views/menu/MenuManageView.vue'
 import OperationLogView from '@/views/OperationLogView.vue'
-import PermissionManageView from '@/views/permission/PermissionManageView.vue'
 import PermissionResourceView from '@/views/permission/PermissionResourceView.vue'
 
 // 静态路由（不需要权限）
@@ -40,7 +39,6 @@ const componentMap: Record<string, any> = {
   'RoleManageView': RoleManageView,
   'MenuManageView': MenuManageView,
   'OperationLogView': OperationLogView,
-  'PermissionManageView': PermissionManageView,
   'PermissionResourceView': PermissionResourceView
 }
 

@@ -386,7 +386,7 @@ const handleAssignRoles = async (row: any) => {
   roleDialogVisible.value = true
   
   try {
-    const response = await getUserRoles(row.id)
+    const response = await getUserRoles(row.username)
     const roles = response.data || []
     // 既然改为单选，我们只取第一个角色（如果存在），或者空
     selectedRoleIdent.value = roles.length > 0 ? roles[0] : ''
@@ -408,12 +408,12 @@ const confirmAssignRoles = async () => {
 
     // 如果原先有角色，先移除
     if (originalRoleIdent.value) {
-      await removeRole(currentUserId.value, originalRoleIdent.value)
+      await removeRole(currentUsername.value, originalRoleIdent.value)
     }
 
     // 如果新选了角色，则添加
     if (selectedRoleIdent.value) {
-      await assignRole(currentUserId.value, selectedRoleIdent.value)
+      await assignRole(currentUsername.value, selectedRoleIdent.value)
     }
 
     ElMessage.success('角色分配成功')

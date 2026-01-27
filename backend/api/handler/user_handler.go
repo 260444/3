@@ -47,7 +47,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 // AssignRole 为用户分配角色
 func (h *UserHandler) AssignRole(c *gin.Context) {
-	userID, _ := strconv.Atoi(c.Param("id"))
+	username := c.Param("username")
 	var req struct {
 		RoleIdent string `json:"role_ident" binding:"required"`
 	}
@@ -57,7 +57,7 @@ func (h *UserHandler) AssignRole(c *gin.Context) {
 		return
 	}
 
-	err := h.UserService.AddRoleForUser(uint(userID), req.RoleIdent)
+	err := h.UserService.AddRoleForUser(username, req.RoleIdent)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -70,9 +70,9 @@ func (h *UserHandler) AssignRole(c *gin.Context) {
 
 // GetUserRoles 获取用户的角色列表
 func (h *UserHandler) GetUserRoles(c *gin.Context) {
-	userID, _ := strconv.Atoi(c.Param("id"))
+	username := c.Param("username")
 
-	roles, err := h.UserService.GetUserRoles(uint(userID))
+	roles, err := h.UserService.GetUserRoles(username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -86,7 +86,7 @@ func (h *UserHandler) GetUserRoles(c *gin.Context) {
 
 // RemoveRole 移除用户的角色
 func (h *UserHandler) RemoveRole(c *gin.Context) {
-	userID, _ := strconv.Atoi(c.Param("id"))
+	username := c.Param("username")
 	var req struct {
 		RoleIdent string `json:"role_ident" binding:"required"`
 	}
@@ -96,7 +96,7 @@ func (h *UserHandler) RemoveRole(c *gin.Context) {
 		return
 	}
 
-	err := h.UserService.RemoveRoleForUser(uint(userID), req.RoleIdent)
+	err := h.UserService.RemoveRoleForUser(username, req.RoleIdent)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

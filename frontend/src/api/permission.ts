@@ -45,13 +45,18 @@ export const createPermission = (data: { path: string; method: string; descripti
 }
 
 // 获取权限列表
-export const getPermissions = (params?: { page?: number; page_size?: number }) => {
+export const getPermissions = (params?: { page?: number; page_size?: number; path?: string; method?: string }) => {
   return request.get('/permissions', { params })
 }
 
 // 获取权限详情
 export const getPermission = (id: number) => {
   return request.get(`/permissions/${id}`)
+}
+
+// 根据路径和方法获取权限详情
+export const getPermissionByPathAndMethod = (path: string, method: string) => {
+  return request.get('/permissions/detail', { params: { path, method } })
 }
 
 // 更新权限

@@ -16,6 +16,7 @@ type User struct {
 	Status      int        `gorm:"default:1" json:"status"` // 1: 正常, 0: 禁用
 	LastLoginAt *time.Time `json:"last_login_at"`
 	LastLoginIP string     `gorm:"size:45" json:"last_login_ip"`
+	RoleID      *uint      `json:"role_id"`
 }
 
 // TableName 指定表名

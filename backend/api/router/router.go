@@ -45,9 +45,11 @@ func SetupRouter(
 		protected.DELETE("/users/:id", userHandler.DeleteUser)
 		protected.PUT("/users/change-password", userHandler.ChangePassword)
 		protected.PUT("/users/:id/reset-password", userHandler.ResetPassword)
-		protected.POST("/users/:id/roles", userHandler.AssignRole)   // 为用户分配角色
-		protected.DELETE("/users/:id/roles", userHandler.RemoveRole) // 移除用户的角色
-		protected.GET("/users/:id/roles", userHandler.GetUserRoles)  // 获取用户的角色列表
+
+		// 角色分配相关路由
+		protected.POST("/users-roles/:username", userHandler.AssignRole)   // 为用户分配角色
+		protected.DELETE("/users-roles/:username", userHandler.RemoveRole) // 移除用户的角色
+		protected.GET("/users-roles/:username", userHandler.GetUserRoles)  // 获取用户的角色列表
 
 		// 角色相关路由
 		protected.POST("/roles", roleHandler.CreateRole)
@@ -58,9 +60,10 @@ func SetupRouter(
 
 		// 菜单相关路由
 		protected.POST("/menus", menuHandler.CreateMenu)
+		// 查询用户可见菜单（包含子菜单）
 		protected.GET("/menus", menuHandler.GetUserMenus)
+		// 查询所有菜单（包含子菜单）
 		protected.GET("/menus/all", menuHandler.GetAllMenus)
-		//protected.GET("/menus/:id", menuHandler.GetMenu)
 		protected.PUT("/menus/:id", menuHandler.UpdateMenu)
 		protected.DELETE("/menus/:id", menuHandler.DeleteMenu)
 
@@ -68,19 +71,20 @@ func SetupRouter(
 		//protected.GET("/operation-logs", operationLogHandler.GetOperationLogs)
 		//protected.DELETE("/operation-logs/:id", operationLogHandler.DeleteOperationLog)
 
-		// 权限管理相关路由
+		// 分配菜单管理相关路由
 		protected.POST("/roles/:id/menus", roleMenuHandler.AssignMenuToRole) // 为角色分配菜单权限
 		protected.GET("/roles/:id/menus", roleMenuHandler.GetRoleMenus)      // 获取角色的菜单权限
-		//protected.PUT("/roles/menus", roleMenuHandler.UpdateMenuInRole)
+		// protected.PUT("/roles/menus", roleMenuHandler.UpdateMenuInRole)
 		protected.DELETE("/roles/:id/menus", roleMenuHandler.RemoveMenuFromRole) // 移除角色的菜单权限
 
+		// 分配权限资源管理相关路由
 		protected.POST("/roles/:id/policies", permissionHandler.AddPolicy)      // 添加Casbin策略
 		protected.DELETE("/roles/:id/policies", permissionHandler.RemovePolicy) // 移除Casbin策略
 		protected.GET("/roles/:id/policies", permissionHandler.GetPolicies)     // 获取角色的Casbin策略
 
 		// 权限资源管理相关路由
 		protected.POST("/permissions", permissionHandler.CreatePermission)                 // 创建权限
-		protected.GET("/permissions", permissionHandler.GetPermissions)                    // 获取权限列表
+		protected.GET("/permissions", permissionHandler.GetPermissions)                    // 获取权限列表s
 		protected.GET("/permissions/:id", permissionHandler.GetPermission)                 // 获取权限详情
 		protected.PUT("/permissions/:id", permissionHandler.UpdatePermission)              // 更新权限
 		protected.PUT("/permissions/:id/status", permissionHandler.UpdatePermissionStatus) // 更新权限状态

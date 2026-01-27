@@ -5,7 +5,6 @@ import (
 	"backend/internal/repository"
 	"backend/pkg/casbin"
 	"errors"
-	"fmt"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -132,40 +131,69 @@ func (s *UserService) ChangePassword(id uint, oldPassword, newPassword string) e
 }
 
 // AddRoleForUser 为用户分配角色
-func (s *UserService) AddRoleForUser(userID uint, roleIdent string) error {
-	user, err := s.UserRepo.GetByID(userID)
+func (s *UserService) AddRoleForUser(username string, roleIdent string) error {
+	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
+		return err // 假设 GetByUsername 出错会返回错误
+	}
+	if user.ID == 0 {
 		return errors.New("用户不存在")
 	}
 
-	// 构造 Casbin 的 subject，例如 user_1
-	sub := fmt.Sprintf("user_%d", user.ID)
+	// 构造 Casbin 的 subject，直接使用 username
+	sub := user.Username
 	// 将用户添加到角色组 (g policy)
-	// g, user_1, role_admin
+	// g, username, role_ident
 	_, err = casbin.Enforcer.AddGroupingPolicy(sub, roleIdent)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 同步更新 RoleID
+	role, err := s.RoleRepo.GetByIdent(roleIdent) // 假设有这个方法或者需要查询 Role
+	if err == nil && role.ID > 0 {
+		user.RoleID = &role.ID
+		_ = s.UserRepo.Update(user)
+	}
+	return nil
 }
 
 // RemoveRoleForUser 移除用户的角色
-func (s *UserService) RemoveRoleForUser(userID uint, roleIdent string) error {
-	user, err := s.UserRepo.GetByID(userID)
+func (s *UserService) RemoveRoleForUser(username string, roleIdent string) error {
+	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
+		return err
+	}
+	if user.ID == 0 {
 		return errors.New("用户不存在")
 	}
 
-	sub := fmt.Sprintf("user_%d", user.ID)
+	sub := user.Username
 	_, err = casbin.Enforcer.RemoveGroupingPolicy(sub, roleIdent)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// 如果移除了角色，且当前 RoleID 对应的就是该角色，则清空 RoleID
+	role, err := s.RoleRepo.GetByIdent(roleIdent)
+	if err == nil && role.ID > 0 && user.RoleID != nil && *user.RoleID == role.ID {
+		user.RoleID = nil
+		_ = s.UserRepo.Update(user)
+	}
+	return nil
 }
 
 // GetUserRoles 获取用户的角色列表
-func (s *UserService) GetUserRoles(userID uint) ([]string, error) {
-	user, err := s.UserRepo.GetByID(userID)
+func (s *UserService) GetUserRoles(username string) ([]string, error) {
+	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
+		return nil, err
+	}
+	if user.ID == 0 {
 		return nil, errors.New("用户不存在")
 	}
 
-	sub := fmt.Sprintf("user_%d", user.ID)
+	sub := user.Username
 	// 获取用户的所有角色 (g policy 中的第二项)
 	roles, err := casbin.Enforcer.GetRolesForUser(sub)
 	return roles, err

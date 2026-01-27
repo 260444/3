@@ -57,16 +57,16 @@ export const logout = () => {
 }
 
 // 为用户分配角色
-export const assignRole = (userId: number, roleIdent: string) => {
-  return request.post(`/users/${userId}/roles`, { role_ident: roleIdent })
+export const assignRole = (username: string, roleIdent: string) => {
+  return request.post(`/users-roles/${username}`, { role_ident: roleIdent })
 }
 
 // 移除用户的角色
-export const removeRole = (userId: number, roleIdent: string) => {
-  return request.delete(`/users/${userId}/roles`, { data: { role_ident: roleIdent } })
+export const removeRole = (username: string, roleIdent: string) => {
+  return request.delete(`/users-roles/${username}`, { data: { role_ident: roleIdent } })
 }
 
 // 获取用户的角色列表
-export const getUserRoles = (userId: number) => {
-  return request.get(`/users/${userId}/roles`)
+export const getUserRoles = (username: string) => {
+  return request.get(`/users-roles/${username}`)
 }

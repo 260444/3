@@ -129,11 +129,12 @@ func runTests() {
 	// 菜单管理测试
 	//testCreateMenu()
 	//testGetMenuTree()
-	//testGetAllMenus()
+	// testGetAllMenus()
+	testGetMenuByID()
 	//testUpdateMenu()
 
 	// 权限管理测试
-	testAssignMenuToRole()
+	// testAssignMenuToRole()
 	//testGetRoleMenus()
 	//testAddPolicy()
 	//testGetPolicies()
@@ -524,6 +525,21 @@ func testCreateMenu() {
 // 测试获取菜单树
 func testGetMenuTree() {
 	url := "/menus"
+	fmt.Printf("请求URL: %s%s\n", APIBase, url)
+
+	resp, err := makeRequest("GET", url, nil, getAuthHeaders())
+	if err != nil {
+		printResult("获取菜单树", false, nil, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	passed := resp.StatusCode == 200
+	printResult("获取菜单树", passed, resp, nil)
+}
+
+func testGetMenuByID() {
+	url := "/menus/1"
 	fmt.Printf("请求URL: %s%s\n", APIBase, url)
 
 	resp, err := makeRequest("GET", url, nil, getAuthHeaders())

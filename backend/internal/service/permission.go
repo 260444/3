@@ -34,13 +34,13 @@ func (s *PermissionService) GetPermissionByID(id uint) (*model.Permission, error
 }
 
 // GetPermissions 获取权限列表
-func (s *PermissionService) GetPermissions(limit, offset int) ([]model.Permission, error) {
-	return s.PermissionRepo.List(limit, offset)
+func (s *PermissionService) GetPermissions(limit, offset int, path, method string) ([]model.Permission, error) {
+	return s.PermissionRepo.List(limit, offset, path, method)
 }
 
 // GetPermissionTotal 获取权限总数
-func (s *PermissionService) GetPermissionTotal() (int64, error) {
-	return s.PermissionRepo.GetTotal()
+func (s *PermissionService) GetPermissionTotal(path, method string) (int64, error) {
+	return s.PermissionRepo.GetTotal(path, method)
 }
 
 // UpdatePermission 更新权限
@@ -58,10 +58,10 @@ func (s *PermissionService) DeletePermission(id uint) error {
 	return s.PermissionRepo.Delete(id)
 }
 
-// GetPermissionByPathAndMethod 根据路径和方法获取权限
-func (s *PermissionService) GetPermissionByPathAndMethod(path, method string) (*model.Permission, error) {
-	return s.PermissionRepo.GetByPathAndMethod(path, method)
-}
+// // GetPermissionByPathAndMethod 根据路径和方法获取权限
+// func (s *PermissionService) GetPermissionByPathAndMethod(path, method string) (*model.Permission, error) {
+// 	return s.PermissionRepo.GetByPathAndMethod(path, method)
+// }
 
 // GetRoleMenus 获取角色的菜单权限
 func (s *PermissionService) GetRoleMenus(roleID uint) ([]model.Menu, error) {

@@ -19,6 +19,7 @@ func NewMenuHandler(menuService *service.MenuService) *MenuHandler {
 	}
 }
 
+// CreateMenu 创建菜单
 func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	var req model.Menu
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -38,43 +39,7 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	})
 }
 
-func (h *MenuHandler) GetMenu(c *gin.Context) {
-	menuID, _ := strconv.Atoi(c.Param("id"))
-
-	menu, err := h.MenuService.GetMenuByID(uint(menuID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": "获取成功",
-		"data":    menu,
-	})
-}
-
-//func (h *MenuHandler) GetMenuTree(c *gin.Context) {
-//	var parentID *uint
-//	parentIDStr := c.Query("parent_id")
-//	if parentIDStr != "" {
-//		id, err := strconv.Atoi(parentIDStr)
-//		if err == nil {
-//			parentID = &[]uint{uint(id)}[0]
-//		}
-//	}
-//
-//	menus, err := h.MenuService.GetMenuTree(parentID)
-//	if err != nil {
-//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-//		return
-//	}
-//
-//	c.JSON(http.StatusOK, gin.H{
-//		"message": "获取成功",
-//		"data":    menus,
-//	})
-//}
-
+// GetUserMenus 获取用户菜单
 func (h *MenuHandler) GetUserMenus(c *gin.Context) {
 	//获取用户id
 	userID, _ := c.Get("userID")
@@ -92,6 +57,7 @@ func (h *MenuHandler) GetUserMenus(c *gin.Context) {
 	})
 }
 
+// GetAllMenus 获取所有菜单
 func (h *MenuHandler) GetAllMenus(c *gin.Context) {
 	menus, err := h.MenuService.GetAllMenus()
 	if err != nil {
@@ -108,6 +74,8 @@ func (h *MenuHandler) GetAllMenus(c *gin.Context) {
 func uintPtr(value uint) *uint {
 	return &value
 }
+
+// UpdateMenu 更新菜单
 func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 	menuID, _ := strconv.Atoi(c.Param("id"))
 
@@ -133,6 +101,7 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 	})
 }
 
+// DeleteMenu 删除菜单
 func (h *MenuHandler) DeleteMenu(c *gin.Context) {
 	menuID, _ := strconv.Atoi(c.Param("id"))
 

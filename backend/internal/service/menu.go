@@ -23,9 +23,9 @@ func (s *MenuService) CreateMenu(menu *model.Menu) error {
 }
 
 // GetMenuByID 根据ID获取菜单
-func (s *MenuService) GetMenuByID(id uint) (*model.Menu, error) {
-	return s.MenuRepo.GetByID(id)
-}
+// func (s *MenuService) GetMenuByID(id uint) (*model.Menu, error) {
+// 	return s.MenuRepo.GetByID(id)
+// }
 
 // GetMenuTree 获取菜单树
 //func (s *MenuService) GetMenuTree(parentID *uint) ([]model.Menu, error) {

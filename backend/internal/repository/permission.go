@@ -38,16 +38,34 @@ func (r *PermissionRepository) Delete(id uint) error {
 }
 
 // List 获取权限列表
-func (r *PermissionRepository) List(limit, offset int) ([]model.Permission, error) {
+func (r *PermissionRepository) List(limit, offset int, path, method string) ([]model.Permission, error) {
 	var permissions []model.Permission
-	err := r.DB.Offset(offset).Limit(limit).Find(&permissions).Error
+	query := r.DB.Model(&model.Permission{})
+
+	if path != "" {
+		query = query.Where("path LIKE ?", "%"+path+"%")
+	}
+	if method != "" {
+		query = query.Where("method = ?", method)
+	}
+
+	err := query.Offset(offset).Limit(limit).Find(&permissions).Error
 	return permissions, err
 }
 
 // GetTotal 获取权限总数
-func (r *PermissionRepository) GetTotal() (int64, error) {
+func (r *PermissionRepository) GetTotal(path, method string) (int64, error) {
 	var count int64
-	err := r.DB.Model(&model.Permission{}).Count(&count).Error
+	query := r.DB.Model(&model.Permission{})
+
+	if path != "" {
+		query = query.Where("path LIKE ?", "%"+path+"%")
+	}
+	if method != "" {
+		query = query.Where("method = ?", method)
+	}
+
+	err := query.Count(&count).Error
 	return count, err
 }
 
