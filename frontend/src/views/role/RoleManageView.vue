@@ -9,6 +9,7 @@
       <!-- 角色列表 -->
       <el-table :data="roleList" stripe style="width: 100%" v-loading="loading">
         <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="ident" label="角色标识" />
         <el-table-column prop="name" label="角色名称" />
         <el-table-column prop="description" label="描述" />
         <el-table-column label="状态" width="100">
@@ -48,6 +49,9 @@
       <el-form :model="roleForm" :rules="roleRules" ref="roleFormRef" label-width="80px">
         <el-form-item label="角色名称" prop="name">
           <el-input v-model="roleForm.name" placeholder="请输入角色名称" />
+        </el-form-item>
+        <el-form-item label="角色标识" prop="ident">
+          <el-input v-model="roleForm.ident" placeholder="请输入角色标识" />
         </el-form-item>
         <el-form-item label="描述" prop="description">
           <el-input v-model="roleForm.description" type="textarea" placeholder="请输入角色描述" />
@@ -238,6 +242,10 @@ const roleRules = {
   name: [
     { required: true, message: '请输入角色名称', trigger: 'blur' },
     { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+  ],
+  ident: [
+    { required: true, message: '请输入角色标识', trigger: 'blur' },
+    { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
   ],
   description: [
     { required: true, message: '请输入角色描述', trigger: 'blur' }
