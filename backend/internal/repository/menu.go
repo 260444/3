@@ -40,7 +40,8 @@ func (r *MenuRepository) GetAll() ([]model.Menu, error) {
 	for i := range allMenus {
 		var children []model.Menu
 		r.DB.Where("parent_id=?", allMenus[i].ID).Order("sort ASC").Find(&children)
-		allMenus[i].Children = append(children)
+		allMenus[i].Children = children
+
 	}
 	return allMenus, nil
 
