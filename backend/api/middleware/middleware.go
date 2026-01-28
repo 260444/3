@@ -45,6 +45,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 将用户ID和用户名保存到上下文中
 		c.Set("userID", claims.UserID)
 		c.Set("username", claims.Username)
+		c.Set("ident", claims.Ident)
 
 		c.Next()
 	}
@@ -88,6 +89,9 @@ func RateLimitMiddleware() gin.HandlerFunc {
 func OperationLogMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 记录操作日志的逻辑
+		method := c.Request.Method
+		path := c.FullPath()
+		fmt.Println(method, path)
 		// 在请求处理后记录日志
 		c.Next()
 	}
@@ -97,7 +101,7 @@ func OperationLogMiddleware() gin.HandlerFunc {
 func CasbinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 获取用户ID
-		userID, exists := c.Get("userID")
+		ident, exists := c.Get("ident")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"error": "未授权访问",
@@ -117,7 +121,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 		}
 
 		// 将用户ID转换为字符串
-		sub := fmt.Sprintf("user_%v", userID)
+		sub := ident
 		obj := path
 		act := method
 
@@ -138,7 +142,6 @@ func CasbinMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
 		c.Next()
 	}
 }

@@ -11,11 +11,12 @@ import (
 type Claims struct {
 	UserID   uint   `json:"user_id"`
 	Username string `json:"username"`
+	Ident    string `json:"ident"`
 	jwt.RegisteredClaims
 }
 
 // GenerateToken 生成JWT token
-func GenerateToken(userID uint, username string) (string, error) {
+func GenerateToken(userID uint, username string, ident string) (string, error) {
 	// 这里应该从配置中获取密钥
 	// 为了演示，先使用硬编码的密钥
 	secret := "your-secret-key"
@@ -23,6 +24,7 @@ func GenerateToken(userID uint, username string) (string, error) {
 	claims := &Claims{
 		UserID:   userID,
 		Username: username,
+		Ident:    ident,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)), // 2小时后过期
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

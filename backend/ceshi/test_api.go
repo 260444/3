@@ -130,7 +130,7 @@ func runTests() {
 	//testCreateMenu()
 	//testGetMenuTree()
 	// testGetAllMenus()
-	testGetMenuByID()
+	// testGetMenuByID()
 	//testUpdateMenu()
 
 	// 权限管理测试

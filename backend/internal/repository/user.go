@@ -2,6 +2,7 @@ package repository
 
 import (
 	"backend/internal/model"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -33,6 +34,19 @@ func (r *UserRepository) GetByUsername(username string) (*model.User, error) {
 	var user model.User
 	err := r.DB.Where("username = ?", username).First(&user).Error
 	return &user, err
+}
+
+// GetPermissionsByUsername 根据用户名获取用户和权限信息
+func (r *UserRepository) UserWithRoleInfo(username string) (*model.UserWithRoleInfo, error) {
+	var userWithRole model.UserWithRoleInfo
+	err := r.DB.Table("users").
+		Select("users.*, roles.ident as ident"). // 推荐显式选择字段 + 别名
+		Joins("INNER JOIN roles ON users.role_id = roles.id").
+		Where("users.username = ?", username).
+		Scan(&userWithRole).Error
+
+	fmt.Println("userWithRole:", userWithRole.RoleIdent)
+	return &userWithRole, err
 }
 
 // GetByEmail 根据邮箱获取用户

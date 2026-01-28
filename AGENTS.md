@@ -70,7 +70,7 @@
 
 #### 前置条件
 
-- Go 1.24.0 或更高版本
+- Go 1.24.12 或更高版本
 - MySQL 5.7 或更高版本
 - Redis 5.0 或更高版本（可选）
 
@@ -152,10 +152,12 @@ npm run preview
 - 用户状态管理（启用/禁用）
 - 密码修改
 - 用户与角色关联
+- 用户角色分配与移除
 
 ### 2. 角色管理
 
 - 角色创建、编辑、删除
+- 角色标识符管理
 - 角色权限分配
 - 角色与菜单关联（多对多）
 
@@ -174,6 +176,7 @@ npm run preview
 - 中间件权限验证
 - 细粒度权限控制
 - 权限资源管理
+- 权限策略管理（添加、移除、查询）
 
 ### 5. 操作日志
 
@@ -187,6 +190,22 @@ npm run preview
 - 登录验证码验证
 
 ## 关键API接口
+
+### 用户角色分配
+
+**为用户分配角色**:
+- `POST /users-roles/:username`
+- 请求体：`{ "role_id": 1 }`
+- 为指定用户分配角色
+
+**移除用户角色**:
+- `DELETE /users-roles/:username`
+- 请求体：`{ "role_id": 1 }`
+- 移除用户的角色
+
+**获取用户角色**:
+- `GET /users-roles/:username`
+- 获取指定用户的角色列表
 
 ### 菜单权限管理
 
@@ -204,6 +223,57 @@ npm run preview
 - `DELETE /roles/:id/menus`
 - 请求体：`{ "menu_ids": [2, 3] }`
 - 移除角色的指定菜单权限
+
+### 权限资源管理
+
+**创建权限资源**:
+- `POST /permissions`
+- 请求体：`{ "path": "/api/users", "method": "GET", "description": "获取用户列表", "status": 1 }`
+- 创建新的权限资源
+
+**获取权限资源列表**:
+- `GET /permissions`
+- 查询参数：`page`, `page_size`, `path`, `method`
+- 分页获取权限资源列表
+
+**获取所有权限资源**:
+- `GET /permissions/all`
+- 查询参数：`path`, `method`
+- 获取所有权限资源（不分页）
+
+**获取权限资源详情**:
+- `GET /permissions/:id`
+- 获取指定权限资源的详细信息
+
+**更新权限资源**:
+- `PUT /permissions/:id`
+- 请求体：`{ "path": "/api/users", "method": "POST", "description": "创建用户" }`
+- 更新权限资源信息
+
+**更新权限状态**:
+- `PUT /permissions/:id/status`
+- 请求体：`{ "status": 0 }`
+- 更新权限资源的状态（启用/禁用）
+
+**删除权限资源**:
+- `DELETE /permissions/:id`
+- 删除指定的权限资源
+
+### 权限策略管理
+
+**为角色添加策略**:
+- `POST /roles/:id/policies`
+- 请求体：`{ "path": "/api/users", "method": "GET" }`
+- 为角色添加权限策略
+
+**移除角色策略**:
+- `DELETE /roles/:id/policies`
+- 请求体：`{ "path": "/api/users", "method": "GET" }`
+- 移除角色的权限策略
+
+**获取角色策略**:
+- `GET /roles/:id/policies`
+- 获取角色的所有权限策略
 
 ## 开发规范
 
@@ -293,50 +363,23 @@ npm run preview
    - 计算需要新增和移除的权限差异
    - 只对发生变化的权限进行操作
 
-## 错误处理
+## 数据模型
 
-- 错误信息应清晰明了
-- 使用 `errors.New()` 或 `fmt.Errorf()` 创建错误
-- 统一错误处理格式
-
-## 日志规范
-
-后端使用 Zap 日志库，输出 JSON 格式日志：
+### Permission（权限模型）
 
 ```go
-logger.Logger.Info("用户登录",
-    zap.String("username", username),
-    zap.String("ip", ip),
-)
+type Permission struct {
+    BaseModel
+    Path        string `json:"path" gorm:"type:varchar(255);not null;comment:请求路径"`
+    Method      string `json:"method" gorm:"type:varchar(10);not null;comment:请求方法"`
+    Description string `json:"description" gorm:"type:varchar(255);comment:权限描述"`
+    Status      int8   `json:"status" gorm:"type:tinyint;default:1;comment:请求路径"`
+}
+
+func (Permission) TableName() string {
+    return "permission"
+}
 ```
-
-日志级别：
-- DEBUG: 调试信息
-- INFO: 一般信息
-- WARN: 警告信息
-- ERROR: 错误信息
-- FATAL: 致命错误
-
-## Git 提交规范
-
-- `feat`: 新功能
-- `fix`: 修复 bug
-- `docs`: 文档更新
-- `style`: 代码格式调整
-- `refactor`: 代码重构
-- `test`: 测试相关
-- `chore`: 构建过程或辅助工具的变动
-
-示例：
-```
-feat(user): 添加用户注册功能
-
-- 实现用户注册接口
-- 添加密码加密逻辑
-- 完善错误处理机制
-```
-
-## 数据模型
 
 ### User（用户模型）
 
@@ -388,6 +431,49 @@ type Menu struct {
     Status    int     `gorm:"default:1" json:"status"`
     // ... 其他字段
 }
+```
+
+## 错误处理
+
+- 错误信息应清晰明了
+- 使用 `errors.New()` 或 `fmt.Errorf()` 创建错误
+- 统一错误处理格式
+
+## 日志规范
+
+后端使用 Zap 日志库，输出 JSON 格式日志：
+
+```go
+logger.Logger.Info("用户登录",
+    zap.String("username", username),
+    zap.String("ip", ip),
+)
+```
+
+日志级别：
+- DEBUG: 调试信息
+- INFO: 一般信息
+- WARN: 警告信息
+- ERROR: 错误信息
+- FATAL: 致命错误
+
+## Git 提交规范
+
+- `feat`: 新功能
+- `fix`: 修复 bug
+- `docs`: 文档更新
+- `style`: 代码格式调整
+- `refactor`: 代码重构
+- `test`: 测试相关
+- `chore`: 构建过程或辅助工具的变动
+
+示例：
+```
+feat(user): 添加用户注册功能
+
+- 实现用户注册接口
+- 添加密码加密逻辑
+- 完善错误处理机制
 ```
 
 ## 安全规范

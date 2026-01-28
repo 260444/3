@@ -69,13 +69,13 @@ func (s *PermissionService) DeletePermission(id uint) error {
 // }
 
 // GetRoleMenus 获取角色的菜单权限
-func (s *PermissionService) GetRoleMenus(roleID uint) ([]model.Menu, error) {
-	role, err := s.RoleRepo.GetByID(roleID)
-	if err != nil {
-		return nil, err
-	}
-	return role.Menus, nil
-}
+// func (s *PermissionService) GetRoleMenus(roleID uint) ([]model.Menu, error) {
+// 	role, err := s.RoleRepo.GetByID(roleID)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return role.Menus, nil
+// }
 
 // AddPolicy 添加Casbin策略
 func (s *PermissionService) AddPolicy(roleID uint, path, method string) error {

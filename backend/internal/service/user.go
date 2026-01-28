@@ -64,12 +64,13 @@ func (s *UserService) CreateUser(username, password, email, nickname string) (*m
 }
 
 // Login 用户登录
-func (s *UserService) Login(username, password string) (*model.User, error) {
-	user, err := s.UserRepo.GetByUsername(username)
+func (s *UserService) Login(username, password string) (*model.UserWithRoleInfo, error) {
+	UserWithRole, err := s.UserRepo.UserWithRoleInfo(username)
 	if err != nil {
 		return nil, errors.New("用户名或密码错误")
 	}
 
+	user := UserWithRole.User
 	if user.Status == 0 {
 		return nil, errors.New("用户已被禁用")
 	}
@@ -84,9 +85,9 @@ func (s *UserService) Login(username, password string) (*model.User, error) {
 	user.LastLoginAt = &now
 	// 注意：在实际应用中需要从请求中获取IP
 	// user.LastLoginIP = 获取IP的逻辑
-	_ = s.UserRepo.Update(user)
+	_ = s.UserRepo.Update(&user)
 
-	return user, nil
+	return UserWithRole, nil
 }
 
 // GetUserByID 根据ID获取用户

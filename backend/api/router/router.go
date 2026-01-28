@@ -24,6 +24,9 @@ func SetupRouter(
 	// 使用日志中间件
 	r.Use(middleware.LoggerToFile())
 
+	// OperationLogMiddleware
+	// r.Use(middleware.OperationLogMiddleware())
+
 	// 公开路由（不需要认证）
 	public := r.Group("/api/v1")
 	{
@@ -33,7 +36,11 @@ func SetupRouter(
 
 	// 需要认证的路由
 	protected := r.Group("/api/v1")
+
+	// 使用Casbin中间件进行权限控制
+
 	protected.Use(middleware.JWTAuthMiddleware())
+	protected.Use(middleware.CasbinMiddleware())
 	{
 		// 用户相关路由
 		protected.POST("/logout", userHandler.Logout) // 退出登录

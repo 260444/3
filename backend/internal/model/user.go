@@ -19,6 +19,12 @@ type User struct {
 	RoleID      *uint      `json:"role_id"`
 }
 
+// UserWithRoleInfo 包含用户和角色信息的结构
+type UserWithRoleInfo struct {
+	User
+	RoleIdent string `json:"ident" gorm:"column:ident"`
+}
+
 // TableName 指定表名
 func (User) TableName() string {
 	return "users"

@@ -1,36 +1,39 @@
-1,,,2026/1/27 21:53,/api/v1/login,POST,用户登录,1
-2,,,2026/1/27 21:53,/api/v1/captcha,GET,获取验证码,1
-3,,,2026/1/27 21:53,/api/v1/logout,POST,退出登录,1
-4,,,2026/1/27 21:53,/api/v1/users,POST,创建用户,1
-5,,,2026/1/27 21:53,/api/v1/users,GET,获取用户列表,1
-6,,,2026/1/27 21:53,/api/v1/users/:id,GET,获取用户信息,1
-7,,,2026/1/27 21:53,/api/v1/users/:id,PUT,更新用户信息,1
-8,,,2026/1/27 21:53,/api/v1/users/:id/status,PUT,更新用户状态,1
-9,,,2026/1/27 21:53,/api/v1/users/:id,DELETE,删除用户,1
-10,,,2026/1/27 21:53,/api/v1/users/change-password,PUT,修改密码,1
-11,,,2026/1/27 21:53,/api/v1/users/:id/reset-password,PUT,重置密码,1
-12,,,2026/1/27 21:53,/api/v1/users-roles/:username,POST,为用户分配角色,1
-13,,,2026/1/27 21:53,/api/v1/users-roles/:username,DELETE,移除用户的角色,1
-14,,,2026/1/27 21:53,/api/v1/users-roles/:username,GET,获取用户的角色列表,1
-15,,,2026/1/27 21:53,/api/v1/roles,POST,创建角色,1
-16,,,2026/1/27 21:53,/api/v1/roles,GET,获取角色列表,1
-17,,,2026/1/27 21:53,/api/v1/roles/:id,GET,获取角色详情,1
-18,,,2026/1/27 21:53,/api/v1/roles/:id,PUT,更新角色,1
-19,,,2026/1/27 21:53,/api/v1/roles/:id,DELETE,删除角色,1
-20,,,2026/1/27 21:53,/api/v1/menus,POST,创建菜单,1
-21,,,2026/1/27 21:53,/api/v1/menus,GET,查询用户可见菜单,1
-22,,,2026/1/27 21:53,/api/v1/menus/all,GET,查询所有菜单,1
-23,,,2026/1/27 21:53,/api/v1/menus/:id,PUT,更新菜单,1
-24,,,2026/1/27 21:53,/api/v1/menus/:id,DELETE,删除菜单,1
-25,,,2026/1/27 21:53,/api/v1/roles/:id/menus,POST,为角色分配菜单权限,1
-26,,,2026/1/27 21:53,/api/v1/roles/:id/menus,GET,获取角色的菜单权限,1
-27,,,2026/1/27 21:53,/api/v1/roles/:id/menus,DELETE,移除角色的菜单权限,1
-28,,,2026/1/27 21:53,/api/v1/roles/:id/policies,POST,添加Casbin策略,1
-29,,,2026/1/27 21:53,/api/v1/roles/:id/policies,DELETE,移除Casbin策略,1
-30,,,2026/1/27 21:53,/api/v1/roles/:id/policies,GET,获取角色的Casbin策略,1
-31,,,2026/1/27 21:53,/api/v1/permissions,POST,创建权限,1
-32,,,2026/1/27 21:53,/api/v1/permissions,GET,获取权限列表,1
-33,,,2026/1/27 21:53,/api/v1/permissions/:id,GET,获取权限详情,1
-34,,,2026/1/27 21:53,/api/v1/permissions/:id,PUT,更新权限,1
-35,,,2026/1/27 21:53,/api/v1/permissions/:id/status,PUT,更新权限状态,1
-36,,,2026/1/27 21:53,/api/v1/permissions/:id,DELETE,删除权限,1
+API名称,HTTP方法,处理器方法,服务层调用,仓库层调用,备注
+login,POST,userHandler.Login,"UserService.Login(req.Username, req.Password)",UserRepo.UserWithRoleInfo(username),用户登录接口，验证用户名密码并返回token
+captcha,GET,GenerateCaptcha,utils.GenerateCaptcha(),,生成图形验证码
+logout,POST,userHandler.Logout,,,用户退出登录
+users,POST,userHandler.CreateUser,"UserService.CreateUser(req.Username, req.Password, req.Email, req.Nickname)",UserRepo.Create(user),创建新用户
+users,GET,userHandler.GetUsers,"UserService.GetUsers(pageSize, offset)","UserRepo.List(limit, offset) + UserRepo.GetTotal()",获取用户列表（分页）
+users/:id,GET,userHandler.GetUserInfo,UserService.GetUserByID(userID),UserRepo.GetByID(id),根据ID获取用户详情
+users/:id,PUT,userHandler.UpdateUser,"UserService.UpdateUser(userID, req)",UserRepo.Update(user),更新用户信息
+users/:id/status,PUT,userHandler.UpdateUserStatus,"UserService.UpdateUserStatus(userID, status)","UserRepo.UpdateStatus(id, status)",更新用户状态（启用/禁用）
+users/:id,DELETE,userHandler.DeleteUser,UserService.DeleteUser(userID),UserRepo.Delete(id),删除用户
+users/change-password,PUT,userHandler.ChangePassword,"UserService.ChangePassword(userID, req.OldPassword, req.NewPassword)","UserRepo.UpdatePassword(id, hashedPassword)",用户修改自己密码
+users/:id/reset-password,PUT,userHandler.ResetPassword,"UserService.ResetPassword(userID, req.NewPassword)","UserRepo.UpdatePassword(id, hashedPassword)",管理员重置用户密码
+users-roles/:username,POST,userHandler.AssignRole,"UserService.AddRoleForUser(username, req.RoleIdent)",UserRepo.GetByUsername(username) + UserRepo.Update(user),为用户分配角色
+users-roles/:username,DELETE,userHandler.RemoveRole,"UserService.RemoveRoleForUser(username, req.RoleIdent)",UserRepo.GetByUsername(username) + UserRepo.Update(user),移除用户的角色
+users-roles/:username,GET,userHandler.GetUserRoles,UserService.GetUserRoles(username),UserRepo.GetByUsername(username),获取用户的角色列表
+roles,POST,roleHandler.CreateRole,RoleService.CreateRole(req),RoleRepo.Create(role),创建新角色
+roles,GET,roleHandler.GetRoles,"RoleService.GetRoles(pageSize, offset)","RoleRepo.List(limit, offset) + RoleRepo.GetTotal()",获取角色列表（分页）
+roles/:id,GET,roleHandler.GetRole,RoleService.GetRoleByID(roleID),RoleRepo.GetByID(id),根据ID获取角色详情
+roles/:id,PUT,roleHandler.UpdateRole,RoleService.UpdateRole(req),RoleRepo.Update(role),更新角色信息
+roles/:id,DELETE,roleHandler.DeleteRole,RoleService.DeleteRole(roleID),RoleRepo.Delete(id),删除角色
+menus,POST,menuHandler.CreateMenu,MenuService.CreateMenu(req),MenuRepo.Create(menu),创建新菜单
+menus,GET,menuHandler.GetUserMenus,MenuService.GetUserMenus(userID),MenuRepo.GetUserMenusByUserID(userID),获取当前用户可见的菜单
+menus/all,GET,menuHandler.GetAllMenus,MenuService.GetAllMenus(),MenuRepo.GetAllMenus(),获取所有菜单（包含子菜单）
+menus/:id,PUT,menuHandler.UpdateMenu,MenuService.UpdateMenu(req),MenuRepo.Update(menu),更新菜单信息
+menus/:id,DELETE,menuHandler.DeleteMenu,MenuService.DeleteMenu(menuID),MenuRepo.Delete(id),删除菜单
+roles/:id/menus,POST,roleMenuHandler.AssignMenuToRole,"RoleMenuService.AssignMenuToRole(roleID, req.MenuIDs)","RoleRepo.GetByID(id) + MenuRepo.GetByIDs(menuIDs) + RoleMenuRepo.Assign(roleID, menuIDs)",为角色分配菜单权限
+roles/:id/menus,GET,roleMenuHandler.GetRoleMenus,RoleMenuService.GetUserMenusByID(roleID),RoleMenuRepo.GetMenusByRoleID(roleID),获取角色的菜单权限
+roles/:id/menus,DELETE,roleMenuHandler.RemoveMenuFromRole,"RoleMenuService.RemoveMenuFromRole(roleID, req.MenuIDs)","RoleMenuRepo.Remove(roleID, menuIDs)",移除角色的菜单权限
+roles/:id/policies,POST,permissionHandler.AddPolicy,"PermissionService.AddPolicy(roleID, req.Path, req.Method)","RoleRepo.GetIdent(roleID) + casbin.Enforcer.AddPolicy(sub, path, method)",为角色添加权限策略
+roles/:id/policies,DELETE,permissionHandler.RemovePolicy,"PermissionService.RemovePolicy(roleID, req.Path, req.Method)","RoleRepo.GetIdent(roleID) + casbin.Enforcer.RemovePolicy(sub, path, method)",移除角色的权限策略
+roles/:id/policies,GET,permissionHandler.GetPolicies,PermissionService.GetPolicies(roleID),"RoleRepo.GetIdent(roleID) + casbin.Enforcer.GetFilteredPolicy(0, sub)",获取角色的权限策略列表
+permissions,POST,permissionHandler.CreatePermission,PermissionService.CreatePermission(req),PermissionRepo.Create(permission),创建权限资源
+permissions,GET,permissionHandler.GetPermissions,"PermissionService.GetPermissions(limit, offset, path, method)","PermissionRepo.List(limit, offset, path, method) + PermissionRepo.GetTotal(path, method)",获取权限资源列表（分页）
+permissions/all,GET,permissionHandler.GetAllPermissions,"PermissionService.GetAllPermissions(path, method)","PermissionRepo.GetAll(path, method)",获取所有权限资源（不分页）
+permissions/:id,GET,permissionHandler.GetPermission,PermissionService.GetPermissionByID(permissionID),PermissionRepo.GetByID(id),获取权限资源详情
+permissions/:id,PUT,permissionHandler.UpdatePermission,PermissionService.UpdatePermission(req),PermissionRepo.Update(permission),更新权限资源
+permissions/:id/status,PUT,permissionHandler.UpdatePermissionStatus,"PermissionService.UpdatePermissionStatus(permissionID, status)","PermissionRepo.UpdateStatus(id, status)",更新权限资源状态
+permissions/:id,DELETE,permissionHandler.DeletePermission,PermissionService.DeletePermission(permissionID),PermissionRepo.Delete(id),删除权限资源
+policies,GET,permissionHandler.GetAllPolicies,PermissionService.GetAllPolicies(),casbin.Enforcer.GetPolicy(),获取所有权限策略
