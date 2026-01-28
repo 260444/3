@@ -84,7 +84,8 @@ func SetupRouter(
 
 		// 权限资源管理相关路由
 		protected.POST("/permissions", permissionHandler.CreatePermission)                 // 创建权限
-		protected.GET("/permissions", permissionHandler.GetPermissions)                    // 获取权限列表s
+		protected.GET("/permissions", permissionHandler.GetPermissions)                    // 分页查询，获取权限列表
+		protected.GET("/permissions/all", permissionHandler.GetAllPermissions)             // 不进行分页查询，获取所有权限
 		protected.GET("/permissions/:id", permissionHandler.GetPermission)                 // 获取权限详情
 		protected.PUT("/permissions/:id", permissionHandler.UpdatePermission)              // 更新权限
 		protected.PUT("/permissions/:id/status", permissionHandler.UpdatePermissionStatus) // 更新权限状态

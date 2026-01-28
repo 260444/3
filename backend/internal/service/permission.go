@@ -53,6 +53,11 @@ func (s *PermissionService) UpdatePermissionStatus(id uint, status int8) error {
 	return s.PermissionRepo.UpdateStatus(id, status)
 }
 
+// GetAllPermissions 获取所有权限
+func (s *PermissionService) GetAllPermissions(path, method string) ([]model.Permission, error) {
+	return s.PermissionRepo.GetAll(path, method)
+}
+
 // DeletePermission 删除权限
 func (s *PermissionService) DeletePermission(id uint) error {
 	return s.PermissionRepo.Delete(id)

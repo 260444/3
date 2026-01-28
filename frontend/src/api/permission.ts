@@ -44,6 +44,11 @@ export const createPermission = (data: { path: string; method: string; descripti
   return request.post('/permissions', data)
 }
 
+// 获取所有权限
+export const getAllPermissions = (params?: { path?: string; method?: string }) => {
+  return request.get('/permissions/all', { params })
+}
+
 // 获取权限列表
 export const getPermissions = (params?: { page?: number; page_size?: number; path?: string; method?: string }) => {
   return request.get('/permissions', { params })

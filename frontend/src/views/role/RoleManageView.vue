@@ -107,7 +107,21 @@
           clearable
           style="width: 300px; margin-bottom: 20px;"
         />
-        <el-button type="primary" @click="loadPermissions">刷新</el-button>
+        <el-select
+          v-model="permissionMethodFilter"
+          placeholder="选择方法"
+          clearable
+          style="width: 120px; margin-left: 10px; margin-bottom: 20px;"
+        >
+          <el-option label="GET" value="GET" />
+          <el-option label="POST" value="POST" />
+          <el-option label="PUT" value="PUT" />
+          <el-option label="DELETE" value="DELETE" />
+          <el-option label="PATCH" value="PATCH" />
+          <el-option label="OPTIONS" value="OPTIONS" />
+          <el-option label="HEAD" value="HEAD" />
+        </el-select>
+        <el-button type="primary" @click="loadPermissions">查询</el-button>
       </div>
       
       <el-table
@@ -152,7 +166,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getRoles, createRole, updateRole, deleteRole, getRoleMenus, assignRoleMenus, removeRoleMenus } from '@/api/role'
 import { getAllMenus } from '@/api/menu'
-import { getPermissions, getPolicies, addPolicy, removePolicy } from '@/api/permission'
+import { getPermissions, getAllPermissions, getPolicies, addPolicy, removePolicy } from '@/api/permission'
 
 // 从API响应中提取菜单ID的辅助函数
 // 根据API文档，响应格式为: [{"p_id":1,"m_id":null},{"p_id":2,"m_id":[11,12,14]}]
@@ -219,6 +233,7 @@ const permissionLoading = ref(false)
 const permissions = ref<any[]>([])
 const selectedPermissions = ref<any[]>([])
 const permissionSearch = ref('')
+const permissionMethodFilter = ref('')
 const permissionTableRef = ref()
 
 // 获取方法类型用于标签显示
@@ -439,12 +454,9 @@ const handleAssignPermissions = async (row: any) => {
 const loadPermissions = async () => {
   permissionLoading.value = true
   try {
-    const params = {
-      page: 1,
-      page_size: 1000 // 获取所有权限
-    }
-    const response = await getPermissions(params)
-    permissions.value = response.data.list || []
+    // 获取所有权限（不分页）
+    const response = await getAllPermissions()
+    permissions.value = response.data || []
     
     // 获取当前角色已有的权限策略
     const policiesResponse = await getPolicies(currentRoleId.value)
@@ -472,13 +484,24 @@ const loadPermissions = async () => {
 
 // 过滤后的权限列表
 const filteredPermissions = computed(() => {
-  if (!permissionSearch.value) {
-    return permissions.value
+  let result = permissions.value
+  
+  // 按路径或描述搜索过滤
+  if (permissionSearch.value) {
+    result = result.filter(permission => 
+      permission.path.toLowerCase().includes(permissionSearch.value.toLowerCase()) ||
+      (permission.description && permission.description.toLowerCase().includes(permissionSearch.value.toLowerCase()))
+    )
   }
-  return permissions.value.filter(permission => 
-    permission.path.toLowerCase().includes(permissionSearch.value.toLowerCase()) ||
-    (permission.description && permission.description.toLowerCase().includes(permissionSearch.value.toLowerCase()))
-  )
+  
+  // 按方法过滤
+  if (permissionMethodFilter.value) {
+    result = result.filter(permission => 
+      permission.method && permission.method.toUpperCase() === permissionMethodFilter.value.toUpperCase()
+    )
+  }
+  
+  return result
 })
 
 // 处理权限表格选中状态变化

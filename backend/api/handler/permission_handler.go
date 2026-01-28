@@ -247,6 +247,23 @@ func (h *PermissionHandler) UpdatePermissionStatus(c *gin.Context) {
 	})
 }
 
+// GetAllPermissions 获取所有权限
+func (h *PermissionHandler) GetAllPermissions(c *gin.Context) {
+	path := c.Query("path")
+	method := c.Query("method")
+
+	permissions, err := h.PermissionService.GetAllPermissions(path, method)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "获取成功",
+		"data":    permissions,
+	})
+}
+
 // DeletePermission 删除权限
 func (h *PermissionHandler) DeletePermission(c *gin.Context) {
 	permissionID, _ := strconv.Atoi(c.Param("id"))

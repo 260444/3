@@ -76,6 +76,22 @@ func (r *PermissionRepository) GetByPathAndMethod(path, method string) (*model.P
 	return &permission, err
 }
 
+// GetAll 获取所有权限
+func (r *PermissionRepository) GetAll(path, method string) ([]model.Permission, error) {
+	var permissions []model.Permission
+	query := r.DB.Model(&model.Permission{})
+
+	if path != "" {
+		query = query.Where("path LIKE ?", "%"+path+"%")
+	}
+	if method != "" {
+		query = query.Where("method = ?", method)
+	}
+
+	err := query.Find(&permissions).Error
+	return permissions, err
+}
+
 // UpdateStatus 更新权限状态
 func (r *PermissionRepository) UpdateStatus(id uint, status int8) error {
 	return r.DB.Model(&model.Permission{}).Where("id = ?", id).Update("status", status).Error

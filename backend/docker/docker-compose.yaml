@@ -23,7 +23,7 @@ services:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: admin_system
     ports:
-      - "3306:3306"
+      - "13306:3306"
     volumes:
       - ./mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # 可选：初始化 SQL 脚本
