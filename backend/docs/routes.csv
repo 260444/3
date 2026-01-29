@@ -1,39 +1,39 @@
-APIÃû³Æ,HTTP·½·¨,´¦ÀíÆ÷·½·¨,·şÎñ²ãµ÷ÓÃ,²Ö¿â²ãµ÷ÓÃ,±¸×¢
-login,POST,userHandler.Login,"UserService.Login(req.Username, req.Password)",UserRepo.UserWithRoleInfo(username),ÓÃ»§µÇÂ¼½Ó¿Ú£¬ÑéÖ¤ÓÃ»§ÃûÃÜÂë²¢·µ»Øtoken
-captcha,GET,GenerateCaptcha,utils.GenerateCaptcha(),,Éú³ÉÍ¼ĞÎÑéÖ¤Âë
-logout,POST,userHandler.Logout,,,ÓÃ»§ÍË³öµÇÂ¼
-users,POST,userHandler.CreateUser,"UserService.CreateUser(req.Username, req.Password, req.Email, req.Nickname)",UserRepo.Create(user),´´½¨ĞÂÓÃ»§
-users,GET,userHandler.GetUsers,"UserService.GetUsers(pageSize, offset)","UserRepo.List(limit, offset) + UserRepo.GetTotal()",»ñÈ¡ÓÃ»§ÁĞ±í£¨·ÖÒ³£©
-users/:id,GET,userHandler.GetUserInfo,UserService.GetUserByID(userID),UserRepo.GetByID(id),¸ù¾İID»ñÈ¡ÓÃ»§ÏêÇé
-users/:id,PUT,userHandler.UpdateUser,"UserService.UpdateUser(userID, req)",UserRepo.Update(user),¸üĞÂÓÃ»§ĞÅÏ¢
-users/:id/status,PUT,userHandler.UpdateUserStatus,"UserService.UpdateUserStatus(userID, status)","UserRepo.UpdateStatus(id, status)",¸üĞÂÓÃ»§×´Ì¬£¨ÆôÓÃ/½ûÓÃ£©
-users/:id,DELETE,userHandler.DeleteUser,UserService.DeleteUser(userID),UserRepo.Delete(id),É¾³ıÓÃ»§
-users/change-password,PUT,userHandler.ChangePassword,"UserService.ChangePassword(userID, req.OldPassword, req.NewPassword)","UserRepo.UpdatePassword(id, hashedPassword)",ÓÃ»§ĞŞ¸Ä×Ô¼ºÃÜÂë
-users/:id/reset-password,PUT,userHandler.ResetPassword,"UserService.ResetPassword(userID, req.NewPassword)","UserRepo.UpdatePassword(id, hashedPassword)",¹ÜÀíÔ±ÖØÖÃÓÃ»§ÃÜÂë
-users-roles/:username,POST,userHandler.AssignRole,"UserService.AddRoleForUser(username, req.RoleIdent)",UserRepo.GetByUsername(username) + UserRepo.Update(user),ÎªÓÃ»§·ÖÅä½ÇÉ«
-users-roles/:username,DELETE,userHandler.RemoveRole,"UserService.RemoveRoleForUser(username, req.RoleIdent)",UserRepo.GetByUsername(username) + UserRepo.Update(user),ÒÆ³ıÓÃ»§µÄ½ÇÉ«
-users-roles/:username,GET,userHandler.GetUserRoles,UserService.GetUserRoles(username),UserRepo.GetByUsername(username),»ñÈ¡ÓÃ»§µÄ½ÇÉ«ÁĞ±í
-roles,POST,roleHandler.CreateRole,RoleService.CreateRole(req),RoleRepo.Create(role),´´½¨ĞÂ½ÇÉ«
-roles,GET,roleHandler.GetRoles,"RoleService.GetRoles(pageSize, offset)","RoleRepo.List(limit, offset) + RoleRepo.GetTotal()",»ñÈ¡½ÇÉ«ÁĞ±í£¨·ÖÒ³£©
-roles/:id,GET,roleHandler.GetRole,RoleService.GetRoleByID(roleID),RoleRepo.GetByID(id),¸ù¾İID»ñÈ¡½ÇÉ«ÏêÇé
-roles/:id,PUT,roleHandler.UpdateRole,RoleService.UpdateRole(req),RoleRepo.Update(role),¸üĞÂ½ÇÉ«ĞÅÏ¢
-roles/:id,DELETE,roleHandler.DeleteRole,RoleService.DeleteRole(roleID),RoleRepo.Delete(id),É¾³ı½ÇÉ«
-menus,POST,menuHandler.CreateMenu,MenuService.CreateMenu(req),MenuRepo.Create(menu),´´½¨ĞÂ²Ëµ¥
-menus,GET,menuHandler.GetUserMenus,MenuService.GetUserMenus(userID),MenuRepo.GetUserMenusByUserID(userID),»ñÈ¡µ±Ç°ÓÃ»§¿É¼ûµÄ²Ëµ¥
-menus/all,GET,menuHandler.GetAllMenus,MenuService.GetAllMenus(),MenuRepo.GetAllMenus(),»ñÈ¡ËùÓĞ²Ëµ¥£¨°üº¬×Ó²Ëµ¥£©
-menus/:id,PUT,menuHandler.UpdateMenu,MenuService.UpdateMenu(req),MenuRepo.Update(menu),¸üĞÂ²Ëµ¥ĞÅÏ¢
-menus/:id,DELETE,menuHandler.DeleteMenu,MenuService.DeleteMenu(menuID),MenuRepo.Delete(id),É¾³ı²Ëµ¥
-roles/:id/menus,POST,roleMenuHandler.AssignMenuToRole,"RoleMenuService.AssignMenuToRole(roleID, req.MenuIDs)","RoleRepo.GetByID(id) + MenuRepo.GetByIDs(menuIDs) + RoleMenuRepo.Assign(roleID, menuIDs)",Îª½ÇÉ«·ÖÅä²Ëµ¥È¨ÏŞ
-roles/:id/menus,GET,roleMenuHandler.GetRoleMenus,RoleMenuService.GetUserMenusByID(roleID),RoleMenuRepo.GetMenusByRoleID(roleID),»ñÈ¡½ÇÉ«µÄ²Ëµ¥È¨ÏŞ
-roles/:id/menus,DELETE,roleMenuHandler.RemoveMenuFromRole,"RoleMenuService.RemoveMenuFromRole(roleID, req.MenuIDs)","RoleMenuRepo.Remove(roleID, menuIDs)",ÒÆ³ı½ÇÉ«µÄ²Ëµ¥È¨ÏŞ
-roles/:id/policies,POST,permissionHandler.AddPolicy,"PermissionService.AddPolicy(roleID, req.Path, req.Method)","RoleRepo.GetIdent(roleID) + casbin.Enforcer.AddPolicy(sub, path, method)",Îª½ÇÉ«Ìí¼ÓÈ¨ÏŞ²ßÂÔ
-roles/:id/policies,DELETE,permissionHandler.RemovePolicy,"PermissionService.RemovePolicy(roleID, req.Path, req.Method)","RoleRepo.GetIdent(roleID) + casbin.Enforcer.RemovePolicy(sub, path, method)",ÒÆ³ı½ÇÉ«µÄÈ¨ÏŞ²ßÂÔ
-roles/:id/policies,GET,permissionHandler.GetPolicies,PermissionService.GetPolicies(roleID),"RoleRepo.GetIdent(roleID) + casbin.Enforcer.GetFilteredPolicy(0, sub)",»ñÈ¡½ÇÉ«µÄÈ¨ÏŞ²ßÂÔÁĞ±í
-permissions,POST,permissionHandler.CreatePermission,PermissionService.CreatePermission(req),PermissionRepo.Create(permission),´´½¨È¨ÏŞ×ÊÔ´
-permissions,GET,permissionHandler.GetPermissions,"PermissionService.GetPermissions(limit, offset, path, method)","PermissionRepo.List(limit, offset, path, method) + PermissionRepo.GetTotal(path, method)",»ñÈ¡È¨ÏŞ×ÊÔ´ÁĞ±í£¨·ÖÒ³£©
-permissions/all,GET,permissionHandler.GetAllPermissions,"PermissionService.GetAllPermissions(path, method)","PermissionRepo.GetAll(path, method)",»ñÈ¡ËùÓĞÈ¨ÏŞ×ÊÔ´£¨²»·ÖÒ³£©
-permissions/:id,GET,permissionHandler.GetPermission,PermissionService.GetPermissionByID(permissionID),PermissionRepo.GetByID(id),»ñÈ¡È¨ÏŞ×ÊÔ´ÏêÇé
-permissions/:id,PUT,permissionHandler.UpdatePermission,PermissionService.UpdatePermission(req),PermissionRepo.Update(permission),¸üĞÂÈ¨ÏŞ×ÊÔ´
-permissions/:id/status,PUT,permissionHandler.UpdatePermissionStatus,"PermissionService.UpdatePermissionStatus(permissionID, status)","PermissionRepo.UpdateStatus(id, status)",¸üĞÂÈ¨ÏŞ×ÊÔ´×´Ì¬
-permissions/:id,DELETE,permissionHandler.DeletePermission,PermissionService.DeletePermission(permissionID),PermissionRepo.Delete(id),É¾³ıÈ¨ÏŞ×ÊÔ´
-policies,GET,permissionHandler.GetAllPolicies,PermissionService.GetAllPolicies(),casbin.Enforcer.GetPolicy(),»ñÈ¡ËùÓĞÈ¨ÏŞ²ßÂÔ
+APIè·¯å¾„,HTTPæ–¹æ³•,å¤„ç†å‡½æ•°,æœåŠ¡å±‚è°ƒç”¨,ä»“åº“å±‚è°ƒç”¨,å¤‡æ³¨
+/api/v1/login,POST,userHandler.Login,"UserService.Login(req.Username, req.Password)",UserRepo.UserWithRoleInfo(username),ç”¨æˆ·ç™»å½•æ¥å£ï¼ŒéªŒè¯ç”¨æˆ·å¯†ç å¹¶è¿”å›token
+/api/v1/captcha,GET,GenerateCaptcha,utils.GenerateCaptcha(),,ç”Ÿæˆå›¾å½¢éªŒè¯ç 
+/api/v1/logout,POST,userHandler.Logout,,,ç”¨æˆ·é€€å‡ºç™»å½•
+/api/v1/users,POST,userHandler.CreateUser,"UserService.CreateUser(req.Username, req.Password, req.Email, req.Nickname)",UserRepo.Create(user),åˆ›å»ºæ–°ç”¨æˆ·
+/api/v1/users,GET,userHandler.GetUsers,"UserService.GetUsers(pageSize, offset)","UserRepo.List(limit, offset) + UserRepo.GetTotal()",è·å–ç”¨æˆ·åˆ—è¡¨ï¼ˆåˆ†é¡µï¼‰
+/api/v1/users/:id,GET,userHandler.GetUserInfo,UserService.GetUserByID(userID),UserRepo.GetByID(id),æ ¹æ®IDè·å–ç”¨æˆ·è¯¦æƒ…
+/api/v1/users/:id,PUT,userHandler.UpdateUser,"UserService.UpdateUser(userID, req)",UserRepo.Update(user),æ›´æ–°ç”¨æˆ·ä¿¡æ¯
+/api/v1/users/:id/status,PUT,userHandler.UpdateUserStatus,"UserService.UpdateUserStatus(userID, status)","UserRepo.UpdateStatus(id, status)",æ›´æ–°ç”¨æˆ·çŠ¶æ€ï¼ˆå¯ç”¨/ç¦ç”¨ï¼‰
+/api/v1/users/:id,DELETE,userHandler.DeleteUser,UserService.DeleteUser(userID),UserRepo.Delete(id),åˆ é™¤ç”¨æˆ·
+/api/v1/users/change-password,PUT,userHandler.ChangePassword,"UserService.ChangePassword(userID, req.OldPassword, req.NewPassword)","UserRepo.UpdatePassword(id, hashedPassword)",ç”¨æˆ·ä¿®æ”¹è‡ªå·±çš„å¯†ç 
+/api/v1/users/:id/reset-password,PUT,userHandler.ResetPassword,"UserService.ResetPassword(userID, req.NewPassword)","UserRepo.UpdatePassword(id, hashedPassword)",ç®¡ç†å‘˜é‡ç½®ç”¨æˆ·å¯†ç 
+/api/v1/users-roles/:username,POST,userHandler.AssignRole,"UserService.AddRoleForUser(username, req.RoleIdent)",UserRepo.GetByUsername(username) + UserRepo.Update(user),ä¸ºç”¨æˆ·åˆ†é…è§’è‰²
+/api/v1/users-roles/:username,DELETE,userHandler.RemoveRole,"UserService.RemoveRoleForUser(username, req.RoleIdent)",UserRepo.GetByUsername(username) + UserRepo.Update(user),ç§»é™¤ç”¨æˆ·çš„è§’è‰²
+/api/v1/users-roles/:username,GET,userHandler.GetUserRoles,UserService.GetUserRoles(username),UserRepo.GetByUsername(username),è·å–ç”¨æˆ·çš„è§’è‰²åˆ—è¡¨
+/api/v1/roles,POST,roleHandler.CreateRole,RoleService.CreateRole(req),RoleRepo.Create(role),åˆ›å»ºæ–°è§’è‰²
+/api/v1/roles,GET,roleHandler.GetRoles,"RoleService.GetRoles(pageSize, offset)","RoleRepo.List(limit, offset) + RoleRepo.GetTotal()",è·å–è§’è‰²åˆ—è¡¨ï¼ˆåˆ†é¡µï¼‰
+/api/v1/roles/:id,GET,roleHandler.GetRole,RoleService.GetRoleByID(roleID),RoleRepo.GetByID(id),æ ¹æ®IDè·å–è§’è‰²è¯¦æƒ…
+/api/v1/roles/:id,PUT,roleHandler.UpdateRole,RoleService.UpdateRole(req),RoleRepo.Update(role),æ›´æ–°è§’è‰²ä¿¡æ¯
+/api/v1/roles/:id,DELETE,roleHandler.DeleteRole,RoleService.DeleteRole(roleID),RoleRepo.Delete(id),åˆ é™¤è§’è‰²
+/api/v1/menus,POST,menuHandler.CreateMenu,MenuService.CreateMenu(req),MenuRepo.Create(menu),åˆ›å»ºæ–°èœå•
+/api/v1/menus,GET,menuHandler.GetUserMenus,MenuService.GetUserMenus(userID),MenuRepo.GetByUserID(userID),è·å–å½“å‰ç”¨æˆ·å¯è§çš„èœå•
+/api/v1/menus/all,GET,menuHandler.GetAllMenus,MenuService.GetAllMenus(),MenuRepo.GetAll(),è·å–æ‰€æœ‰èœå•ï¼ˆåŒ…å«å­èœå•ï¼‰
+/api/v1/menus/:id,PUT,menuHandler.UpdateMenu,MenuService.UpdateMenu(req),MenuRepo.Update(menu),æ›´æ–°èœå•ä¿¡æ¯
+/api/v1/menus/:id,DELETE,menuHandler.DeleteMenu,MenuService.DeleteMenu(menuID),MenuRepo.Delete(id),åˆ é™¤èœå•
+/api/v1/roles/:id/menus,POST,roleMenuHandler.AssignMenuToRole,"RoleMenuService.AssignMenuToRole(roleID, req.MenuIDs)","RoleMenuRepo.CreateRoleMenus(roleMeans)",ä¸ºè§’è‰²åˆ†é…èœå•æƒé™
+/api/v1/roles/:id/menus,GET,roleMenuHandler.GetRoleMenus,RoleMenuService.GetUserMenusByID(roleID),RoleMenuRepo.GetRoleMenuByID(roleId),è·å–è§’è‰²çš„èœå•æƒé™
+/api/v1/roles/:id/menus,DELETE,roleMenuHandler.RemoveMenuFromRole,"RoleMenuService.RemoveMenuFromRole(roleID, req.MenuIDs)","RoleMenuRepo.DeleteRoleMenus(roleID, menuIDs)",ç§»é™¤è§’è‰²çš„èœå•æƒé™
+/api/v1/roles/:id/policies,POST,permissionHandler.AddPolicy,"PermissionService.AddPolicy(roleID, req.Path, req.Method)","RoleRepo.GetIdent(roleID) + casbin.Enforcer.AddPolicy(sub, path, method)",ä¸ºè§’è‰²æ·»åŠ æƒé™ç­–ç•¥ï¼ˆCasbinï¼‰
+/api/v1/roles/:id/policies,DELETE,permissionHandler.RemovePolicy,"PermissionService.RemovePolicy(roleID, req.Path, req.Method)","RoleRepo.GetIdent(roleID) + casbin.Enforcer.RemovePolicy(sub, path, method)",ç§»é™¤è§’è‰²çš„æƒé™ç­–ç•¥ï¼ˆCasbinï¼‰
+/api/v1/roles/:id/policies,GET,permissionHandler.GetPolicies,PermissionService.GetPolicies(roleID),"RoleRepo.GetIdent(roleID) + casbin.Enforcer.GetFilteredPolicy(0, sub)",è·å–è§’è‰²çš„æƒé™ç­–ç•¥ï¼ˆCasbinï¼‰
+/api/v1/permissions,POST,permissionHandler.CreatePermission,PermissionService.CreatePermission(req),PermissionRepo.Create(permission),åˆ›å»ºæƒé™èµ„æº
+/api/v1/permissions,GET,permissionHandler.GetPermissions,"PermissionService.GetPermissions(limit, offset, path, method)","PermissionRepo.List(limit, offset, path, method) + PermissionRepo.GetTotal(path, method)",è·å–æƒé™èµ„æºåˆ—è¡¨ï¼ˆåˆ†é¡µï¼‰
+/api/v1/permissions/all,GET,permissionHandler.GetAllPermissions,"PermissionService.GetAllPermissions(path, method)","PermissionRepo.GetAll(path, method)",è·å–æ‰€æœ‰æƒé™èµ„æºï¼ˆä¸åˆ†é¡µï¼‰
+/api/v1/permissions/:id,GET,permissionHandler.GetPermission,PermissionService.GetPermissionByID(permissionID),PermissionRepo.GetByID(id),è·å–æƒé™èµ„æºè¯¦æƒ…
+/api/v1/permissions/:id,PUT,permissionHandler.UpdatePermission,PermissionService.UpdatePermission(req),PermissionRepo.Update(permission),æ›´æ–°æƒé™èµ„æº
+/api/v1/permissions/:id/status,PUT,permissionHandler.UpdatePermissionStatus,"PermissionService.UpdatePermissionStatus(permissionID, status)","PermissionRepo.UpdateStatus(id, status)",æ›´æ–°æƒé™èµ„æºçŠ¶æ€
+/api/v1/permissions/:id,DELETE,permissionHandler.DeletePermission,PermissionService.DeletePermission(permissionID),PermissionRepo.Delete(id),åˆ é™¤æƒé™èµ„æº
+/api/v1/policies,GET,permissionHandler.GetAllPolicies,PermissionService.GetAllPolicies(),casbin.Enforcer.GetPolicy(),è·å–æ‰€æœ‰æƒé™ç­–ç•¥
