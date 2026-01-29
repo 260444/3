@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@iflow-mcp/context7-mcp@1.0.0"
+      ],
+      "registryUrl": "https://registry.npmmirror.com"
+    },
+    "mcp_server_mysql": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@benborla29/mcp-server-mysql"
+      ],
+      "env": {
+        "MYSQL_HOST": "127.0.0.1",
+        "MYSQL_PORT": "13306",
+        "MYSQL_USER": "root",
+        "MYSQL_PASS": "123456",
+        "MYSQL_DB": "admin_system"
+      }
+    }
+    
+  }
+}
