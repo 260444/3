@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"backend/config"
+	"backend/pkg/logger"
 	"errors"
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -17,16 +20,16 @@ type Claims struct {
 
 // GenerateToken 生成JWT token
 func GenerateToken(userID uint, username string, ident string) (string, error) {
-	// 这里应该从配置中获取密钥
-	// 为了演示，先使用硬编码的密钥
-	secret := "your-secret-key"
 
+	secret := config.GlobalConfig.JWT.Secret
+	timeout := config.GlobalConfig.JWT.Timeout
+	logger.Logger.Info("生成JWT", zap.String("secret", secret), zap.String("timeout", timeout.String()))
 	claims := &Claims{
 		UserID:   userID,
 		Username: username,
 		Ident:    ident,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)), // 2小时后过期
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "admin-system",
 		},
@@ -38,8 +41,8 @@ func GenerateToken(userID uint, username string, ident string) (string, error) {
 
 // ParseToken 解析JWT token
 func ParseToken(tokenString string) (*Claims, error) {
-	// 这里应该从配置中获取密钥
-	secret := "your-secret-key"
+
+	secret := config.GlobalConfig.JWT.Secret
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil

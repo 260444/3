@@ -3,7 +3,9 @@ package handler
 import (
 	"backend/internal/model"
 	"backend/internal/service"
+	"backend/pkg/logger"
 	"backend/pkg/utils"
+	"go.uber.org/zap"
 	"net/http"
 	"strconv"
 
@@ -20,6 +22,7 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 	}
 }
 
+// CreateUser 创建用户 *
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req struct {
 		Username string `json:"username" binding:"required"`
@@ -30,22 +33,25 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		logger.Logger.Error("绑定角色失败:", zap.Error(err))
 		return
 	}
 
 	user, err := h.UserService.CreateUser(req.Username, req.Password, req.Email, req.Nickname)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("创建角色失败:", zap.Error(err))
 		return
 	}
 
+	logger.Logger.Info("创建角色成功:", zap.String("username", user.Username))
 	c.JSON(http.StatusOK, gin.H{
 		"message": "用户创建成功",
 		"data":    user,
 	})
 }
 
-// AssignRole 为用户分配角色
+// AssignRole 为用户分配角色 *
 func (h *UserHandler) AssignRole(c *gin.Context) {
 	username := c.Param("username")
 	var req struct {
@@ -60,6 +66,7 @@ func (h *UserHandler) AssignRole(c *gin.Context) {
 	err := h.UserService.AddRoleForUser(username, req.RoleIdent)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("创建角色失败:", zap.Error(err))
 		return
 	}
 
@@ -68,13 +75,14 @@ func (h *UserHandler) AssignRole(c *gin.Context) {
 	})
 }
 
-// GetUserRoles 获取用户的角色列表
+// GetUserRoles 获取用户的角色列表 *
 func (h *UserHandler) GetUserRoles(c *gin.Context) {
 	username := c.Param("username")
 
 	roles, err := h.UserService.GetUserRoles(username)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("获取角色失败:", zap.Error(err))
 		return
 	}
 
@@ -84,7 +92,7 @@ func (h *UserHandler) GetUserRoles(c *gin.Context) {
 	})
 }
 
-// RemoveRole 移除用户的角色
+// RemoveRole 移除用户的角色 *
 func (h *UserHandler) RemoveRole(c *gin.Context) {
 	username := c.Param("username")
 	var req struct {
@@ -99,6 +107,7 @@ func (h *UserHandler) RemoveRole(c *gin.Context) {
 	err := h.UserService.RemoveRoleForUser(username, req.RoleIdent)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("创建角色失败:", zap.Error(err))
 		return
 	}
 
@@ -107,6 +116,7 @@ func (h *UserHandler) RemoveRole(c *gin.Context) {
 	})
 }
 
+// Login 登录 *
 func (h *UserHandler) Login(c *gin.Context) {
 	var req struct {
 		Username string `json:"username" binding:"required"`
@@ -140,6 +150,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 	})
 }
 
+// Logout 退出登录 *
 func (h *UserHandler) Logout(c *gin.Context) {
 	// 从中间件获取用户信息
 	userID, _ := c.Get("userID")
@@ -157,12 +168,14 @@ func (h *UserHandler) Logout(c *gin.Context) {
 	})
 }
 
+// GetUserInfo 获取用户信息 *
 func (h *UserHandler) GetUserInfo(c *gin.Context) {
 	// 从中间件获取用户信息
 	userID, _ := c.Get("userID")
 	user, err := h.UserService.GetUserByID(userID.(uint))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取用户信息失败"})
+		logger.Logger.Error("获取用户信息失败:", zap.Error(err))
 		return
 	}
 
@@ -172,6 +185,7 @@ func (h *UserHandler) GetUserInfo(c *gin.Context) {
 	})
 }
 
+// GetUsers 获取用户列表 *
 func (h *UserHandler) GetUsers(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
@@ -187,6 +201,7 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 
 	users, total, err := h.UserService.GetUsers(pageSize, offset)
 	if err != nil {
+		logger.Logger.Error("获取用户列表失败:", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取用户列表失败"})
 		return
 	}
@@ -202,18 +217,21 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 	})
 }
 
+// UpdateUser 更新用户信息 *
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("id"))
 
 	var req model.User
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		logger.Logger.Error("绑定用户信息失败:", zap.Error(err))
 		return
 	}
 
 	err := h.UserService.UpdateUser(uint(userID), &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("更新用户信息失败:", zap.Error(err))
 		return
 	}
 
@@ -222,6 +240,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	})
 }
 
+// UpdateUserStatus 更新用户状态 *
 func (h *UserHandler) UpdateUserStatus(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("id"))
 	status, _ := strconv.Atoi(c.PostForm("status"))
@@ -229,6 +248,7 @@ func (h *UserHandler) UpdateUserStatus(c *gin.Context) {
 	err := h.UserService.UpdateUserStatus(uint(userID), status)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("更新用户状态失败:", zap.Error(err))
 		return
 	}
 
@@ -237,12 +257,14 @@ func (h *UserHandler) UpdateUserStatus(c *gin.Context) {
 	})
 }
 
+// DeleteUser 删除用户 *
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("id"))
 
 	err := h.UserService.DeleteUser(uint(userID))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("删除用户失败:", zap.Error(err))
 		return
 	}
 
@@ -251,6 +273,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	})
 }
 
+// ChangePassword 修改密码 *
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	userID, _ := c.Get("userID")
 
@@ -265,8 +288,12 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	}
 
 	err := h.UserService.ChangePassword(userID.(uint), req.OldPassword, req.NewPassword)
+	logger.Logger.Info("密码修改请求",
+		zap.String("旧密码", req.OldPassword),
+		zap.String("新密码", req.NewPassword))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("密码修改失败:", zap.Error(err))
 		return
 	}
 
@@ -275,6 +302,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	})
 }
 
+// ResetPassword 重置密码 *
 func (h *UserHandler) ResetPassword(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("id"))
 
@@ -290,6 +318,7 @@ func (h *UserHandler) ResetPassword(c *gin.Context) {
 	err := h.UserService.ResetPassword(uint(userID), req.NewPassword)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		logger.Logger.Error("密码重置失败:", zap.Error(err))
 		return
 	}
 

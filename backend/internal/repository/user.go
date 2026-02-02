@@ -17,19 +17,19 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{DB: db}
 }
 
-// Create 创建用户
+// Create 创建用户 *
 func (r *UserRepository) Create(user *model.User) error {
 	return r.DB.Create(user).Error
 }
 
-// GetByID 根据ID获取用户
+// GetByID 根据ID获取用户 *
 func (r *UserRepository) GetByID(id uint) (*model.User, error) {
 	var user model.User
 	err := r.DB.First(&user, id).Error
 	return &user, err
 }
 
-// GetByUsername 根据用户名获取用户
+// GetByUsername 根据用户名获取用户 *
 func (r *UserRepository) GetByUsername(username string) (*model.User, error) {
 	var user model.User
 	err := r.DB.Where("username = ?", username).First(&user).Error
@@ -40,7 +40,7 @@ func (r *UserRepository) GetByUsername(username string) (*model.User, error) {
 func (r *UserRepository) UserWithRoleInfo(username string) (*model.UserWithRoleInfo, error) {
 	var userWithRole model.UserWithRoleInfo
 	err := r.DB.Table("users").
-		Select("users.*, roles.ident as ident"). // 推荐显式选择字段 + 别名
+		Select("users.*, roles.ident as ident").
 		Joins("INNER JOIN roles ON users.role_id = roles.id").
 		Where("users.username = ?", username).
 		Scan(&userWithRole).Error
@@ -56,24 +56,24 @@ func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
 	return &user, err
 }
 
-// Update 更新用户
+// Update 更新用户 *
 func (r *UserRepository) Update(user *model.User) error {
 	return r.DB.Save(user).Error
 }
 
-// Delete 删除用户
+// Delete 删除用户 *
 func (r *UserRepository) Delete(id uint) error {
 	return r.DB.Delete(&model.User{}, id).Error
 }
 
-// List 获取用户列表
+// List 获取用户列表 *
 func (r *UserRepository) List(limit, offset int) ([]model.User, error) {
 	var users []model.User
 	err := r.DB.Offset(offset).Limit(limit).Find(&users).Error
 	return users, err
 }
 
-// GetTotal 获取用户总数
+// GetTotal 获取用户总数 *
 func (r *UserRepository) GetTotal() (int64, error) {
 	var count int64
 	err := r.DB.Model(&model.User{}).Count(&count).Error
@@ -85,7 +85,7 @@ func (r *UserRepository) UpdatePassword(id uint, password string) error {
 	return r.DB.Model(&model.User{}).Where("id = ?", id).Update("password", password).Error
 }
 
-// UpdateStatus 更新用户状态
+// UpdateStatus 更新用户状态 *
 func (r *UserRepository) UpdateStatus(id uint, status int) error {
 	return r.DB.Model(&model.User{}).Where("id = ?", id).Update("status", status).Error
 }

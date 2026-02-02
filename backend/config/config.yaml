@@ -3,6 +3,18 @@ server:
   mode: "debug"
   read_timeout: 60
   write_timeout: 60
+  log_file: "./logs/app.log"
+  #  日志文件路径
+  max_size: 128
+  #  日志文件最大大小(MB)
+  max_backups: 30
+  #保留旧文件的最大个数
+  max_age: 7
+  #保留旧文件的最大天数
+  compress:  true
+  #是否压缩旧文件
+  time_key: "时间"
+  level_key: "debug"
 
 database:
   host: "localhost"
@@ -11,6 +23,8 @@ database:
   password: "123456"
   dbname: "admin_system"
   charset: "utf8mb4"
+  log_file: "./logs/gorm.log"
+  log_level: "info"   # 支持 silent/error/warn/info
 
 redis:
   addr: "localhost:6379"

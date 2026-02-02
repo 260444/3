@@ -2,12 +2,14 @@ package middleware
 
 import (
 	"backend/pkg/casbin"
+	"backend/pkg/logger"
 	"backend/pkg/utils"
-	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // JWTAuthMiddleware JWT认证中间件
@@ -69,10 +71,42 @@ func CORSMiddleware() gin.HandlerFunc {
 	}
 }
 
-// LoggerToFile 日志中间件
+// LoggerToFile 日志中间件 - 记录HTTP请求日志到文件
 func LoggerToFile() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// 开始时间
+		startTime := time.Now()
+
+		// 处理请求
 		c.Next()
+
+		// 结束时间
+		endTime := time.Now()
+
+		// 执行时间
+		latencyTime := endTime.Sub(startTime)
+
+		// 请求方式
+		reqMethod := c.Request.Method
+
+		// 请求路由
+		reqUri := c.Request.RequestURI
+
+		// 状态码
+		statusCode := c.Writer.Status()
+
+		// 请求IP
+		clientIP := c.ClientIP()
+
+		// 记录日志到文件
+		logger.Logger.Info("HTTP请求",
+			zap.String("method", reqMethod),
+			zap.String("uri", reqUri),
+			zap.Int("status", statusCode),
+			zap.String("client_ip", clientIP),
+			zap.Duration("latency", latencyTime),
+			zap.String("user_agent", c.Request.UserAgent()),
+		)
 	}
 }
 
@@ -85,15 +119,37 @@ func RateLimitMiddleware() gin.HandlerFunc {
 	}
 }
 
-// OperationLogMiddleware 操作日志中间件
+// OperationLogMiddleware 操作日志中间件 - 记录用户操作日志
 func OperationLogMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 记录操作日志的逻辑
+		// 获取用户信息
+		username, _ := c.Get("username")
+		userID, _ := c.Get("userID")
+
+		// 记录请求开始前的信息
+		startTime := time.Now()
 		method := c.Request.Method
 		path := c.FullPath()
-		fmt.Println(method, path)
-		// 在请求处理后记录日志
+		clientIP := c.ClientIP()
+
+		// 处理请求
 		c.Next()
+
+		// 请求结束后记录操作日志
+		endTime := time.Now()
+		latency := endTime.Sub(startTime)
+		statusCode := c.Writer.Status()
+
+		// 记录操作日志
+		logger.Logger.Info("用户操作日志",
+			zap.Any("user_id", userID),
+			zap.Any("username", username),
+			zap.String("method", method),
+			zap.String("path", path),
+			zap.Int("status", statusCode),
+			zap.String("ip", clientIP),
+			zap.Duration("duration", latency),
+		)
 	}
 }
 

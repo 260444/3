@@ -15,10 +15,17 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port         string `mapstructure:"port"`
-	Mode         string `mapstructure:"mode"`
+	Port         string        `mapstructure:"port"`
+	Mode         string        `mapstructure:"mode"`
 	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
 	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+	LogFile      string        `mapstructure:"log_file"`
+	MaxSize      int           `mapstructure:"max_size"`
+	MaxBackups   int           `mapstructure:"max_backups"`
+	MaxAge       int           `mapstructure:"max_age"`
+	Compress     bool          `mapstructure:"compress"`
+	TimeKey      string        `mapstructure:"time_key"`
+	LevelKey     string        `mapstructure:"level_key"`
 }
 
 type DatabaseConfig struct {
@@ -28,6 +35,8 @@ type DatabaseConfig struct {
 	Password string `mapstructure:"password"`
 	DBName   string `mapstructure:"dbname"`
 	Charset  string `mapstructure:"charset"`
+	LogFile  string `mapstructure:"log_file"`
+	LogLevel string `mapstructure:"log_level"`
 }
 
 type RedisConfig struct {

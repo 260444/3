@@ -21,7 +21,7 @@ func SetupRouter(
 	// 使用CORS中间件
 	r.Use(middleware.CORSMiddleware())
 
-	// 使用日志中间件
+	// 使用日志中间件（全局应用）
 	r.Use(middleware.LoggerToFile())
 
 	// OperationLogMiddleware
@@ -38,18 +38,17 @@ func SetupRouter(
 	protected := r.Group("/api/v1")
 
 	// 使用Casbin中间件进行权限控制
-
 	protected.Use(middleware.JWTAuthMiddleware())
 	protected.Use(middleware.CasbinMiddleware())
 	{
 		// 用户相关路由
-		protected.POST("/logout", userHandler.Logout) // 退出登录
+		protected.POST("/logout", userHandler.Logout)
 		protected.POST("/users", userHandler.CreateUser)
 		protected.GET("/users", userHandler.GetUsers)
-		protected.GET("/users/:id", userHandler.GetUserInfo)
 		protected.PUT("/users/:id", userHandler.UpdateUser)
-		protected.PUT("/users/:id/status", userHandler.UpdateUserStatus)
 		protected.DELETE("/users/:id", userHandler.DeleteUser)
+		protected.GET("/users/:id", userHandler.GetUserInfo)
+		protected.PUT("/users/:id/status", userHandler.UpdateUserStatus)
 		protected.PUT("/users/change-password", userHandler.ChangePassword)
 		protected.PUT("/users/:id/reset-password", userHandler.ResetPassword)
 

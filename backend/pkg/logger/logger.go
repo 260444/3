@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"backend/config"
 	"os"
 	"time"
 
@@ -9,18 +10,48 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-var Logger *zap.Logger
+var (
+	Logger    *zap.Logger
+	logWriter *lumberjack.Logger
+)
 
 // InitLogger 初始化日志
 func InitLogger() error {
+	// 获取配置中的日志设置，如果未设置则使用默认值
+	logFile := "./logs/app.log"
+	maxSize := 128
+	maxBackups := 30
+	maxAge := 7
+	compress := true
+
+	// 如果全局配置已初始化，则使用配置文件中的值
+	if config.GlobalConfig != nil {
+		if config.GlobalConfig.Server.LogFile != "" {
+			logFile = config.GlobalConfig.Server.LogFile
+		}
+		if config.GlobalConfig.Server.MaxSize > 0 {
+			maxSize = config.GlobalConfig.Server.MaxSize
+		}
+		if config.GlobalConfig.Server.MaxBackups > 0 {
+			maxBackups = config.GlobalConfig.Server.MaxBackups
+		}
+		if config.GlobalConfig.Server.MaxAge > 0 {
+			maxAge = config.GlobalConfig.Server.MaxAge
+		}
+		compress = config.GlobalConfig.Server.Compress
+	}
+
+	// 创建lumberjack logger实例
+	logWriter = &lumberjack.Logger{
+		Filename:   logFile,    // 日志文件路径
+		MaxSize:    maxSize,    // 日志文件最大大小(MB)
+		MaxBackups: maxBackups, // 保留旧文件的最大个数
+		MaxAge:     maxAge,     // 保留旧文件的最大天数
+		Compress:   compress,   // 是否压缩旧文件
+	}
+
 	// 设置日志写入文件
-	logWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   "./logs/app.log", // 日志文件路径
-		MaxSize:    128,              // 日志文件最大大小(MB)
-		MaxBackups: 30,               // 保留旧文件的最大个数
-		MaxAge:     7,                // 保留旧文件的最大天数
-		Compress:   true,             // 是否压缩旧文件
-	})
+	writerSync := zapcore.AddSync(logWriter)
 
 	// 设置日志编码
 	encoderConfig := zapcore.EncoderConfig{
@@ -31,10 +62,10 @@ func InitLogger() error {
 		MessageKey:     "msg",
 		StacktraceKey:  "stacktrace",
 		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,  // 小写编码器
-		EncodeTime:     customTimeEncoder,              // 自定义时间格式
+		EncodeLevel:    zapcore.LowercaseLevelEncoder, // 小写编码器
+		EncodeTime:     customTimeEncoder,             // 自定义时间格式
 		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder,     // 短路径编码器
+		EncodeCaller:   zapcore.ShortCallerEncoder, // 短路径编码器
 	}
 
 	// 创建encoder
@@ -50,14 +81,27 @@ func InitLogger() error {
 
 	// 创建core
 	core := zapcore.NewTee(
-		zapcore.NewCore(encoder, logWriter, highPriority),
+		zapcore.NewCore(encoder, writerSync, highPriority),
 		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), lowPriority),
 	)
 
 	// 创建logger
 	Logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
 
+	// 确保日志被刷新到文件
+	zap.RedirectStdLog(Logger)
+
 	return nil
+}
+
+// Sync 强制将缓冲的日志写入文件
+func Sync() {
+	if Logger != nil {
+		Logger.Sync()
+	}
+	if logWriter != nil {
+		logWriter.Close()
+	}
 }
 
 // 自定义时间格式

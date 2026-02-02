@@ -4,7 +4,9 @@ import (
 	"backend/internal/model"
 	"backend/internal/repository"
 	"backend/pkg/casbin"
+	"backend/pkg/logger"
 	"errors"
+	"go.uber.org/zap"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -24,7 +26,7 @@ func NewUserService(userRepo *repository.UserRepository, roleRepo *repository.Ro
 	}
 }
 
-// CreateUser 创建用户
+// CreateUser 创建用户 *
 func (s *UserService) CreateUser(username, password, email, nickname string) (*model.User, error) {
 	// 检查用户名是否已存在
 	existingUser, err := s.UserRepo.GetByUsername(username)
@@ -43,6 +45,10 @@ func (s *UserService) CreateUser(username, password, email, nickname string) (*m
 
 	// 加密密码
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	logger.Logger.Info("加密免密:",
+		zap.String("密码", password),
+		zap.String("加密后的密码", string(hashedPassword)))
+
 	if err != nil {
 		return nil, err
 	}
@@ -55,15 +61,15 @@ func (s *UserService) CreateUser(username, password, email, nickname string) (*m
 		Status:   1, // 默认启用
 	}
 
+	// 创建用户
 	err = s.UserRepo.Create(user)
 	if err != nil {
 		return nil, err
 	}
-
 	return user, nil
 }
 
-// Login 用户登录
+// Login 用户登录 *
 func (s *UserService) Login(username, password string) (*model.UserWithRoleInfo, error) {
 	UserWithRole, err := s.UserRepo.UserWithRoleInfo(username)
 	if err != nil {
@@ -75,6 +81,10 @@ func (s *UserService) Login(username, password string) (*model.UserWithRoleInfo,
 		return nil, errors.New("用户已被禁用")
 	}
 
+	logger.Logger.Info("用户登录请求",
+		zap.String("username", username),
+		zap.String("user.Password", user.Password),
+		zap.String("password", password))
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return nil, errors.New("用户名或密码错误")
@@ -90,12 +100,12 @@ func (s *UserService) Login(username, password string) (*model.UserWithRoleInfo,
 	return UserWithRole, nil
 }
 
-// GetUserByID 根据ID获取用户
+// GetUserByID 根据ID获取用户 *
 func (s *UserService) GetUserByID(id uint) (*model.User, error) {
 	return s.UserRepo.GetByID(id)
 }
 
-// UpdateUser 更新用户
+// UpdateUser 更新用户  *
 func (s *UserService) UpdateUser(id uint, user *model.User) error {
 	existingUser, err := s.UserRepo.GetByID(id)
 	if err != nil {
@@ -131,7 +141,7 @@ func (s *UserService) ChangePassword(id uint, oldPassword, newPassword string) e
 	return s.UserRepo.UpdatePassword(id, string(hashedPassword))
 }
 
-// AddRoleForUser 为用户分配角色
+// AddRoleForUser 为用户分配角色 *
 func (s *UserService) AddRoleForUser(username string, roleIdent string) error {
 	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
@@ -151,15 +161,20 @@ func (s *UserService) AddRoleForUser(username string, roleIdent string) error {
 	}
 
 	// 同步更新 RoleID
-	role, err := s.RoleRepo.GetByIdent(roleIdent) // 假设有这个方法或者需要查询 Role
+	role, err := s.RoleRepo.GetByIdent(roleIdent)
 	if err == nil && role.ID > 0 {
 		user.RoleID = &role.ID
-		_ = s.UserRepo.Update(user)
+		err = s.UserRepo.Update(user)
+		if err != nil {
+			logger.Logger.Error("更新用户角色时出错", zap.Uint("roleID: ", role.ID), zap.Error(err))
+			return err
+		}
+
 	}
 	return nil
 }
 
-// RemoveRoleForUser 移除用户的角色
+// RemoveRoleForUser 移除用户的角色 *
 func (s *UserService) RemoveRoleForUser(username string, roleIdent string) error {
 	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
@@ -179,12 +194,16 @@ func (s *UserService) RemoveRoleForUser(username string, roleIdent string) error
 	role, err := s.RoleRepo.GetByIdent(roleIdent)
 	if err == nil && role.ID > 0 && user.RoleID != nil && *user.RoleID == role.ID {
 		user.RoleID = nil
-		_ = s.UserRepo.Update(user)
+		err = s.UserRepo.Update(user)
+		if err != nil {
+			logger.Logger.Error("移除用户角色时出错", zap.Error(err))
+			return err
+		}
 	}
 	return nil
 }
 
-// GetUserRoles 获取用户的角色列表
+// GetUserRoles 获取用户的角色列表 *
 func (s *UserService) GetUserRoles(username string) ([]string, error) {
 	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
@@ -200,17 +219,17 @@ func (s *UserService) GetUserRoles(username string) ([]string, error) {
 	return roles, err
 }
 
-// UpdateUserStatus 更新用户状态
+// UpdateUserStatus 更新用户状态 *
 func (s *UserService) UpdateUserStatus(id uint, status int) error {
 	return s.UserRepo.UpdateStatus(id, status)
 }
 
-// DeleteUser 删除用户
+// DeleteUser 删除用户 *
 func (s *UserService) DeleteUser(id uint) error {
 	return s.UserRepo.Delete(id)
 }
 
-// GetUsers 获取用户列表
+// GetUsers 获取用户列表  *
 func (s *UserService) GetUsers(limit, offset int) ([]model.User, int64, error) {
 	users, err := s.UserRepo.List(limit, offset)
 	if err != nil {
