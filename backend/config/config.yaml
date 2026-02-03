@@ -13,8 +13,7 @@ server:
   #保留旧文件的最大天数
   compress:  true
   #是否压缩旧文件
-  time_key: "时间"
-  level_key: "debug"
+  is_console: false
 
 database:
   host: "localhost"

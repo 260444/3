@@ -24,8 +24,7 @@ type ServerConfig struct {
 	MaxBackups   int           `mapstructure:"max_backups"`
 	MaxAge       int           `mapstructure:"max_age"`
 	Compress     bool          `mapstructure:"compress"`
-	TimeKey      string        `mapstructure:"time_key"`
-	LevelKey     string        `mapstructure:"level_key"`
+	IsConsole    bool          `mapstructure:"is_console"`
 }
 
 type DatabaseConfig struct {

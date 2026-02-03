@@ -11,9 +11,9 @@ import (
 	"backend/pkg/logger"
 	"backend/pkg/redis"
 	"fmt"
+	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -85,23 +85,20 @@ func main() {
 	port := config.GlobalConfig.Server.Port
 	logger.Logger.Info(fmt.Sprintf("服务器启动在端口 %s", port))
 
-	// 创建信号通道用于优雅关闭
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	// if err := r.Run(port); err != nil {
+	// 	logger.Logger.Error("启动服务器失败", zap.Error(err))
+	// 	os.Exit(1)
+	// }
 
-	// 在goroutine中启动服务器
-	go func() {
-		if err := r.Run(port); err != nil {
-			logger.Logger.Error("启动服务器失败", zap.Error(err))
-			os.Exit(1)
-		}
-	}()
+	// 创建 HTTP 服务器并应用超时配置
+	srv := &http.Server{
+		Addr:         port,
+		Handler:      r,
+		ReadTimeout:  config.GlobalConfig.Server.ReadTimeout * time.Second,
+		WriteTimeout: config.GlobalConfig.Server.WriteTimeout * time.Second,
+	}
 
-	// 等待中断信号
-	<-sigChan
-	logger.Logger.Info("收到关闭信号，正在优雅关闭...")
+	// 启动服务器
+	srv.ListenAndServe()
 
-	// 同步日志确保所有缓冲的日志都被写入
-	logger.Sync()
-	logger.Logger.Info("日志已同步完成")
 }
