@@ -15,7 +15,12 @@ onMounted(async () => {
   userStore.checkLoginStatus()
   // 如果已登录，获取用户信息
   if (userStore.isAuthenticated) {
-    await userStore.fetchUserInfo()
+    try {
+      await userStore.fetchUserInfo()
+    } catch (error) {
+      // 如果获取用户信息失败，不进行处理，避免循环请求
+      console.error('获取用户信息失败，可能没有权限:', error)
+    }
   }
 })
 </script>

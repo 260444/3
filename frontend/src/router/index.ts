@@ -10,6 +10,7 @@ import RoleManageView from '@/views/role/RoleManageView.vue'
 import MenuManageView from '@/views/menu/MenuManageView.vue'
 import OperationLogView from '@/views/OperationLogView.vue'
 import PermissionResourceView from '@/views/permission/PermissionResourceView.vue'
+import NoPermissionView from '@/views/NoPermissionView.vue'
 
 // 静态路由（不需要权限）
 const constantRoutes: RouteRecordRaw[] = [
@@ -18,6 +19,12 @@ const constantRoutes: RouteRecordRaw[] = [
     name: 'login',
     component: LoginView,
     meta: { title: '登录' }
+  },
+  {
+    path: '/no-permission',
+    name: 'no-permission',
+    component: NoPermissionView,
+    meta: { title: '无权限访问', requiresAuth: false }
   }
 ]
 
@@ -117,6 +124,12 @@ router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
   const token = localStorage.getItem('token')
 
+  // 对于不需要认证的路由直接放行
+  if (to.meta.requiresAuth === false) {
+    next()
+    return
+  }
+
   if (to.path === '/login') {
     if (token) {
       next('/')
@@ -163,6 +176,12 @@ router.beforeEach(async (to, from, next) => {
       }
     }
 
+    // 如果获取到的菜单为空，说明用户没有任何权限，直接跳转到无权限页面
+    if (!menus || menus.length === 0) {
+      next('/no-permission')
+      return
+    }
+
     // 设置菜单到store
     userStore.setMenus(menus)
 
@@ -179,7 +198,11 @@ router.beforeEach(async (to, from, next) => {
     console.error('获取菜单失败:', error)
     menuFetchRetryCount++
     
-    if (menuFetchRetryCount >= maxRetryCount) {
+    // 检查是否是权限不足错误
+    if (error.response && error.response.status === 403) {
+      // 权限不足，跳转到无权限页面
+      next('/no-permission')
+    } else if (menuFetchRetryCount >= maxRetryCount) {
       console.error('获取菜单失败次数达到上限，跳转到登录页')
       ElMessage.error('获取菜单失败次数过多，请重新登录')
       await userStore.logout()
@@ -187,15 +210,8 @@ router.beforeEach(async (to, from, next) => {
       next('/login')
     } else {
       console.warn(`获取菜单失败，重试次数: ${menuFetchRetryCount}`)
-      // 可能是因为用户没有菜单权限，继续执行
-      // 设置空菜单列表以避免无限重试
-      userStore.setMenus([])
-      
-      // 添加基础路由（即使没有菜单）
-      addDynamicRoutes([])
-      
-      // 允许导航继续，避免无限循环
-      next()
+      // 可能是因为用户没有菜单权限，跳转到无权限页面
+      next('/no-permission')
     }
   }
 })

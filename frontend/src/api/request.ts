@@ -33,12 +33,14 @@ request.interceptors.response.use(
     return response.data
   },
   (error) => {
-    if (error.response?.status === 401) {
-      // 如果是401未授权，跳转到登录页
-      localStorage.removeItem('token')
-      window.location.href = '/login'
-    }
-    // 后端错误格式: { error: string }
+        if (error.response?.status === 401) {
+          // 如果是401未授权，跳转到登录页
+          localStorage.removeItem('token')
+          window.location.href = '/login'
+        } else if (error.response?.status === 403) {
+          // 如果是403权限不足，跳转到无权限页面
+          window.location.href = '/no-permission'
+        }    // 后端错误格式: { error: string }
     const errorMsg = error.response?.data?.error || error.message || '请求失败'
     console.error('响应错误:', errorMsg)
     return Promise.reject(new Error(errorMsg))

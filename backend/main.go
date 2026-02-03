@@ -83,7 +83,6 @@ func main() {
 
 	// 启动服务器
 	port := config.GlobalConfig.Server.Port
-	logger.Logger.Info(fmt.Sprintf("服务器启动在端口 %s", port))
 
 	// if err := r.Run(port); err != nil {
 	// 	logger.Logger.Error("启动服务器失败", zap.Error(err))
@@ -99,6 +98,10 @@ func main() {
 	}
 
 	// 启动服务器
-	srv.ListenAndServe()
-
+	err = srv.ListenAndServe()
+	if err != nil {
+		logger.Logger.Error("启动服务器失败", zap.Error(err))
+		os.Exit(1)
+	}
+	logger.Logger.Info(fmt.Sprintf("服务器启动在端口 %s", port))
 }

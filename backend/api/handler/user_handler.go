@@ -185,6 +185,28 @@ func (h *UserHandler) GetUserInfo(c *gin.Context) {
 	})
 }
 
+// GetCurrentUser 获取当前用户信息 *
+func (h *UserHandler) GetCurrentUser(c *gin.Context) {
+	// 从中间件获取用户信息
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "用户未认证"})
+		return
+	}
+
+	user, err := h.UserService.GetUserByID(userID.(uint))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取用户信息失败"})
+		logger.Logger.Error("获取当前用户信息失败:", zap.Error(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "获取成功",
+		"data":    user,
+	})
+}
+
 // GetUsers 获取用户列表 *
 func (h *UserHandler) GetUsers(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))

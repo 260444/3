@@ -22,7 +22,7 @@ func SetupRouter(
 	r.Use(middleware.CORSMiddleware())
 
 	// 使用日志中间件（全局应用）
-	r.Use(middleware.LoggerToFile())
+	// r.Use(middleware.LoggerToFile())
 
 	// OperationLogMiddleware
 	// r.Use(middleware.OperationLogMiddleware())
@@ -96,6 +96,9 @@ func SetupRouter(
 		protected.PUT("/permissions/:id", permissionHandler.UpdatePermission)              // 更新权限
 		protected.PUT("/permissions/:id/status", permissionHandler.UpdatePermissionStatus) // 更新权限状态
 		protected.DELETE("/permissions/:id", permissionHandler.DeletePermission)           // 删除权限
+
+		// 获取当前用户信息
+		protected.GET("/users/profile", userHandler.GetCurrentUser)
 
 		return r
 	}

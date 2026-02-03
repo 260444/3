@@ -4,6 +4,7 @@ import (
 	"backend/pkg/casbin"
 	"backend/pkg/logger"
 	"backend/pkg/utils"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -176,8 +177,26 @@ func CasbinMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		// 特殊处理：用户访问自己的信息时，允许通过
+		// 检查是否是获取用户信息的请求
+		if path == "/api/v1/users/profile" {
+			// 用户可以访问自己的信息，允许通过
+			c.Next()
+			return
+		}
+
 		// 将用户ID转换为字符串
-		sub := ident
+		var sub string
+		switch v := ident.(type) {
+		case string:
+			sub = v
+		case int:
+			sub = fmt.Sprintf("%d", v)
+		case int64:
+			sub = fmt.Sprintf("%d", v)
+		default:
+			sub = fmt.Sprintf("%v", v)
+		}
 		obj := path
 		act := method
 
@@ -192,9 +211,17 @@ func CasbinMiddleware() gin.HandlerFunc {
 		}
 
 		if !allowed {
-			c.JSON(http.StatusForbidden, gin.H{
-				"error": "权限不足",
-			})
+			// 检查请求是否是AJAX请求或API请求
+			if c.GetHeader("X-Requested-With") == "XMLHttpRequest" || 
+				strings.Contains(c.GetHeader("Accept"), "application/json") {
+				// API请求，返回JSON错误
+				c.JSON(http.StatusForbidden, gin.H{
+					"error": "权限不足",
+				})
+			} else {
+				// 页面请求，重定向到无权限页面
+				c.Redirect(http.StatusFound, "/no-permission")
+			}
 			c.Abort()
 			return
 		}
