@@ -1,7 +1,7 @@
 package system_manager
 
 import (
-	"backend/internal/model/system_manager"
+	sysModel "backend/internal/model/system_manager"
 	"backend/pkg/logger"
 	"backend/pkg/utils"
 	"net/http"
@@ -245,7 +245,7 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("id"))
 
-	var req system_manager.User
+	var req sysModel.User
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		logger.Logger.Error("绑定用户信息失败:", zap.Error(err))

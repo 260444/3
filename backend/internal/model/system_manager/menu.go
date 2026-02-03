@@ -11,8 +11,6 @@ type Menu struct {
 	Path string `gorm:"size:100" json:"path"`
 	// Component 组件路径
 	Component string `gorm:"size:100" json:"component"`
-	// Redirect 重定向路径
-	//Redirect string `gorm:"size:100" json:"redirect"`
 	// ParentID 父级菜单ID
 	ParentID *uint `json:"parent_id" gorm:"default:0"`
 	// Parent 父级菜单
@@ -25,14 +23,8 @@ type Menu struct {
 	Sort int `gorm:"default:0" json:"sort"`
 	// IsHidden 是否隐藏
 	IsHidden bool `gorm:"default:false" json:"is_hidden"`
-	// IsLink 是否为外链
-	//IsLink bool `gorm:"default: k" json:"is_link"`
-	// LinkUrl 外链地址
-	//LinkUrl string `gorm:"size:255" json:"link_url"`
 	// Status 状态: 1-正常, 0-禁用
 	Status int `gorm:"default:1" json:"status"`
-	// Roles 关联角色列表
-	//Roles []Role `gorm:"many2many:role_menus;" json:"roles"`
 }
 
 // TableName 指定表名

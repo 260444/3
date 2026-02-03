@@ -16,68 +16,7 @@ var (
 	logWriter *lumberjack.Logger
 )
 
-// InitLogger 初始化日志
-// func InitLogger() error {
-
-// 	serverCfg := config.GlobalConfig.Server
-
-// 	// 创建lumberjack logger实例
-// 	logWriter = &lumberjack.Logger{
-// 		Filename:   serverCfg.LogFile,    // 日志文件路径
-// 		MaxSize:    serverCfg.MaxSize,    // 日志文件最大大小(MB)
-// 		MaxBackups: serverCfg.MaxBackups, // 保留旧文件的最大个数
-// 		MaxAge:     serverCfg.MaxAge,     // 保留旧文件的最大天数
-// 		Compress:   serverCfg.Compress,   // 是否压缩旧文件
-// 	}
-
-// 	// 设置日志写入文件
-// 	writerSync := zapcore.AddSync(logWriter)
-
-// 	// 设置日志编码
-// 	encoderConfig := zapcore.EncoderConfig{
-// 		TimeKey:        "time",
-// 		LevelKey:       "level",
-// 		NameKey:        "logger",
-// 		CallerKey:      "caller",
-// 		MessageKey:     "msg",
-// 		StacktraceKey:  "stacktrace",
-// 		LineEnding:     zapcore.DefaultLineEnding,
-// 		EncodeLevel:    zapcore.LowercaseLevelEncoder, // 小写编码器
-// 		EncodeTime:     customTimeEncoder,             // 自定义时间格式
-// 		EncodeDuration: zapcore.SecondsDurationEncoder,
-// 		EncodeCaller:   zapcore.ShortCallerEncoder, // 短路径编码器
-// 	}
-
-// 	// 创建encoder
-// 	encoder := zapcore.NewJSONEncoder(encoderConfig)
-
-// 	// 创建core
-// 	core := zapcore.NewTee(
-// 		zapcore.NewCore(encoder, writerSync, zap.DebugLevel),
-// 		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zap.DebugLevel),
-// 	)
-
-// 	// 创建logger
-// 	Logger = zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
-
-// 	// 确保日志被刷新到文件
-// 	zap.RedirectStdLog(Logger)
-
-// 	return nil
-// }
-
-// // Sync 强制将缓冲的日志写入文件
-// func Sync() {
-// 	if Logger != nil {
-// 		Logger.Sync()
-// 	}
-// 	if logWriter != nil {
-// 		logWriter.Close()
-// 	}
-// }
-
-// 自定义时间格式
-
+// customTimeEncoder 自定义时间格式
 func customTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("2006-01-02 15:04:05"))
 }

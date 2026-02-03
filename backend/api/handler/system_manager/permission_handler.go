@@ -1,12 +1,11 @@
 package system_manager
 
 import (
-	"backend/internal/model/system_manager"
+	sysModel "backend/internal/model/system_manager"
 	sysService "backend/internal/service/system_manager"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
 
 // PermissionHandler 权限管理处理器
@@ -136,7 +135,7 @@ func (h *PermissionHandler) GetAllPolicies(c *gin.Context) {
 
 // CreatePermission 创建权限
 func (h *PermissionHandler) CreatePermission(c *gin.Context) {
-	var req system_manager.Permission
+	var req sysModel.Permission
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -213,7 +212,7 @@ func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 func (h *PermissionHandler) UpdatePermission(c *gin.Context) {
 	permissionID, _ := strconv.Atoi(c.Param("id"))
 
-	var req system_manager.Permission
+	var req sysModel.Permission
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

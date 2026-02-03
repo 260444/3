@@ -1,7 +1,7 @@
 package system_manager
 
 import (
-	"backend/internal/model/system_manager"
+	sysModel "backend/internal/model/system_manager"
 	sysService "backend/internal/service/system_manager"
 	"net/http"
 	"strconv"
@@ -20,7 +20,7 @@ func NewRoleHandler(roleService *sysService.RoleService) *RoleHandler {
 }
 
 func (h *RoleHandler) CreateRole(c *gin.Context) {
-	var req system_manager.Role
+	var req sysModel.Role
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -86,7 +86,7 @@ func (h *RoleHandler) GetRoles(c *gin.Context) {
 func (h *RoleHandler) UpdateRole(c *gin.Context) {
 	roleID, _ := strconv.Atoi(c.Param("id"))
 
-	var req system_manager.Role
+	var req sysModel.Role
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
