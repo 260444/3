@@ -11,7 +11,7 @@
  Target Server Version : 80027 (8.0.27)
  File Encoding         : 65001
 
- Date: 29/01/2026 20:41:51
+ Date: 03/02/2026 21:58:56
 */
 
 SET NAMES utf8mb4;
@@ -32,7 +32,7 @@ CREATE TABLE `casbin_rule`  (
   `v5` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_casbin_rule`(`ptype` ASC, `v0` ASC, `v1` ASC, `v2` ASC, `v3` ASC, `v4` ASC, `v5` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 96 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 100 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of casbin_rule
@@ -50,6 +50,8 @@ INSERT INTO `casbin_rule` VALUES (74, 'p', 'admin', '/api/v1/menus', 'POST', '',
 INSERT INTO `casbin_rule` VALUES (78, 'p', 'admin', '/api/v1/menus/:id', 'DELETE', '', '', '');
 INSERT INTO `casbin_rule` VALUES (77, 'p', 'admin', '/api/v1/menus/:id', 'PUT', '', '', '');
 INSERT INTO `casbin_rule` VALUES (76, 'p', 'admin', '/api/v1/menus/all', 'GET', '', '', '');
+INSERT INTO `casbin_rule` VALUES (98, 'p', 'admin', '/api/v1/operation-logs', 'GET', '', '', '');
+INSERT INTO `casbin_rule` VALUES (99, 'p', 'admin', '/api/v1/operation-logs/stats', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (86, 'p', 'admin', '/api/v1/permissions', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (85, 'p', 'admin', '/api/v1/permissions', 'POST', '', '', '');
 INSERT INTO `casbin_rule` VALUES (90, 'p', 'admin', '/api/v1/permissions/:id', 'DELETE', '', '', '');
@@ -88,6 +90,8 @@ INSERT INTO `casbin_rule` VALUES (38, 'p', 'surperadmin', '/api/v1/menus', 'POST
 INSERT INTO `casbin_rule` VALUES (42, 'p', 'surperadmin', '/api/v1/menus/:id', 'DELETE', '', '', '');
 INSERT INTO `casbin_rule` VALUES (41, 'p', 'surperadmin', '/api/v1/menus/:id', 'PUT', '', '', '');
 INSERT INTO `casbin_rule` VALUES (40, 'p', 'surperadmin', '/api/v1/menus/all', 'GET', '', '', '');
+INSERT INTO `casbin_rule` VALUES (96, 'p', 'surperadmin', '/api/v1/operation-logs', 'GET', '', '', '');
+INSERT INTO `casbin_rule` VALUES (97, 'p', 'surperadmin', '/api/v1/operation-logs/stats', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (50, 'p', 'surperadmin', '/api/v1/permissions', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (49, 'p', 'surperadmin', '/api/v1/permissions', 'POST', '', '', '');
 INSERT INTO `casbin_rule` VALUES (54, 'p', 'surperadmin', '/api/v1/permissions/:id', 'DELETE', '', '', '');
@@ -125,8 +129,8 @@ INSERT INTO `casbin_rule` VALUES (28, 'p', 'surperadmin', '/api/v1/users/change-
 DROP TABLE IF EXISTS `menus`;
 CREATE TABLE `menus`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `created_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
-  `updated_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  `created_at` datetime(3) NULL DEFAULT NULL,
+  `updated_at` datetime(3) NULL DEFAULT NULL,
   `deleted_at` datetime(3) NULL DEFAULT NULL,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
@@ -148,13 +152,13 @@ CREATE TABLE `menus`  (
 -- ----------------------------
 -- Records of menus
 -- ----------------------------
-INSERT INTO `menus` VALUES (1, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'dashboard', '控制台', '/dashboard', 'DashboardView', NULL, 0, 'House', 1, 0, 0, NULL, 1);
-INSERT INTO `menus` VALUES (2, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'system', '系统管理', '/system', '', NULL, 0, 'Setting', 100, 0, 0, NULL, 1);
-INSERT INTO `menus` VALUES (11, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'users', '用户管理', '/users', 'UserManageView', NULL, 2, 'User', 1, 0, 0, NULL, 1);
-INSERT INTO `menus` VALUES (12, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'roles', '角色管理', '/roles', 'RoleManageView', NULL, 2, 'Avatar', 2, 0, 0, NULL, 1);
-INSERT INTO `menus` VALUES (13, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'menus', '菜单管理', '/menus', 'MenuManageView', NULL, 2, 'Menu', 3, 0, 0, NULL, 1);
-INSERT INTO `menus` VALUES (14, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'operation-logs', '操作日志', '/operation-logs', 'OperationLogView', NULL, 2, 'Document', 4, 0, 0, NULL, 1);
-INSERT INTO `menus` VALUES (15, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NULL, 'permissions', '权限管理', '/permissions', 'PermissionResourceView', NULL, 2, 'Lock', 5, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (1, NULL, NULL, NULL, 'dashboard', '控制台', '/dashboard', 'DashboardView', NULL, 0, 'House', 1, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (2, NULL, NULL, NULL, 'system', '系统管理', '/system', '', NULL, 0, 'Setting', 100, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (11, NULL, NULL, NULL, 'users', '用户管理', '/users', 'UserManageView', NULL, 2, 'User', 1, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (12, NULL, NULL, NULL, 'roles', '角色管理', '/roles', 'RoleManageView', NULL, 2, 'Avatar', 2, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (13, NULL, NULL, NULL, 'menus', '菜单管理', '/menus', 'MenuManageView', NULL, 2, 'Menu', 3, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (14, NULL, NULL, NULL, 'operation-logs', '操作日志', '/operation-logs', 'OperationLogView', NULL, 2, 'Document', 4, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (15, NULL, NULL, NULL, 'permissions', '权限管理', '/permissions', 'PermissionResourceView', NULL, 2, 'Lock', 5, 0, 0, NULL, 1);
 
 -- ----------------------------
 -- Table structure for operation_logs
@@ -162,46 +166,32 @@ INSERT INTO `menus` VALUES (15, '2026-01-18 21:54:50', '2026-01-18 21:54:50', NU
 DROP TABLE IF EXISTS `operation_logs`;
 CREATE TABLE `operation_logs`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `created_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `updated_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `created_at` datetime(3) NULL DEFAULT NULL,
+  `updated_at` datetime(3) NULL DEFAULT NULL,
   `operation` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `user_id` bigint UNSIGNED NOT NULL,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `ip` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `user_agent` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
-  `status` bigint NULL DEFAULT 1,
+  `status` bigint NULL DEFAULT 0,
   `request_method` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `request_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `request_body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `response_body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
   `response_time` bigint NULL DEFAULT NULL,
   `deleted_at` datetime(3) NULL DEFAULT NULL,
+  `module` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `level` bigint NULL DEFAULT 1,
+  `refer_id` bigint UNSIGNED NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
-  INDEX `idx_operation_logs_deleted_at`(`deleted_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+  INDEX `idx_operation_logs_deleted_at`(`deleted_at` ASC) USING BTREE,
+  INDEX `idx_operation_logs_refer_id`(`refer_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of operation_logs
 -- ----------------------------
-INSERT INTO `operation_logs` VALUES (1, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '用户登录', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'POST', '/api/v1/login', '{\"username\":\"admin\",\"password\":\"***\"}', '{\"message\":\"登录成功\"}', 156, NULL);
-INSERT INTO `operation_logs` VALUES (2, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '用户登录', 2, 'manager', '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'POST', '/api/v1/login', '{\"username\":\"manager\",\"password\":\"***\"}', '{\"message\":\"登录成功\"}', 142, NULL);
-INSERT INTO `operation_logs` VALUES (3, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '查询用户列表', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'GET', '/api/v1/users', '', '{\"data\":[...]}', 89, NULL);
-INSERT INTO `operation_logs` VALUES (4, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '创建用户', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'POST', '/api/v1/users', '{\"username\":\"newuser\",\"email\":\"new@example.com\"}', '{\"message\":\"创建成功\"}', 234, NULL);
-INSERT INTO `operation_logs` VALUES (5, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '更新用户信息', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'PUT', '/api/v1/users/6', '{\"nickname\":\"张三更新\"}', '{\"message\":\"更新成功\"}', 178, NULL);
-INSERT INTO `operation_logs` VALUES (6, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '删除用户', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'DELETE', '/api/v1/users/99', '', '{\"message\":\"删除成功\"}', 145, NULL);
-INSERT INTO `operation_logs` VALUES (7, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '查询角色列表', 2, 'manager', '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'GET', '/api/v1/roles', '', '{\"data\":[...]}', 76, NULL);
-INSERT INTO `operation_logs` VALUES (8, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '创建角色', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'POST', '/api/v1/roles', '{\"name\":\"新角色\",\"description\":\"测试角色\"}', '{\"message\":\"创建成功\"}', 198, NULL);
-INSERT INTO `operation_logs` VALUES (9, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '分配角色权限', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'PUT', '/api/v1/roles/5/menus', '{\"menu_ids\":[1,2,11]}', '{\"message\":\"分配成功\"}', 267, NULL);
-INSERT INTO `operation_logs` VALUES (10, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '查询菜单树', 3, 'user', '192.168.1.102', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'GET', '/api/v1/menus', '', '{\"data\":[...]}', 112, NULL);
-INSERT INTO `operation_logs` VALUES (11, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '创建菜单', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'POST', '/api/v1/menus', '{\"name\":\"test\",\"title\":\"测试菜单\"}', '{\"message\":\"创建成功\"}', 189, NULL);
-INSERT INTO `operation_logs` VALUES (12, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '修改密码', 2, 'manager', '192.168.1.101', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'PUT', '/api/v1/users/change-password', '{\"old_password\":\"***\",\"new_password\":\"***\"}', '{\"message\":\"修改成功\"}', 156, NULL);
-INSERT INTO `operation_logs` VALUES (13, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '查询操作日志', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'GET', '/api/v1/operation-logs', '', '{\"data\":[...]}', 134, NULL);
-INSERT INTO `operation_logs` VALUES (14, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '删除操作日志', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'DELETE', '/api/v1/operation-logs/1', '', '{\"message\":\"删除成功\"}', 98, NULL);
-INSERT INTO `operation_logs` VALUES (15, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '用户登录失败', 9, 'disabled', '192.168.1.109', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 0, 'POST', '/api/v1/login', '{\"username\":\"disabled\",\"password\":\"***\"}', '{\"error\":\"用户已被禁用\"}', 67, NULL);
-INSERT INTO `operation_logs` VALUES (16, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '查询用户详情', 3, 'user', '192.168.1.102', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'GET', '/api/v1/users/3', '', '{\"data\":{...}}', 45, NULL);
-INSERT INTO `operation_logs` VALUES (17, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '获取验证码', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'GET', '/api/v1/captcha', '', '{\"data\":\"base64image\"}', 23, NULL);
-INSERT INTO `operation_logs` VALUES (18, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '用户注册', 3, 'user', '192.168.1.102', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'POST', '/api/v1/register', '{\"username\":\"register_user\",\"email\":\"register@example.com\"}', '{\"message\":\"注册成功\"}', 289, NULL);
-INSERT INTO `operation_logs` VALUES (19, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', '更新用户状态', 1, 'admin', '192.168.1.100', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36', 1, 'PUT', '/api/v1/users/9/status', '{\"status\":0}', '{\"message\":\"状态更新成功\"}', 134, NULL);
+INSERT INTO `operation_logs` VALUES (20, '2026-02-03 21:33:21.849', '2026-02-03 21:33:21.849', '删除用户', 10, 'admin', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', 200, 'DELETE', '/api/v1/users/:id', '', '{\"message\":\"删除成功\"}', 7, NULL, NULL, 1, NULL);
 
 -- ----------------------------
 -- Table structure for permission
@@ -209,8 +199,8 @@ INSERT INTO `operation_logs` VALUES (19, '2026-01-18 19:07:49.000', '2026-01-18 
 DROP TABLE IF EXISTS `permission`;
 CREATE TABLE `permission`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `created_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
-  `updated_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL,
+  `created_at` datetime(3) NULL DEFAULT NULL,
+  `updated_at` datetime(3) NULL DEFAULT NULL,
   `deleted_at` datetime(3) NULL DEFAULT NULL,
   `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '请求路径',
   `method` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '请求方法',
@@ -218,49 +208,51 @@ CREATE TABLE `permission`  (
   `status` tinyint NULL DEFAULT 1 COMMENT '请求路径',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_permission_deleted_at`(`deleted_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 39 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 41 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of permission
 -- ----------------------------
-INSERT INTO `permission` VALUES (1, '', '', NULL, '/api/v1/login', 'POST', '用户登录', 1);
-INSERT INTO `permission` VALUES (2, '', '', NULL, '/api/v1/captcha', 'GET', '获取验证码', 1);
-INSERT INTO `permission` VALUES (3, '', '', NULL, '/api/v1/logout', 'POST', '退出登录', 1);
-INSERT INTO `permission` VALUES (4, '', '', NULL, '/api/v1/users', 'POST', '创建用户', 1);
-INSERT INTO `permission` VALUES (5, '', '', NULL, '/api/v1/users', 'GET', '获取用户列表', 1);
-INSERT INTO `permission` VALUES (6, '', '', NULL, '/api/v1/users/:id', 'GET', '获取用户信息', 1);
-INSERT INTO `permission` VALUES (7, '', '', NULL, '/api/v1/users/:id', 'PUT', '更新用户信息', 1);
-INSERT INTO `permission` VALUES (8, '', '', NULL, '/api/v1/users/:id/status', 'PUT', '更新用户状态', 1);
-INSERT INTO `permission` VALUES (9, '', '', NULL, '/api/v1/users/:id', 'DELETE', '删除用户', 1);
-INSERT INTO `permission` VALUES (10, '', '', NULL, '/api/v1/users/change-password', 'PUT', '修改密码', 1);
-INSERT INTO `permission` VALUES (11, '', '', NULL, '/api/v1/users/:id/reset-password', 'PUT', '重置密码', 1);
-INSERT INTO `permission` VALUES (12, '', '', NULL, '/api/v1/users-roles/:username', 'POST', '为用户分配角色', 1);
-INSERT INTO `permission` VALUES (13, '', '', NULL, '/api/v1/users-roles/:username', 'DELETE', '移除用户的角色', 1);
-INSERT INTO `permission` VALUES (14, '', '', NULL, '/api/v1/users-roles/:username', 'GET', '获取用户的角色列表', 1);
-INSERT INTO `permission` VALUES (15, '', '', NULL, '/api/v1/roles', 'POST', '创建角色', 1);
-INSERT INTO `permission` VALUES (16, '', '', NULL, '/api/v1/roles', 'GET', '获取角色列表', 1);
-INSERT INTO `permission` VALUES (17, '', '', NULL, '/api/v1/roles/:id', 'GET', '获取角色详情', 1);
-INSERT INTO `permission` VALUES (18, '', '', NULL, '/api/v1/roles/:id', 'PUT', '更新角色', 1);
-INSERT INTO `permission` VALUES (19, '', '', NULL, '/api/v1/roles/:id', 'DELETE', '删除角色', 1);
-INSERT INTO `permission` VALUES (20, '', '', NULL, '/api/v1/menus', 'POST', '创建菜单', 1);
-INSERT INTO `permission` VALUES (21, '', '', NULL, '/api/v1/menus', 'GET', '查询用户可见菜单', 1);
-INSERT INTO `permission` VALUES (22, '', '', NULL, '/api/v1/menus/all', 'GET', '查询所有菜单', 1);
-INSERT INTO `permission` VALUES (23, '', '', NULL, '/api/v1/menus/:id', 'PUT', '更新菜单', 1);
-INSERT INTO `permission` VALUES (24, '', '', NULL, '/api/v1/menus/:id', 'DELETE', '删除菜单', 1);
-INSERT INTO `permission` VALUES (25, '', '', NULL, '/api/v1/roles/:id/menus', 'POST', '为角色分配菜单权限', 1);
-INSERT INTO `permission` VALUES (26, '', '', NULL, '/api/v1/roles/:id/menus', 'GET', '获取角色的菜单权限', 1);
-INSERT INTO `permission` VALUES (27, '', '', NULL, '/api/v1/roles/:id/menus', 'DELETE', '移除角色的菜单权限', 1);
-INSERT INTO `permission` VALUES (28, '', '', NULL, '/api/v1/roles/:id/policies', 'POST', '添加Casbin策略', 1);
-INSERT INTO `permission` VALUES (29, '', '', NULL, '/api/v1/roles/:id/policies', 'DELETE', '移除Casbin策略', 1);
-INSERT INTO `permission` VALUES (30, '', '', NULL, '/api/v1/roles/:id/policies', 'GET', '获取角色的Casbin策略', 1);
-INSERT INTO `permission` VALUES (31, '', '', NULL, '/api/v1/permissions', 'POST', '创建权限', 1);
-INSERT INTO `permission` VALUES (32, '', '', NULL, '/api/v1/permissions', 'GET', '获取权限列表', 1);
-INSERT INTO `permission` VALUES (33, '', '', NULL, '/api/v1/permissions/:id', 'GET', '获取权限详情', 1);
-INSERT INTO `permission` VALUES (34, '', '', NULL, '/api/v1/permissions/:id', 'PUT', '更新权限', 1);
-INSERT INTO `permission` VALUES (35, '', '', NULL, '/api/v1/permissions/:id/status', 'PUT', '更新权限状态', 1);
-INSERT INTO `permission` VALUES (36, '', '', NULL, '/api/v1/permissions/:id', 'DELETE', '删除权限', 1);
-INSERT INTO `permission` VALUES (37, '', '', NULL, '/api/v1/permissions/all/:id', 'GET', '获取角色管理中不分页的权限列表', 1);
-INSERT INTO `permission` VALUES (38, '', '', NULL, '/api/v1/permissions/all', 'GET', '获取角色管理中不分页的权限列表', 1);
+INSERT INTO `permission` VALUES (1, NULL, NULL, NULL, '/api/v1/login', 'POST', '用户登录', 1);
+INSERT INTO `permission` VALUES (2, NULL, NULL, NULL, '/api/v1/captcha', 'GET', '获取验证码', 1);
+INSERT INTO `permission` VALUES (3, NULL, NULL, NULL, '/api/v1/logout', 'POST', '退出登录', 1);
+INSERT INTO `permission` VALUES (4, NULL, NULL, NULL, '/api/v1/users', 'POST', '创建用户', 1);
+INSERT INTO `permission` VALUES (5, NULL, NULL, NULL, '/api/v1/users', 'GET', '获取用户列表', 1);
+INSERT INTO `permission` VALUES (6, NULL, NULL, NULL, '/api/v1/users/:id', 'GET', '获取用户信息', 1);
+INSERT INTO `permission` VALUES (7, NULL, NULL, NULL, '/api/v1/users/:id', 'PUT', '更新用户信息', 1);
+INSERT INTO `permission` VALUES (8, NULL, NULL, NULL, '/api/v1/users/:id/status', 'PUT', '更新用户状态', 1);
+INSERT INTO `permission` VALUES (9, NULL, NULL, NULL, '/api/v1/users/:id', 'DELETE', '删除用户', 1);
+INSERT INTO `permission` VALUES (10, NULL, NULL, NULL, '/api/v1/users/change-password', 'PUT', '修改密码', 1);
+INSERT INTO `permission` VALUES (11, NULL, NULL, NULL, '/api/v1/users/:id/reset-password', 'PUT', '重置密码', 1);
+INSERT INTO `permission` VALUES (12, NULL, NULL, NULL, '/api/v1/users-roles/:username', 'POST', '为用户分配角色', 1);
+INSERT INTO `permission` VALUES (13, NULL, NULL, NULL, '/api/v1/users-roles/:username', 'DELETE', '移除用户的角色', 1);
+INSERT INTO `permission` VALUES (14, NULL, NULL, NULL, '/api/v1/users-roles/:username', 'GET', '获取用户的角色列表', 1);
+INSERT INTO `permission` VALUES (15, NULL, NULL, NULL, '/api/v1/roles', 'POST', '创建角色', 1);
+INSERT INTO `permission` VALUES (16, NULL, NULL, NULL, '/api/v1/roles', 'GET', '获取角色列表', 1);
+INSERT INTO `permission` VALUES (17, NULL, NULL, NULL, '/api/v1/roles/:id', 'GET', '获取角色详情', 1);
+INSERT INTO `permission` VALUES (18, NULL, NULL, NULL, '/api/v1/roles/:id', 'PUT', '更新角色', 1);
+INSERT INTO `permission` VALUES (19, NULL, NULL, NULL, '/api/v1/roles/:id', 'DELETE', '删除角色', 1);
+INSERT INTO `permission` VALUES (20, NULL, NULL, NULL, '/api/v1/menus', 'POST', '创建菜单', 1);
+INSERT INTO `permission` VALUES (21, NULL, NULL, NULL, '/api/v1/menus', 'GET', '查询用户可见菜单', 1);
+INSERT INTO `permission` VALUES (22, NULL, NULL, NULL, '/api/v1/menus/all', 'GET', '查询所有菜单', 1);
+INSERT INTO `permission` VALUES (23, NULL, NULL, NULL, '/api/v1/menus/:id', 'PUT', '更新菜单', 1);
+INSERT INTO `permission` VALUES (24, NULL, NULL, NULL, '/api/v1/menus/:id', 'DELETE', '删除菜单', 1);
+INSERT INTO `permission` VALUES (25, NULL, NULL, NULL, '/api/v1/roles/:id/menus', 'POST', '为角色分配菜单权限', 1);
+INSERT INTO `permission` VALUES (26, NULL, NULL, NULL, '/api/v1/roles/:id/menus', 'GET', '获取角色的菜单权限', 1);
+INSERT INTO `permission` VALUES (27, NULL, NULL, NULL, '/api/v1/roles/:id/menus', 'DELETE', '移除角色的菜单权限', 1);
+INSERT INTO `permission` VALUES (28, NULL, NULL, NULL, '/api/v1/roles/:id/policies', 'POST', '添加Casbin策略', 1);
+INSERT INTO `permission` VALUES (29, NULL, NULL, NULL, '/api/v1/roles/:id/policies', 'DELETE', '移除Casbin策略', 1);
+INSERT INTO `permission` VALUES (30, NULL, NULL, NULL, '/api/v1/roles/:id/policies', 'GET', '获取角色的Casbin策略', 1);
+INSERT INTO `permission` VALUES (31, NULL, NULL, NULL, '/api/v1/permissions', 'POST', '创建权限', 1);
+INSERT INTO `permission` VALUES (32, NULL, NULL, NULL, '/api/v1/permissions', 'GET', '获取权限列表', 1);
+INSERT INTO `permission` VALUES (33, NULL, NULL, NULL, '/api/v1/permissions/:id', 'GET', '获取权限详情', 1);
+INSERT INTO `permission` VALUES (34, NULL, NULL, NULL, '/api/v1/permissions/:id', 'PUT', '更新权限', 1);
+INSERT INTO `permission` VALUES (35, NULL, NULL, NULL, '/api/v1/permissions/:id/status', 'PUT', '更新权限状态', 1);
+INSERT INTO `permission` VALUES (36, NULL, NULL, NULL, '/api/v1/permissions/:id', 'DELETE', '删除权限', 1);
+INSERT INTO `permission` VALUES (37, NULL, NULL, NULL, '/api/v1/permissions/all/:id', 'GET', '获取角色管理中不分页的权限列表', 1);
+INSERT INTO `permission` VALUES (38, NULL, NULL, NULL, '/api/v1/permissions/all', 'GET', '获取角色管理中不分页的权限列表', 1);
+INSERT INTO `permission` VALUES (39, NULL, NULL, NULL, '/api/v1/operation-logs', 'GET', '查询日志', 1);
+INSERT INTO `permission` VALUES (40, NULL, NULL, NULL, '/api/v1/operation-logs/stats', 'GET', '', 1);
 
 -- ----------------------------
 -- Table structure for role_menus
@@ -305,8 +297,8 @@ INSERT INTO `role_menus` VALUES (5, 15);
 DROP TABLE IF EXISTS `roles`;
 CREATE TABLE `roles`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `created_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `updated_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `created_at` datetime(3) NULL DEFAULT NULL,
+  `updated_at` datetime(3) NULL DEFAULT NULL,
   `deleted_at` datetime(3) NULL DEFAULT NULL,
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
@@ -321,12 +313,12 @@ CREATE TABLE `roles`  (
 -- ----------------------------
 -- Records of roles
 -- ----------------------------
-INSERT INTO `roles` VALUES (1, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', NULL, '超级管理员', '拥有系统所有权限', 1, 'surperadmin');
-INSERT INTO `roles` VALUES (2, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', NULL, '管理员', '拥有大部分管理权限', 1, 'admin');
-INSERT INTO `roles` VALUES (3, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', NULL, '普通用户', '拥有基本查看权限', 1, 'user');
-INSERT INTO `roles` VALUES (4, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', NULL, '访客', '仅拥有查看权限', 1, 'Visitor');
-INSERT INTO `roles` VALUES (5, '2026-01-18 19:07:49.000', '2026-01-18 19:07:49.000', NULL, '测试角色', '用于测试的角色', 1, 'ceshi');
-INSERT INTO `roles` VALUES (7, '', '', NULL, 'TestRole', '', 1, 'test_role_ident');
+INSERT INTO `roles` VALUES (1, NULL, NULL, NULL, '超级管理员', '拥有系统所有权限', 1, 'surperadmin');
+INSERT INTO `roles` VALUES (2, NULL, NULL, NULL, '管理员', '拥有大部分管理权限', 1, 'admin');
+INSERT INTO `roles` VALUES (3, NULL, NULL, NULL, '普通用户', '拥有基本查看权限', 1, 'user');
+INSERT INTO `roles` VALUES (4, NULL, NULL, NULL, '访客', '仅拥有查看权限', 1, 'Visitor');
+INSERT INTO `roles` VALUES (5, NULL, NULL, NULL, '测试角色', '用于测试的角色', 1, 'ceshi');
+INSERT INTO `roles` VALUES (7, NULL, NULL, NULL, 'TestRole', '', 1, 'test_role_ident');
 
 -- ----------------------------
 -- Table structure for users
@@ -334,8 +326,8 @@ INSERT INTO `roles` VALUES (7, '', '', NULL, 'TestRole', '', 1, 'test_role_ident
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users`  (
   `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
-  `created_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
-  `updated_at` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `created_at` datetime(3) NULL DEFAULT NULL,
+  `updated_at` datetime(3) NULL DEFAULT NULL,
   `deleted_at` datetime(3) NULL DEFAULT NULL,
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -347,8 +339,7 @@ CREATE TABLE `users`  (
   `last_login_at` datetime(3) NULL DEFAULT NULL,
   `last_login_ip` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `role_id` bigint UNSIGNED NULL DEFAULT NULL,
-  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `ident` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ident` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_users_username`(`username` ASC) USING BTREE,
@@ -357,14 +348,13 @@ CREATE TABLE `users`  (
   INDEX `fk_roles_users`(`role_id` ASC) USING BTREE,
   CONSTRAINT `fk_roles_users` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `fk_users_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 23 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (10, '2026-01-18 19:07:49.000', '2026-01-20 10:04:26.130', NULL, 'admin', '$2a$10$ocZQAxtwX0K8aSywcLjICeMqyWv8KqvqJ7ZeoKSu9bMSIKjKhpkAq', 'admin2@example.com', '13800138009', '管理员', '', 1, '2026-01-28 22:52:57.493', '', 2, '', '', NULL);
-INSERT INTO `users` VALUES (16, '', '', '2026-01-27 21:18:43.440', 'ceshi', '$2a$10$3J.aR7claboqAQuKPWeWUenxV.jY7Hjasi.eBBqYicedQgyzWG4KO', '2603485744@qq.com', '', '测试', '', 1, '2026-01-27 20:59:45.972', '', 5, '', '', NULL);
-INSERT INTO `users` VALUES (19, '', '', '2026-01-27 21:18:41.641', 'ceshi2', '$2a$10$lGiFopGyYy0A707gBLzwv.e7EDInuygQg/8zu.Y2Mbm78dyCM56rW', '2603485766@qq.com', '', '测试2', '', 1, NULL, '', 3, '', '', NULL);
-INSERT INTO `users` VALUES (20, '', '', NULL, 'ceshiadmin', '$2a$10$zGgDA7YfYEHet7tbY9d1EePymBCGNgpVNQwgz4fw63.BqAe/9W.Xy', '26034854@qq.com', '', '测试admin', '', 1, NULL, '', 1, '', '', NULL);
+INSERT INTO `users` VALUES (10, '2026-02-03 20:20:38.000', '2026-02-03 20:20:44.000', NULL, 'admin', '$2a$10$ocZQAxtwX0K8aSywcLjICeMqyWv8KqvqJ7ZeoKSu9bMSIKjKhpkAq', 'admin2@example.com', '13800138009', '管理员', '', 1, '2026-02-03 20:01:58.376', '', 2, '', NULL);
+INSERT INTO `users` VALUES (16, '2026-02-03 20:23:07.000', '2026-02-03 20:23:09.000', '2026-01-27 21:18:43.440', 'ceshi', '$2a$10$3J.aR7claboqAQuKPWeWUenxV.jY7Hjasi.eBBqYicedQgyzWG4KO', '2603485744@qq.com', '', '测试', '', 1, '2026-01-27 20:59:45.972', '', 5, '', NULL);
+INSERT INTO `users` VALUES (22, '2026-02-03 20:38:05.881', '2026-02-03 20:38:05.881', '2026-02-03 21:33:21.841', '1111', '$2a$10$gwhoeJZElt8CrJQp5Kb64uig2X6uEc0BHrn36IIM/e7vE04tkD12e', '1111@12313.com', '', '1111', '', 1, NULL, '', NULL, NULL, NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;
