@@ -32,4 +32,4 @@ redis:
 
 jwt:
   secret: "your-secret-key"
-  timeout: 7200
+  timeout: 2

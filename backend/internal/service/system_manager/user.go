@@ -55,6 +55,7 @@ func (s *UserService) CreateUser(username, password, email, nickname string) (*s
 	}
 
 	user := &sysModel.User{
+
 		Username: username,
 		Password: string(hashedPassword),
 		Email:    email,
@@ -81,11 +82,6 @@ func (s *UserService) Login(username, password string) (*sysModel.UserWithRoleIn
 	if user.Status == 0 {
 		return nil, errors.New("用户已被禁用")
 	}
-
-	logger.Logger.Info("用户登录请求",
-		zap.String("username", username),
-		zap.String("user.Password", user.Password),
-		zap.String("password", password))
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		return nil, errors.New("用户名或密码错误")

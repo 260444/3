@@ -8,7 +8,7 @@ type OperationLog struct {
 	Username      string `gorm:"size:50;not null" json:"username"`
 	IP            string `gorm:"size:45" json:"ip"`
 	UserAgent     string `gorm:"size:500" json:"user_agent"`
-	Status        int    `gorm:"default:1" json:"status"` // 1: 成功, 0: 失败
+	Status        int    `gorm:"default:0" json:"status"`
 	RequestMethod string `gorm:"size:10" json:"request_method"`
 	RequestPath   string `gorm:"size:255" json:"request_path"`
 	RequestBody   string `gorm:"type:text" json:"request_body"`

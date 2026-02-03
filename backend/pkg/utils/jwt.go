@@ -2,9 +2,7 @@ package utils
 
 import (
 	"backend/config"
-	"backend/pkg/logger"
 	"errors"
-	"go.uber.org/zap"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -23,13 +21,13 @@ func GenerateToken(userID uint, username string, ident string) (string, error) {
 
 	secret := config.GlobalConfig.JWT.Secret
 	timeout := config.GlobalConfig.JWT.Timeout
-	logger.Logger.Info("生成JWT", zap.String("secret", secret), zap.String("timeout", timeout.String()))
+	//logger.Logger.Info("生成JWT", zap.String("secret", secret), zap.String("timeout", timeout.String()))
 	claims := &Claims{
 		UserID:   userID,
 		Username: username,
 		Ident:    ident,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(2 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(timeout * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    "admin-system",
 		},

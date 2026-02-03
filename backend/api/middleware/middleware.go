@@ -120,40 +120,6 @@ func RateLimitMiddleware() gin.HandlerFunc {
 	}
 }
 
-// OperationLogMiddleware 操作日志中间件 - 记录用户操作日志
-func OperationLogMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		// 获取用户信息
-		username, _ := c.Get("username")
-		userID, _ := c.Get("userID")
-
-		// 记录请求开始前的信息
-		startTime := time.Now()
-		method := c.Request.Method
-		path := c.FullPath()
-		clientIP := c.ClientIP()
-
-		// 处理请求
-		c.Next()
-
-		// 请求结束后记录操作日志
-		endTime := time.Now()
-		latency := endTime.Sub(startTime)
-		statusCode := c.Writer.Status()
-
-		// 记录操作日志
-		logger.Logger.Info("用户操作日志",
-			zap.Any("user_id", userID),
-			zap.Any("username", username),
-			zap.String("method", method),
-			zap.String("path", path),
-			zap.Int("status", statusCode),
-			zap.String("ip", clientIP),
-			zap.Duration("duration", latency),
-		)
-	}
-}
-
 // CasbinMiddleware Casbin权限验证中间件
 func CasbinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -212,7 +178,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 
 		if !allowed {
 			// 检查请求是否是AJAX请求或API请求
-			if c.GetHeader("X-Requested-With") == "XMLHttpRequest" || 
+			if c.GetHeader("X-Requested-With") == "XMLHttpRequest" ||
 				strings.Contains(c.GetHeader("Accept"), "application/json") {
 				// API请求，返回JSON错误
 				c.JSON(http.StatusForbidden, gin.H{
