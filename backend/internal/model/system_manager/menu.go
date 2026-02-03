@@ -1,4 +1,4 @@
-package model
+package system_manager
 
 // Menu 菜单模型
 type Menu struct {

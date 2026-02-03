@@ -1,22 +1,24 @@
-package handler
+package system_manager
 
 import (
-	"backend/internal/model"
-	"backend/internal/service"
+	"backend/internal/model/system_manager"
 	"backend/pkg/logger"
 	"backend/pkg/utils"
-	"go.uber.org/zap"
 	"net/http"
 	"strconv"
+
+	"go.uber.org/zap"
+
+	sysService "backend/internal/service/system_manager"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
-	UserService *service.UserService
+	UserService *sysService.UserService
 }
 
-func NewUserHandler(userService *service.UserService) *UserHandler {
+func NewUserHandler(userService *sysService.UserService) *UserHandler {
 	return &UserHandler{
 		UserService: userService,
 	}
@@ -243,7 +245,7 @@ func (h *UserHandler) GetUsers(c *gin.Context) {
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	userID, _ := strconv.Atoi(c.Param("id"))
 
-	var req model.User
+	var req system_manager.User
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		logger.Logger.Error("绑定用户信息失败:", zap.Error(err))

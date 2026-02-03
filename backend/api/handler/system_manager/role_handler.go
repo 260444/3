@@ -1,8 +1,8 @@
-package handler
+package system_manager
 
 import (
-	"backend/internal/model"
-	"backend/internal/service"
+	"backend/internal/model/system_manager"
+	sysService "backend/internal/service/system_manager"
 	"net/http"
 	"strconv"
 
@@ -10,17 +10,17 @@ import (
 )
 
 type RoleHandler struct {
-	RoleService *service.RoleService
+	RoleService *sysService.RoleService
 }
 
-func NewRoleHandler(roleService *service.RoleService) *RoleHandler {
+func NewRoleHandler(roleService *sysService.RoleService) *RoleHandler {
 	return &RoleHandler{
 		RoleService: roleService,
 	}
 }
 
 func (h *RoleHandler) CreateRole(c *gin.Context) {
-	var req model.Role
+	var req system_manager.Role
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -86,7 +86,7 @@ func (h *RoleHandler) GetRoles(c *gin.Context) {
 func (h *RoleHandler) UpdateRole(c *gin.Context) {
 	roleID, _ := strconv.Atoi(c.Param("id"))
 
-	var req model.Role
+	var req system_manager.Role
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

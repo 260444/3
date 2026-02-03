@@ -1,13 +1,14 @@
-package service
+package system_manager
 
 import (
-	"backend/internal/model"
-	"backend/internal/repository"
+	"backend/internal/model/system_manager"
+	repository "backend/internal/repository/system_manager"
 	"backend/pkg/casbin"
 	"backend/pkg/logger"
 	"errors"
-	"go.uber.org/zap"
 	"time"
+
+	"go.uber.org/zap"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -27,7 +28,7 @@ func NewUserService(userRepo *repository.UserRepository, roleRepo *repository.Ro
 }
 
 // CreateUser 创建用户 *
-func (s *UserService) CreateUser(username, password, email, nickname string) (*model.User, error) {
+func (s *UserService) CreateUser(username, password, email, nickname string) (*system_manager.User, error) {
 	// 检查用户名是否已存在
 	existingUser, err := s.UserRepo.GetByUsername(username)
 
@@ -53,7 +54,7 @@ func (s *UserService) CreateUser(username, password, email, nickname string) (*m
 		return nil, err
 	}
 
-	user := &model.User{
+	user := &system_manager.User{
 		Username: username,
 		Password: string(hashedPassword),
 		Email:    email,
@@ -70,7 +71,7 @@ func (s *UserService) CreateUser(username, password, email, nickname string) (*m
 }
 
 // Login 用户登录 *
-func (s *UserService) Login(username, password string) (*model.UserWithRoleInfo, error) {
+func (s *UserService) Login(username, password string) (*system_manager.UserWithRoleInfo, error) {
 	UserWithRole, err := s.UserRepo.UserWithRoleInfo(username)
 	if err != nil {
 		return nil, errors.New("用户名或密码错误")
@@ -101,12 +102,12 @@ func (s *UserService) Login(username, password string) (*model.UserWithRoleInfo,
 }
 
 // GetUserByID 根据ID获取用户 *
-func (s *UserService) GetUserByID(id uint) (*model.User, error) {
+func (s *UserService) GetUserByID(id uint) (*system_manager.User, error) {
 	return s.UserRepo.GetByID(id)
 }
 
 // UpdateUser 更新用户  *
-func (s *UserService) UpdateUser(id uint, user *model.User) error {
+func (s *UserService) UpdateUser(id uint, user *system_manager.User) error {
 	existingUser, err := s.UserRepo.GetByID(id)
 	if err != nil {
 		return errors.New("用户不存在")
@@ -230,7 +231,7 @@ func (s *UserService) DeleteUser(id uint) error {
 }
 
 // GetUsers 获取用户列表  *
-func (s *UserService) GetUsers(limit, offset int) ([]model.User, int64, error) {
+func (s *UserService) GetUsers(limit, offset int) ([]system_manager.User, int64, error) {
 	users, err := s.UserRepo.List(limit, offset)
 	if err != nil {
 		return nil, 0, err

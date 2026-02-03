@@ -1,4 +1,4 @@
-package model
+package system_manager
 
 type Permission struct {
 	BaseModel

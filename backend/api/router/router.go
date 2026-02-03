@@ -1,7 +1,7 @@
 package router
 
 import (
-	"backend/api/handler"
+	handler "backend/api/handler/system_manager"
 	"backend/api/middleware"
 	"backend/pkg/utils"
 

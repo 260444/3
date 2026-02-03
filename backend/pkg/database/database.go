@@ -2,7 +2,7 @@ package database
 
 import (
 	"backend/config"
-	"backend/internal/model"
+	model "backend/internal/model/system_manager"
 	"fmt"
 	"log"
 	"os"

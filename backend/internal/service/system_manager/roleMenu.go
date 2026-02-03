@@ -1,8 +1,8 @@
-package service
+package system_manager
 
 import (
-	"backend/internal/model"
-	"backend/internal/repository"
+	"backend/internal/model/system_manager"
+	repository "backend/internal/repository/system_manager"
 )
 
 // RoleMenuService 角色服务
@@ -20,9 +20,9 @@ func NewRoleMenuService(RoleMenuRepo *repository.RoleMenuRepository) *RoleMenuSe
 // AssignMenuToRole 为角色分配菜单权限
 func (s *RoleMenuService) AssignMenuToRole(roleID uint, menuIDs []uint) error {
 	//TODO 判断roleID是否存在
-	var roleMeans []model.RoleMenu
+	var roleMeans []system_manager.RoleMenu
 	for _, d := range menuIDs {
-		roleMeans = append(roleMeans, model.RoleMenu{
+		roleMeans = append(roleMeans, system_manager.RoleMenu{
 			RoleID: roleID,
 			MenuID: d,
 		})
@@ -31,7 +31,7 @@ func (s *RoleMenuService) AssignMenuToRole(roleID uint, menuIDs []uint) error {
 }
 
 // GetUserMenusByID 获取用户的菜单权限（通过角色）
-func (s *RoleMenuService) GetUserMenusByID(roleID uint) ([]*model.RoleMenuRequest, error) {
+func (s *RoleMenuService) GetUserMenusByID(roleID uint) ([]*system_manager.RoleMenuRequest, error) {
 	//TODO 判断roleID是否存在
 	return s.RoleMenuRepo.GetRoleMenuByID(roleID)
 }

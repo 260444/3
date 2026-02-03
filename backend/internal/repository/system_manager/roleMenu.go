@@ -1,8 +1,9 @@
-package repository
+package system_manager
 
 import (
-	"backend/internal/model"
+	"backend/internal/model/system_manager"
 	"fmt"
+
 	"gorm.io/gorm"
 )
 
@@ -17,12 +18,12 @@ func NewRoleMenuRepository(db *gorm.DB) *RoleMenuRepository {
 }
 
 // CreateRoleMenus 创建记录RoleMenu
-func (r *RoleMenuRepository) CreateRoleMenus(roleMeans []model.RoleMenu) error {
+func (r *RoleMenuRepository) CreateRoleMenus(roleMeans []system_manager.RoleMenu) error {
 	return r.DB.Create(&roleMeans).Error
 }
 
 // GetRoleMenus 获取记录RoleMenu
-//func (r *RoleMenuRepository) GetRoleMenus(roleId uint) (roleMeans []*model.RoleMenuRequest, err error) {
+//func (r *RoleMenuRepository) GetRoleMenus(roleId uint) (roleMeans []*system_manager.RoleMenuRequest, err error) {
 //	err = r.DB.Raw(`
 //		SELECT a.role_id, a.menu_id, b.title
 //		FROM role_menus AS a
@@ -34,11 +35,11 @@ func (r *RoleMenuRepository) CreateRoleMenus(roleMeans []model.RoleMenu) error {
 
 // DeleteRoleMenus 删除记录RoleMenu
 func (r *RoleMenuRepository) DeleteRoleMenus(roleId uint, roleMeans []uint) error {
-	return r.DB.Where("role_id = ? AND menu_id IN ?", roleId, roleMeans).Delete(&model.RoleMenu{}).Error
+	return r.DB.Where("role_id = ? AND menu_id IN ?", roleId, roleMeans).Delete(&system_manager.RoleMenu{}).Error
 }
 
 // GetRoleMenuByID 根据ID获取记录RoleMenu
-func (r *RoleMenuRepository) GetRoleMenuByID(roleId uint) (roleMeans []*model.RoleMenuRequest, err error) {
+func (r *RoleMenuRepository) GetRoleMenuByID(roleId uint) (roleMeans []*system_manager.RoleMenuRequest, err error) {
 
 	var p []uint
 	//查询出有权限的父菜单
@@ -49,10 +50,10 @@ func (r *RoleMenuRepository) GetRoleMenuByID(roleId uint) (roleMeans []*model.Ro
 	}
 
 	// 初始化切片，设置正确的容量
-	roleMeans = make([]*model.RoleMenuRequest, len(p))
+	roleMeans = make([]*system_manager.RoleMenuRequest, len(p))
 	// 为每个元素分配内存
 	for i := range roleMeans {
-		roleMeans[i] = &model.RoleMenuRequest{}
+		roleMeans[i] = &system_manager.RoleMenuRequest{}
 	}
 
 	//递归查询出所有子菜单

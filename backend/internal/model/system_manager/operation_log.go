@@ -1,4 +1,4 @@
-package model
+package system_manager
 
 // OperationLog 操作日志模型
 type OperationLog struct {

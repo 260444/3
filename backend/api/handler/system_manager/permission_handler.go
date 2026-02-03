@@ -1,8 +1,8 @@
-package handler
+package system_manager
 
 import (
-	"backend/internal/model"
-	"backend/internal/service"
+	"backend/internal/model/system_manager"
+	sysService "backend/internal/service/system_manager"
 	"net/http"
 	"strconv"
 
@@ -11,10 +11,10 @@ import (
 
 // PermissionHandler 权限管理处理器
 type PermissionHandler struct {
-	PermissionService *service.PermissionService
+	PermissionService *sysService.PermissionService
 }
 
-func NewPermissionHandler(permissionService *service.PermissionService) *PermissionHandler {
+func NewPermissionHandler(permissionService *sysService.PermissionService) *PermissionHandler {
 	return &PermissionHandler{
 		PermissionService: permissionService,
 	}
@@ -136,7 +136,7 @@ func (h *PermissionHandler) GetAllPolicies(c *gin.Context) {
 
 // CreatePermission 创建权限
 func (h *PermissionHandler) CreatePermission(c *gin.Context) {
-	var req model.Permission
+	var req system_manager.Permission
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -213,7 +213,7 @@ func (h *PermissionHandler) GetPermissions(c *gin.Context) {
 func (h *PermissionHandler) UpdatePermission(c *gin.Context) {
 	permissionID, _ := strconv.Atoi(c.Param("id"))
 
-	var req model.Permission
+	var req system_manager.Permission
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

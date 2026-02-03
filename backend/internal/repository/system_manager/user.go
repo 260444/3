@@ -1,7 +1,7 @@
-package repository
+package system_manager
 
 import (
-	"backend/internal/model"
+	"backend/internal/model/system_manager"
 	"fmt"
 
 	"gorm.io/gorm"
@@ -18,27 +18,27 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 // Create 创建用户 *
-func (r *UserRepository) Create(user *model.User) error {
+func (r *UserRepository) Create(user *system_manager.User) error {
 	return r.DB.Create(user).Error
 }
 
 // GetByID 根据ID获取用户 *
-func (r *UserRepository) GetByID(id uint) (*model.User, error) {
-	var user model.User
+func (r *UserRepository) GetByID(id uint) (*system_manager.User, error) {
+	var user system_manager.User
 	err := r.DB.First(&user, id).Error
 	return &user, err
 }
 
 // GetByUsername 根据用户名获取用户 *
-func (r *UserRepository) GetByUsername(username string) (*model.User, error) {
-	var user model.User
+func (r *UserRepository) GetByUsername(username string) (*system_manager.User, error) {
+	var user system_manager.User
 	err := r.DB.Where("username = ?", username).First(&user).Error
 	return &user, err
 }
 
 // GetPermissionsByUsername 根据用户名获取用户和权限信息
-func (r *UserRepository) UserWithRoleInfo(username string) (*model.UserWithRoleInfo, error) {
-	var userWithRole model.UserWithRoleInfo
+func (r *UserRepository) UserWithRoleInfo(username string) (*system_manager.UserWithRoleInfo, error) {
+	var userWithRole system_manager.UserWithRoleInfo
 	err := r.DB.Table("users").
 		Select("users.*, roles.ident as ident").
 		Joins("INNER JOIN roles ON users.role_id = roles.id").
@@ -50,25 +50,25 @@ func (r *UserRepository) UserWithRoleInfo(username string) (*model.UserWithRoleI
 }
 
 // GetByEmail 根据邮箱获取用户
-func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
-	var user model.User
+func (r *UserRepository) GetByEmail(email string) (*system_manager.User, error) {
+	var user system_manager.User
 	err := r.DB.Where("email = ?", email).First(&user).Error
 	return &user, err
 }
 
 // Update 更新用户 *
-func (r *UserRepository) Update(user *model.User) error {
+func (r *UserRepository) Update(user *system_manager.User) error {
 	return r.DB.Save(user).Error
 }
 
 // Delete 删除用户 *
 func (r *UserRepository) Delete(id uint) error {
-	return r.DB.Delete(&model.User{}, id).Error
+	return r.DB.Delete(&system_manager.User{}, id).Error
 }
 
 // List 获取用户列表 *
-func (r *UserRepository) List(limit, offset int) ([]model.User, error) {
-	var users []model.User
+func (r *UserRepository) List(limit, offset int) ([]system_manager.User, error) {
+	var users []system_manager.User
 	err := r.DB.Offset(offset).Limit(limit).Find(&users).Error
 	return users, err
 }
@@ -76,16 +76,16 @@ func (r *UserRepository) List(limit, offset int) ([]model.User, error) {
 // GetTotal 获取用户总数 *
 func (r *UserRepository) GetTotal() (int64, error) {
 	var count int64
-	err := r.DB.Model(&model.User{}).Count(&count).Error
+	err := r.DB.Model(&system_manager.User{}).Count(&count).Error
 	return count, err
 }
 
 // UpdatePassword 更新密码
 func (r *UserRepository) UpdatePassword(id uint, password string) error {
-	return r.DB.Model(&model.User{}).Where("id = ?", id).Update("password", password).Error
+	return r.DB.Model(&system_manager.User{}).Where("id = ?", id).Update("password", password).Error
 }
 
 // UpdateStatus 更新用户状态 *
 func (r *UserRepository) UpdateStatus(id uint, status int) error {
-	return r.DB.Model(&model.User{}).Where("id = ?", id).Update("status", status).Error
+	return r.DB.Model(&system_manager.User{}).Where("id = ?", id).Update("status", status).Error
 }

@@ -1,4 +1,4 @@
-package model
+package system_manager
 
 // Role 角色模型
 type Role struct {

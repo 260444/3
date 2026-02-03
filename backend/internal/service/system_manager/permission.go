@@ -1,8 +1,8 @@
-package service
+package system_manager
 
 import (
-	"backend/internal/model"
-	"backend/internal/repository"
+	"backend/internal/model/system_manager"
+	repository "backend/internal/repository/system_manager"
 	"backend/pkg/casbin"
 	"fmt"
 )
@@ -24,17 +24,17 @@ func NewPermissionService(roleRepo *repository.RoleRepository, menuRepo *reposit
 }
 
 // CreatePermission 创建权限
-func (s *PermissionService) CreatePermission(permission *model.Permission) error {
+func (s *PermissionService) CreatePermission(permission *system_manager.Permission) error {
 	return s.PermissionRepo.Create(permission)
 }
 
 // GetPermissionByID 根据ID获取权限
-func (s *PermissionService) GetPermissionByID(id uint) (*model.Permission, error) {
+func (s *PermissionService) GetPermissionByID(id uint) (*system_manager.Permission, error) {
 	return s.PermissionRepo.GetByID(id)
 }
 
 // GetPermissions 获取权限列表
-func (s *PermissionService) GetPermissions(limit, offset int, path, method string) ([]model.Permission, error) {
+func (s *PermissionService) GetPermissions(limit, offset int, path, method string) ([]system_manager.Permission, error) {
 	return s.PermissionRepo.List(limit, offset, path, method)
 }
 
@@ -44,7 +44,7 @@ func (s *PermissionService) GetPermissionTotal(path, method string) (int64, erro
 }
 
 // UpdatePermission 更新权限
-func (s *PermissionService) UpdatePermission(permission *model.Permission) error {
+func (s *PermissionService) UpdatePermission(permission *system_manager.Permission) error {
 	return s.PermissionRepo.Update(permission)
 }
 
@@ -54,7 +54,7 @@ func (s *PermissionService) UpdatePermissionStatus(id uint, status int8) error {
 }
 
 // GetAllPermissions 获取所有权限
-func (s *PermissionService) GetAllPermissions(path, method string) ([]model.Permission, error) {
+func (s *PermissionService) GetAllPermissions(path, method string) ([]system_manager.Permission, error) {
 	return s.PermissionRepo.GetAll(path, method)
 }
 
@@ -64,12 +64,12 @@ func (s *PermissionService) DeletePermission(id uint) error {
 }
 
 // // GetPermissionByPathAndMethod 根据路径和方法获取权限
-// func (s *PermissionService) GetPermissionByPathAndMethod(path, method string) (*model.Permission, error) {
+// func (s *PermissionService) GetPermissionByPathAndMethod(path, method string) (*system_manager.Permission, error) {
 // 	return s.PermissionRepo.GetByPathAndMethod(path, method)
 // }
 
 // GetRoleMenus 获取角色的菜单权限
-// func (s *PermissionService) GetRoleMenus(roleID uint) ([]model.Menu, error) {
+// func (s *PermissionService) GetRoleMenus(roleID uint) ([]system_manager.Menu, error) {
 // 	role, err := s.RoleRepo.GetByID(roleID)
 // 	if err != nil {
 // 		return nil, err

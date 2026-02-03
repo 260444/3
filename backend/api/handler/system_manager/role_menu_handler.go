@@ -1,18 +1,19 @@
-package handler
+package system_manager
 
 import (
-	"backend/internal/service"
 	"net/http"
 	"strconv"
+
+	sysService "backend/internal/service/system_manager"
 
 	"github.com/gin-gonic/gin"
 )
 
 type RoleMenuHandler struct {
-	RoleMenuService *service.RoleMenuService
+	RoleMenuService *sysService.RoleMenuService
 }
 
-func NewRoleMenuHandler(roleMenuService *service.RoleMenuService) *RoleMenuHandler {
+func NewRoleMenuHandler(roleMenuService *sysService.RoleMenuService) *RoleMenuHandler {
 	return &RoleMenuHandler{
 		RoleMenuService: roleMenuService,
 	}

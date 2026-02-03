@@ -1,7 +1,7 @@
-package handler
+package system_manager
 
 import (
-	"backend/internal/service"
+	sysService "backend/internal/service/system_manager"
 	"net/http"
 	"strconv"
 
@@ -9,10 +9,10 @@ import (
 )
 
 type OperationLogHandler struct {
-	OperationLogService *service.OperationLogService
+	OperationLogService *sysService.OperationLogService
 }
 
-func NewOperationLogHandler(operationLogService *service.OperationLogService) *OperationLogHandler {
+func NewOperationLogHandler(operationLogService *sysService.OperationLogService) *OperationLogHandler {
 	return &OperationLogHandler{
 		OperationLogService: operationLogService,
 	}

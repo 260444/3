@@ -1,11 +1,11 @@
 package main
 
 import (
-	"backend/api/handler"
+	sysHandler "backend/api/handler/system_manager"
 	"backend/api/router"
 	"backend/config"
-	"backend/internal/repository"
-	"backend/internal/service"
+	sysRepository "backend/internal/repository/system_manager"
+	sysService "backend/internal/service/system_manager"
 	"backend/pkg/casbin"
 	"backend/pkg/database"
 	"backend/pkg/logger"
@@ -55,28 +55,28 @@ func main() {
 	}
 
 	// 初始化仓库层
-	userRepo := repository.NewUserRepository(db)
-	roleRepo := repository.NewRoleRepository(db)
-	menuRepo := repository.NewMenuRepository(db)
-	operationLogRepo := repository.NewOperationLogRepository(db)
-	permissionRepo := repository.NewPermissionRepository(db)
-	roleMenuRepository := repository.NewRoleMenuRepository(db)
+	userRepo := sysRepository.NewUserRepository(db)
+	roleRepo := sysRepository.NewRoleRepository(db)
+	menuRepo := sysRepository.NewMenuRepository(db)
+	operationLogRepo := sysRepository.NewOperationLogRepository(db)
+	permissionRepo := sysRepository.NewPermissionRepository(db)
+	roleMenuRepository := sysRepository.NewRoleMenuRepository(db)
 
 	// 初始化服务层
-	userService := service.NewUserService(userRepo, roleRepo)
-	roleService := service.NewRoleService(roleRepo)
-	menuService := service.NewMenuService(menuRepo)
-	operationLogService := service.NewOperationLogService(operationLogRepo)
-	permissionService := service.NewPermissionService(roleRepo, menuRepo, permissionRepo)
-	roleMenuService := service.NewRoleMenuService(roleMenuRepository)
+	userService := sysService.NewUserService(userRepo, roleRepo)
+	roleService := sysService.NewRoleService(roleRepo)
+	menuService := sysService.NewMenuService(menuRepo)
+	operationLogService := sysService.NewOperationLogService(operationLogRepo)
+	permissionService := sysService.NewPermissionService(roleRepo, menuRepo, permissionRepo)
+	roleMenuService := sysService.NewRoleMenuService(roleMenuRepository)
 
 	// 初始化处理器层
-	userHandler := handler.NewUserHandler(userService)
-	roleHandler := handler.NewRoleHandler(roleService)
-	menuHandler := handler.NewMenuHandler(menuService)
-	operationLogHandler := handler.NewOperationLogHandler(operationLogService)
-	permissionHandler := handler.NewPermissionHandler(permissionService)
-	roleMenuHandler := handler.NewRoleMenuHandler(roleMenuService)
+	userHandler := sysHandler.NewUserHandler(userService)
+	roleHandler := sysHandler.NewRoleHandler(roleService)
+	menuHandler := sysHandler.NewMenuHandler(menuService)
+	operationLogHandler := sysHandler.NewOperationLogHandler(operationLogService)
+	permissionHandler := sysHandler.NewPermissionHandler(permissionService)
+	roleMenuHandler := sysHandler.NewRoleMenuHandler(roleMenuService)
 
 	// 设置路由
 	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler, roleMenuHandler)

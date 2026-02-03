@@ -1,8 +1,8 @@
-package handler
+package system_manager
 
 import (
-	"backend/internal/model"
-	"backend/internal/service"
+	sysModel "backend/internal/model/system_manager"
+	sysService "backend/internal/service/system_manager"
 	"net/http"
 	"strconv"
 
@@ -10,10 +10,10 @@ import (
 )
 
 type MenuHandler struct {
-	MenuService *service.MenuService
+	MenuService *sysService.MenuService
 }
 
-func NewMenuHandler(menuService *service.MenuService) *MenuHandler {
+func NewMenuHandler(menuService *sysService.MenuService) *MenuHandler {
 	return &MenuHandler{
 		MenuService: menuService,
 	}
@@ -21,7 +21,7 @@ func NewMenuHandler(menuService *service.MenuService) *MenuHandler {
 
 // CreateMenu 创建菜单
 func (h *MenuHandler) CreateMenu(c *gin.Context) {
-	var req model.Menu
+	var req sysModel.Menu
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -79,7 +79,7 @@ func uintPtr(value uint) *uint {
 func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 	menuID, _ := strconv.Atoi(c.Param("id"))
 
-	var req model.Menu
+	var req sysModel.Menu
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
