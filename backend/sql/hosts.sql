@@ -1,0 +1,63 @@
+CREATE TABLE `hosts` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `hostname` varchar(100) NOT NULL COMMENT '主机名',
+  `ip_address` varchar(45) NOT NULL COMMENT 'IP地址(IPv4或IPv6)',
+  `port` smallint unsigned NOT NULL DEFAULT '22' COMMENT 'SSH端口',
+  `username` varchar(50) NOT NULL COMMENT '登录用户名',
+  `password` varchar(255) NOT NULL COMMENT '加密后的密码',
+  `os_type` varchar(20) NOT NULL DEFAULT 'linux' COMMENT '操作系统类型: linux,windows',
+  `cpu_cores` smallint unsigned DEFAULT NULL COMMENT 'CPU核心数',
+  `memory_gb` smallint unsigned DEFAULT NULL COMMENT '内存大小(GB)',
+  `disk_space_gb` int unsigned DEFAULT NULL COMMENT '磁盘空间(GB)',
+  `group_id` bigint unsigned NOT NULL COMMENT '所属主机组ID',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '主机状态: 1-在线, 0-离线, -1-故障',
+  `monitoring_enabled` tinyint NOT NULL DEFAULT '1' COMMENT '监控是否启用: 1-启用, 0-禁用',
+  `last_heartbeat` timestamp NULL DEFAULT NULL COMMENT '最后心跳时间',
+  `description` varchar(500) DEFAULT NULL COMMENT '主机描述',
+  `created_by` bigint unsigned DEFAULT NULL COMMENT '创建人用户ID',
+  `updated_by` bigint unsigned DEFAULT NULL COMMENT '更新人用户ID',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '删除时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_hosts_hostname` (`hostname`),
+  UNIQUE KEY `uk_hosts_ip_address` (`ip_address`),
+  KEY `idx_hosts_group_id` (`group_id`),
+  KEY `idx_hosts_status` (`status`),
+  KEY `idx_hosts_os_type` (`os_type`),
+  KEY `idx_hosts_monitoring_enabled` (`monitoring_enabled`),
+  KEY `idx_hosts_last_heartbeat` (`last_heartbeat`),
+  KEY `idx_hosts_created_at` (`created_at`),
+  KEY `idx_hosts_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='主机表';
+
+CREATE TABLE `host_groups` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `name` varchar(100) NOT NULL COMMENT '主机组名称',
+  `description` varchar(500) DEFAULT NULL COMMENT '描述信息',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态: 1-启用, 0-禁用',
+  `created_by` bigint unsigned DEFAULT NULL COMMENT '创建人用户ID',
+  `updated_by` bigint unsigned DEFAULT NULL COMMENT '更新人用户ID',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '删除时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_host_groups_name` (`name`),
+  KEY `idx_host_groups_status` (`status`),
+  KEY `idx_host_groups_created_at` (`created_at`),
+  KEY `idx_host_groups_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='主机组表';
+
+CREATE TABLE `host_metrics` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `host_id` bigint unsigned NOT NULL COMMENT '主机ID',
+  `metric_type` varchar(30) NOT NULL COMMENT '指标类型: cpu,memory,disk,network',
+  `metric_name` varchar(50) NOT NULL COMMENT '指标名称',
+  `metric_value` decimal(10,2) NOT NULL COMMENT '指标值',
+  `unit` varchar(20) DEFAULT NULL COMMENT '单位',
+  `recorded_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_host_metrics_host_id` (`host_id`),
+  KEY `idx_host_metrics_metric_type` (`metric_type`),
+  KEY `idx_host_metrics_recorded_at` (`recorded_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='主机监控指标表';
