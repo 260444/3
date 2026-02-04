@@ -6,100 +6,161 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 )
 
-// 发送 HTTP 请求
-func makeRequest(method, endpoint string, body interface{}, headers map[string]string) (*http.Response, error) {
-	var reqBody io.Reader
-	if body != nil {
-		jsonBody, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
-		}
-		reqBody = bytes.NewBuffer(jsonBody)
-	}
-
-	fullURL := APIBase + endpoint
-	req, err := http.NewRequest(method, fullURL, reqBody)
+// 发送GET请求
+func sendGet(url string) (*http.Response, []byte, error) {
+	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// 打印详细的请求信息
-	fmt.Printf("\n--- 请求详情 ---\n")
-	fmt.Printf("方法: %s\n", method)
-	fmt.Printf("URL: %s\n", fullURL)
-	if body != nil {
-		fmt.Printf("请求体: %+v\n", body)
-	}
-	if len(headers) > 0 {
-		fmt.Printf("请求头: %+v\n", headers)
-	}
-	fmt.Printf("----------------\n")
-
-	// 设置请求头
-	req.Header.Set("Content-Type", "application/json")
-	for key, value := range headers {
-		req.Header.Set(key, value)
-	}
-
-	return httpClient.Do(req)
-}
-
-// 获取认证头
-func getAuthHeaders() map[string]string {
-	return map[string]string{
-		"Authorization": "Bearer " + testData.Token,
-	}
-}
-
-// 打印测试结果
-func printResult(testName string, passed bool, resp *http.Response, err error) {
-	stats.Total++
-	if passed {
-		stats.Passed++
-		fmt.Printf("\n✓ %s - PASS\n", testName)
-	} else {
-		stats.Failed++
-		fmt.Printf("\n✗ %s - FAIL\n", testName)
-	}
-
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("  错误: %v\n", err)
-		return
-	}
-
-	if resp != nil {
-		fmt.Printf("  状态码: %d\n", resp.StatusCode)
-		body, _ := io.ReadAll(resp.Body)
 		resp.Body.Close()
-		var prettyJSON bytes.Buffer
-		json.Indent(&prettyJSON, body, "", "  ")
-		fmt.Printf("  响应: %s\n", prettyJSON.String())
+		return nil, nil, err
 	}
+
+	return resp, body, nil
 }
 
-// 打印测试结果汇总
-func printSummary() {
-	fmt.Println("\n" + strings.Repeat("=", 60))
-	fmt.Println("测试结果汇总")
-	fmt.Println(strings.Repeat("=", 60))
-	fmt.Printf("总计: %d 个测试\n", stats.Total)
-	fmt.Printf("通过: %d 个\n", stats.Passed)
-	fmt.Printf("失败: %d 个\n", stats.Failed)
-	if stats.Total > 0 {
-		fmt.Printf("成功率: %.1f%%\n", float64(stats.Passed)/float64(stats.Total)*100)
-	}
-	fmt.Println(strings.Repeat("=", 60))
-}
-
-// 检查服务器状态
-func checkServer() bool {
-	resp, err := httpClient.Get(BaseURL)
+// 发送POST请求
+func sendPost(url string, data []byte) (*http.Response, []byte, error) {
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		return false
+		return nil, nil, err
 	}
-	defer resp.Body.Close()
-	return resp.StatusCode < 500
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		resp.Body.Close()
+		return nil, nil, err
+	}
+
+	return resp, body, nil
+}
+
+// 发送带认证的GET请求
+func sendAuthenticatedGet(url string) (*http.Response, []byte, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if authToken != "" {
+		req.Header.Set("Authorization", "Bearer "+authToken)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		resp.Body.Close()
+		return nil, nil, err
+	}
+
+	return resp, body, nil
+}
+
+// 发送带认证的POST请求
+func sendAuthenticatedPost(url string, data interface{}) (*http.Response, []byte, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	if authToken != "" {
+		req.Header.Set("Authorization", "Bearer "+authToken)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		resp.Body.Close()
+		return nil, nil, err
+	}
+
+	return resp, body, nil
+}
+
+// 发送带认证的PUT请求
+func sendAuthenticatedPut(url string, data interface{}) (*http.Response, []byte, error) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	if authToken != "" {
+		req.Header.Set("Authorization", "Bearer "+authToken)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		resp.Body.Close()
+		return nil, nil, err
+	}
+
+	return resp, body, nil
+}
+
+// 发送带认证的DELETE请求
+func sendAuthenticatedDelete(url string) (*http.Response, []byte, error) {
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if authToken != "" {
+		req.Header.Set("Authorization", "Bearer "+authToken)
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		resp.Body.Close()
+		return nil, nil, err
+	}
+
+	return resp, body, nil
+}
+
+// 格式化打印JSON
+func prettyPrintJSON(data interface{}) string {
+	jsonBytes, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return fmt.Sprintf("JSON格式化失败: %v", err)
+	}
+	return string(jsonBytes)
 }

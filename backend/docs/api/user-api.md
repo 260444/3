@@ -45,6 +45,7 @@ Content-Type: application/json
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "用户创建成功",
   "data": {
     "id": 1,
@@ -61,6 +62,8 @@ Content-Type: application/json
 **错误响应**:
 ```json
 {
+  "success": false,
+  "message": "用户名已存在",
   "error": "用户名已存在"
 }
 ```
@@ -91,6 +94,7 @@ GET /users?page=1&page_size=10
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "获取成功",
   "data": {
     "list": [
@@ -144,6 +148,7 @@ GET /users/1
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "获取成功",
   "data": {
     "id": 1,
@@ -205,6 +210,7 @@ Content-Type: application/json
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "更新成功"
 }
 ```
@@ -241,6 +247,7 @@ status=1
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "更新状态成功"
 }
 ```
@@ -270,6 +277,7 @@ DELETE /users/1
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "删除成功"
 }
 ```
@@ -304,6 +312,7 @@ Content-Type: application/json
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "密码修改成功"
 }
 ```
@@ -311,6 +320,8 @@ Content-Type: application/json
 **错误响应**:
 ```json
 {
+  "success": false,
+  "message": "旧密码错误",
   "error": "旧密码错误"
 }
 ```
@@ -354,10 +365,10 @@ Content-Type: application/json
 
 ---
 
-## 错误码说明
+## 常见业务错误说明
 
-| 错误码 | 说明 |
-|--------|------|
+| 错误信息 | 说明 |
+|----------|------|
 | 用户名已存在 | 注册时用户名重复 |
 | 邮箱已存在 | 注册时邮箱重复 |
 | 用户名或密码错误 | 登录失败 |
@@ -365,6 +376,9 @@ Content-Type: application/json
 | 权限不足 | 无权限访问 |
 | 资源不存在 | 记录不存在 |
 | 数据验证失败 | 参数验证失败 |
+| 旧密码错误 | 修改密码时旧密码不正确 |
+| 用户不存在 | 指定的用户不存在 |
+| 不能删除自己 | 不能删除当前登录用户 |
 
 ---
 

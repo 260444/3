@@ -13,6 +13,7 @@
 
 ```json
 {
+  "success": true,
   "message": "操作成功",
   "data": { ... }
 }
@@ -22,7 +23,20 @@
 
 ```json
 {
+  "success": false,
+  "message": "错误信息",
   "error": "错误信息"
+}
+```
+
+### 业务错误响应
+
+```json
+{
+  "success": false,
+  "message": "业务错误描述",
+  "error": "业务错误描述",
+  "code": 40001
 }
 ```
 
@@ -30,6 +44,7 @@
 
 ```json
 {
+  "success": true,
   "message": "获取成功",
   "data": {
     "list": [ ... ],
@@ -79,6 +94,7 @@ Content-Type: application/json
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "登录成功",
   "data": {
     "user": {
@@ -99,6 +115,8 @@ Content-Type: application/json
 **错误响应**:
 ```json
 {
+  "success": false,
+  "message": "用户名或密码错误",
   "error": "用户名或密码错误"
 }
 ```
@@ -126,6 +144,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "退出登录成功",
   "data": {
     "user_id": 1,
@@ -152,6 +171,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **成功响应**:
 ```json
 {
+  "success": true,
   "message": "验证码生成成功",
   "data": {
     "id": "captcha_id_123456",
@@ -163,7 +183,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 **错误响应**:
 ```json
 {
-  "message": "验证码生成失败"
+  "success": false,
+  "message": "验证码生成失败",
+  "error": "验证码生成失败"
 }
 ```
 
@@ -182,10 +204,10 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-## 错误码说明
+## 常见业务错误说明
 
-| 错误码 | 说明 |
-|--------|------|
+| 错误信息 | 说明 |
+|----------|------|
 | 用户名已存在 | 注册时用户名重复 |
 | 邮箱已存在 | 注册时邮箱重复 |
 | 用户名或密码错误 | 登录失败 |
@@ -193,6 +215,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | 权限不足 | 无权限访问 |
 | 资源不存在 | 记录不存在 |
 | 数据验证失败 | 参数验证失败 |
+| 验证码生成失败 | 验证码服务异常 |
+| 用户未认证 | 未提供有效的JWT token |
 
 ---
 

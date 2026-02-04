@@ -5,7 +5,6 @@ import (
 	"backend/config"
 	"backend/pkg/di"
 	"backend/pkg/logger"
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -17,13 +16,13 @@ import (
 func main() {
 	// 初始化配置
 	if err := config.InitConfig("config/config.yaml"); err != nil {
-		fmt.Printf("初始化配置失败: %v\n", err)
+		logger.Logger.Error("初始化配置失败", zap.Error(err))
 		os.Exit(1)
 	}
 
 	// 初始化日志
 	if err := logger.InitLogger(); err != nil {
-		fmt.Printf("初始化日志失败: %v\n", err)
+		logger.Logger.Error("初始化日志失败", zap.Error(err))
 		os.Exit(1)
 	}
 
@@ -76,5 +75,5 @@ func main() {
 		logger.Logger.Error("启动服务器失败", zap.Error(err))
 		os.Exit(1)
 	}
-	logger.Logger.Info(fmt.Sprintf("服务器启动在端口 %s", port))
+	logger.Logger.Info("服务器启动成功", zap.String("port", port))
 }

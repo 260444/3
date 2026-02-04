@@ -15,98 +15,128 @@ export const useUserStore = defineStore('user', () => {
   const permissions = ref<any[]>([]) // 用户权限列表
   const menus = ref<any[]>([]) // 用户菜单列表
 
+  // 兼容性响应处理函数
+  const handleResponse = (response: any) => {
+    // 支持新格式 { success: boolean, message: string, data: any }
+    // 和旧格式 { message: string, data: any }
+    if (response.hasOwnProperty('success')) {
+      return {
+        success: response.success,
+        data: response.data,
+        error: response.error || response.message
+      };
+    } else {
+      // 旧格式兼容
+      return {
+        success: true,
+        data: response.data,
+        error: null
+      };
+    }
+  };
+
   const loginAction = async (username: string, password: string) => {
     try {
-      const response = await login(username, password)
-      // 后端返回格式: { message: string, data: { user: {...}, token: string } }
-      token.value = response.data.token
-      userInfo.value = response.data.user
-      isAuthenticated.value = true
-      localStorage.setItem('token', token.value)
+      const response = await login(username, password);
+      const result = handleResponse(response);
       
-      // 保存用户名和密码（如果用户选择记住密码）
-      if (rememberPassword.value) {
-        localStorage.setItem('rememberPassword', 'true')
-        localStorage.setItem('savedUsername', username)
-        localStorage.setItem('savedPassword', password)
+      if (result.success) {
+        token.value = result.data.token;
+        userInfo.value = result.data.user;
+        isAuthenticated.value = true;
+        localStorage.setItem('token', token.value!);
+        
+        // 保存用户名和密码（如果用户选择记住密码）
+        if (rememberPassword.value) {
+          localStorage.setItem('rememberPassword', 'true');
+          localStorage.setItem('savedUsername', username);
+          localStorage.setItem('savedPassword', password);
+        } else {
+          localStorage.removeItem('rememberPassword');
+          localStorage.removeItem('savedUsername');
+          localStorage.removeItem('savedPassword');
+        }
+        
+        return { success: true, data: result.data };
       } else {
-        localStorage.removeItem('rememberPassword')
-        localStorage.removeItem('savedUsername')
-        localStorage.removeItem('savedPassword')
+        return { success: false, error: result.error };
       }
-      
-      return { success: true, data: response.data }
     } catch (error: any) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.message };
     }
   }
 
   const logout = async () => {
     try {
-      await logoutApi()
+      await logoutApi();
     } catch (error) {
-      console.error('退出登录请求失败', error)
+      console.error('退出登录请求失败', error);
     } finally {
-      token.value = null
-      userInfo.value = null
-      isAuthenticated.value = false
-      localStorage.removeItem('token')
+      token.value = null;
+      userInfo.value = null;
+      isAuthenticated.value = false;
+      localStorage.removeItem('token');
     }
   }
 
   const checkLoginStatus = () => {
-    const storedToken = localStorage.getItem('token')
+    const storedToken = localStorage.getItem('token');
     if (storedToken) {
-      token.value = storedToken
-      isAuthenticated.value = true
+      token.value = storedToken;
+      isAuthenticated.value = true;
       // 可以选择获取用户信息
       // fetchUserInfo()
     }
     
     // 检查是否记住密码
-    const storedRemember = localStorage.getItem('rememberPassword')
+    const storedRemember = localStorage.getItem('rememberPassword');
     if (storedRemember) {
-      rememberPassword.value = storedRemember === 'true'
-      savedUsername.value = localStorage.getItem('savedUsername') || ''
-      savedPassword.value = localStorage.getItem('savedPassword') || ''
+      rememberPassword.value = storedRemember === 'true';
+      savedUsername.value = localStorage.getItem('savedUsername') || '';
+      savedPassword.value = localStorage.getItem('savedPassword') || '';
     }
   }
 
   const fetchUserInfo = async () => {
     try {
-      const response = await getUserInfo()
-      // 后端返回格式: { message: string, data: {...} }
-      userInfo.value = response.data
-      return { success: true, data: response.data }
+      const response = await getUserInfo();
+      const result = handleResponse(response);
+      
+      if (result.success) {
+        userInfo.value = result.data;
+        return { success: true, data: result.data };
+      } else {
+        return { success: false, error: result.error };
+      }
     } catch (error) {
-      console.error('获取用户信息失败', error)
-      return { success: false, error }
+      console.error('获取用户信息失败', error);
+      return { success: false, error: (error as Error).message };
     }
   }
 
   // 设置用户权限
   const setPermissions = (perms: any[]) => {
-    permissions.value = perms
+    permissions.value = perms;
   }
 
   // 设置用户菜单
   const setMenus = (menuList: any[]) => {
-    menus.value = menuList
+    menus.value = menuList;
   }
 
   // 检查是否有权限
   const hasPermission = (permission: string) => {
-    return permissions.value.includes(permission)
+    return permissions.value.includes(permission);
   }
 
   // 检查是否有任意权限
   const hasAnyPermission = (perms: string[]) => {
-    return perms.some(perm => permissions.value.includes(perm))
+    return perms.some(perm => permissions.value.includes(perm));
   }
 
   // 检查是否有所有权限
   const hasAllPermissions = (perms: string[]) => {
-    return perms.every(perm => permissions.value.includes(perm))
+    return perms.every(perm => permissions.value.includes(perm));
   }
 
   return {

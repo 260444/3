@@ -18,9 +18,11 @@ func SetupRouter(
 	roleMenuHandler *handler.RoleMenuHandler,
 	operationLogService *sysService.OperationLogService,
 ) *gin.Engine {
-	r := gin.Default()
+	r := gin.New()
 
-	// 使用CORS中间件
+	// 使用全局中间件
+	r.Use(gin.Logger())
+	r.Use(middleware.RecoveryMiddleware())
 	r.Use(middleware.CORSMiddleware())
 
 	// 使用日志中间件（全局应用）
@@ -46,6 +48,7 @@ func SetupRouter(
 		protected.GET("/users", userHandler.GetUsers)
 		protected.PUT("/users/:id", middleware.OperationLogMiddleware(operationLogService, "更新用户"), userHandler.UpdateUser)
 		protected.DELETE("/users/:id", middleware.OperationLogMiddleware(operationLogService, "删除用户"), userHandler.DeleteUser)
+		// TODO 有bug，每次获取的都是当前用户信息
 		protected.GET("/users/:id", userHandler.GetUserInfo)
 		protected.PUT("/users/:id/status", middleware.OperationLogMiddleware(operationLogService, "更新用户状态"), userHandler.UpdateUserStatus)
 		protected.PUT("/users/change-password", middleware.OperationLogMiddleware(operationLogService, "修改密码"), userHandler.ChangePassword)

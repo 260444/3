@@ -18,42 +18,26 @@ func RecoveryMiddleware() gin.HandlerFunc {
 		defer func() {
 			if err := recover(); err != nil {
 				// 记录详细的错误日志
-				logger.Logger.Error("panic recovered",
-					zap.Any("error", err),
-					zap.String("stack", string(debug.Stack())),
-					zap.String("method", c.Request.Method),
-					zap.String("path", c.Request.URL.Path),
-					zap.String("client_ip", c.ClientIP()),
-				)
+				if logger.Logger != nil {
+					logger.Logger.Error("🚨 PANIC RECOVERED",
+						zap.Any("error", err),
+						zap.String("stack", string(debug.Stack())),
+						zap.String("method", c.Request.Method),
+						zap.String("path", c.Request.URL.Path),
+						zap.String("client_ip", c.ClientIP()),
+						zap.String("user_agent", c.Request.UserAgent()),
+						zap.Any("headers", c.Request.Header),
+					)
+				}
+
+				// 清理可能损坏的响应
+				c.Abort()
 
 				// 返回统一错误响应
 				response.ErrorWithCode(c, http.StatusInternalServerError, "服务器内部错误，请稍后重试")
-				c.Abort()
 			}
 		}()
 		c.Next()
-	}
-}
-
-// ErrorHandlingMiddleware 统一错误处理中间件
-func ErrorHandlingMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Next()
-
-		// 处理累积的错误
-		if len(c.Errors) > 0 {
-			err := c.Errors.Last()
-
-			// 根据错误类型返回不同的响应
-			switch err.Type {
-			case gin.ErrorTypeBind:
-				response.ValidationError(c, "请求参数", err.Error())
-			case gin.ErrorTypeRender:
-				response.ErrorWithCode(c, http.StatusInternalServerError, "响应渲染失败")
-			default:
-				response.ErrorWithCode(c, http.StatusInternalServerError, "未知错误")
-			}
-		}
 	}
 }
 

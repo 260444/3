@@ -4,7 +4,10 @@ import (
 	sysModel "backend/internal/model/system_manager"
 	sysRepository "backend/internal/repository/system_manager"
 	"backend/pkg/casbin"
-	"fmt"
+	"backend/pkg/logger"
+	"errors"
+
+	"go.uber.org/zap"
 )
 
 // PermissionService 权限管理服务
@@ -84,11 +87,11 @@ func (s *PermissionService) AddPolicy(roleID uint, path, method string) error {
 		return err
 	}
 	if ident == "" {
-		return fmt.Errorf("role identifier is missing")
+		return errors.New("角色标识符缺失")
 	}
 	sub := ident
 	policy, err := casbin.Enforcer.AddPolicy(sub, path, method)
-	fmt.Println("policy:", policy)
+	logger.Logger.Debug("添加Casbin策略", zap.Any("policy", policy))
 	if err != nil {
 		return err
 	}
@@ -102,11 +105,11 @@ func (s *PermissionService) RemovePolicy(roleID uint, path, method string) error
 		return err
 	}
 	if ident == "" {
-		return fmt.Errorf("role identifier is missing")
+		return errors.New("角色标识符缺失")
 	}
 	sub := ident
 	policy, err := casbin.Enforcer.RemovePolicy(sub, path, method)
-	fmt.Println("policy:", policy)
+	logger.Logger.Debug("移除Casbin策略", zap.Any("policy", policy))
 	if err != nil {
 		return err
 	}

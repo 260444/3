@@ -4,75 +4,118 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"time"
+	"net/http"
 )
 
-// 测试验证码
+var authToken string
+
+// 测试验证码功能
 func testCaptcha() {
-	resp, err := makeRequest("GET", "/captcha", nil, nil)
+	fmt.Println("\n--- 测试验证码功能 ---")
+
+	resp, body, err := sendGet(BaseURL + "/api/v1/captcha")
 	if err != nil {
-		printResult("获取验证码", false, nil, err)
+		addTestResult("验证码测试", false, fmt.Sprintf("请求失败: %v", err))
 		return
 	}
 	defer resp.Body.Close()
 
-	passed := resp.StatusCode == 200
-	printResult("获取验证码", passed, resp, nil)
-}
+	if resp.StatusCode == http.StatusOK {
+		var result map[string]interface{}
+		if err := json.Unmarshal(body, &result); err != nil {
+			addTestResult("验证码测试", false, fmt.Sprintf("解析响应失败: %v", err))
+			return
+		}
 
-// 测试用户登录
-func testLogin() {
-	// 动态生成测试用户名
-	testData.TestUsername = generateTestUsername()
-	
-	data := map[string]interface{}{
-		"username": testData.Username,
-		"password": testData.Password,
-	}
-
-	resp, err := makeRequest("POST", "/login", data, nil)
-	if err != nil {
-		printResult("用户登录", false, nil, err)
-		return
-	}
-	defer resp.Body.Close()
-
-	passed := false
-	if resp.StatusCode == 200 {
-		var apiResp APIResponse
-		body, _ := io.ReadAll(resp.Body)
-		json.Unmarshal(body, &apiResp)
-		if apiResp.Data != nil {
-			if dataMap, ok := apiResp.Data.(map[string]interface{}); ok {
-				if token, ok := dataMap["token"].(string); ok {
-					testData.Token = token
-				}
-				if user, ok := dataMap["user"].(map[string]interface{}); ok {
-					if id, ok := user["id"].(float64); ok {
-						testData.UserID = uint(id)
-					}
-				}
+		if data, ok := result["data"].(map[string]interface{}); ok {
+			if id, ok := data["id"].(string); ok && id != "" {
+				addTestResult("验证码测试", true, "验证码生成成功")
+				return
 			}
 		}
-		passed = true
+		addTestResult("验证码测试", false, "验证码数据格式不正确")
+	} else {
+		addTestResult("验证码测试", false, fmt.Sprintf("验证码生成失败，状态码: %d", resp.StatusCode))
 	}
-	printResult("用户登录", passed, resp, nil)
 }
 
-// 测试退出登录
-func testLogout() {
-	resp, err := makeRequest("POST", "/logout", nil, getAuthHeaders())
+// 测试登录功能
+func testLogin() {
+	fmt.Println("\n--- 测试登录功能 ---")
+
+	loginData := map[string]interface{}{
+		"username": "admin",
+		"password": "123456",
+	}
+
+	jsonData, err := json.Marshal(loginData)
 	if err != nil {
-		printResult("退出登录", false, nil, err)
+		addTestResult("登录测试", false, fmt.Sprintf("JSON序列化失败: %v", err))
+		return
+	}
+
+	resp, body, err := sendPost(BaseURL+"/api/v1/login", jsonData)
+	if err != nil {
+		addTestResult("登录测试", false, fmt.Sprintf("请求失败: %v", err))
 		return
 	}
 	defer resp.Body.Close()
 
-	passed := resp.StatusCode == 200
-	printResult("退出登录", passed, resp, nil)
+	if resp.StatusCode == http.StatusOK {
+		var result map[string]interface{}
+		if err := json.Unmarshal(body, &result); err != nil {
+			addTestResult("登录测试", false, fmt.Sprintf("解析响应失败: %v", err))
+			return
+		}
+
+		if data, ok := result["data"].(map[string]interface{}); ok {
+			if token, ok := data["token"].(string); ok && token != "" {
+				authToken = token
+				addTestResult("登录测试", true, "登录成功")
+				return
+			}
+		}
+		addTestResult("登录测试", false, "未找到有效的token")
+	} else {
+		addTestResult("登录测试", false, fmt.Sprintf("登录失败，状态码: %d, 响应: %s", resp.StatusCode, string(body)))
+	}
 }
 
-// 生成测试用户名
-func generateTestUsername() string {
-	return fmt.Sprintf("testuser_%d", time.Now().Unix())
+// 测试登出功能
+func testLogout() {
+	fmt.Println("\n--- 测试登出功能 ---")
+
+	if authToken == "" {
+		addTestResult("登出测试", false, "未登录，跳过测试")
+		return
+	}
+
+	req, err := http.NewRequest("POST", BaseURL+"/api/v1/logout", nil)
+	if err != nil {
+		addTestResult("登出测试", false, fmt.Sprintf("创建请求失败: %v", err))
+		return
+	}
+
+	req.Header.Set("Authorization", "Bearer "+authToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		addTestResult("登出测试", false, fmt.Sprintf("请求失败: %v", err))
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		addTestResult("登出测试", false, fmt.Sprintf("读取响应失败: %v", err))
+		return
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		authToken = ""
+		addTestResult("登出测试", true, "登出成功")
+	} else {
+		addTestResult("登出测试", false, fmt.Sprintf("登出失败，状态码: %d, 响应: %s", resp.StatusCode, string(body)))
+	}
 }

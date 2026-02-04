@@ -2,8 +2,9 @@ package system_manager
 
 import (
 	sysModel "backend/internal/model/system_manager"
-	"fmt"
+	"backend/pkg/logger"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -45,7 +46,7 @@ func (r *UserRepository) UserWithRoleInfo(username string) (*sysModel.UserWithRo
 		Where("users.username = ?", username).
 		Scan(&userWithRole).Error
 
-	fmt.Println("userWithRole:", userWithRole.RoleIdent)
+	logger.Logger.Debug("获取用户角色信息", zap.String("role_ident", userWithRole.RoleIdent))
 	return &userWithRole, err
 }
 

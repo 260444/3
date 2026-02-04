@@ -3,6 +3,7 @@ package system_manager
 import (
 	sysModel "backend/internal/model/system_manager"
 	"backend/pkg/logger"
+	"backend/pkg/response"
 	"backend/pkg/utils"
 	"net/http"
 	"strconv"
@@ -34,15 +35,13 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		logger.Logger.Error("绑定角色失败:", zap.Error(err))
+		response.ValidationError(c, "请求参数", err.Error())
 		return
 	}
 
 	user, err := h.UserService.CreateUser(req.Username, req.Password, req.Email, req.Nickname)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		logger.Logger.Error("创建角色失败:", zap.Error(err))
+		response.Error(c, err)
 		return
 	}
 

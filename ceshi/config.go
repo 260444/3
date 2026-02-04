@@ -1,30 +1,33 @@
 package main
 
-import (
-	"net/http"
-	"time"
-)
-
-// 配置常量
+// 测试配置常量
 const (
-	BaseURL = "http://localhost:8080"
-	APIBase = BaseURL + "/api/v1"
-	Timeout = 10 * time.Second
+	TestUsername = "testuser"
+	TestPassword = "testpass123"
+	TestEmail    = "test@example.com"
+	TestPhone    = "13800138000"
+
+	AdminUsername = "admin"
+	AdminPassword = "123456"
 )
 
-// HTTP 客户端
-var httpClient = &http.Client{
-	Timeout: Timeout,
+// TestData 测试数据结构
+type TestData struct {
+	Token        string
+	UserID       uint
+	RoleID       uint
+	MenuID       uint
+	MenuIDs      []uint
+	LogID        uint
+	Username     string
+	Password     string
+	TestUsername string
+	TestPassword string
 }
 
-// 全局测试数据
-var testData = &TestData{
-	// 管理员账号（需要预先在数据库中创建）
-	Username:     "admin",
-	Password:     "Zhy20250730!",
-	TestUsername: "",
-	TestPassword: "Test123456",
-	MenuIDs:      []uint{116, 117},
+// TestStats 测试统计结构
+type TestStats struct {
+	Total  int
+	Passed int
+	Failed int
 }
-
-var stats TestStats

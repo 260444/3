@@ -29,8 +29,16 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
   (response: AxiosResponse) => {
-    // 后端返回格式: { message: string, data: any }
-    return response.data
+    // 新的统一响应格式: { success: boolean, message: string, data: any, error: string }
+    const res = response.data;
+    
+    // 如果success为false，视为业务错误
+    if (res.success === false) {
+      return Promise.reject(new Error(res.error || res.message || '请求失败'));
+    }
+    
+    // 成功响应，返回整个响应对象
+    return res;
   },
   (error) => {
         if (error.response?.status === 401) {
@@ -40,7 +48,8 @@ request.interceptors.response.use(
         } else if (error.response?.status === 403) {
           // 如果是403权限不足，跳转到无权限页面
           window.location.href = '/no-permission'
-        }    // 后端错误格式: { error: string }
+        }
+    // 后端错误格式: { error: string }
     const errorMsg = error.response?.data?.error || error.message || '请求失败'
     console.error('响应错误:', errorMsg)
     return Promise.reject(new Error(errorMsg))

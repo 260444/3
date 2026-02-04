@@ -2,8 +2,9 @@ package system_manager
 
 import (
 	sysModel "backend/internal/model/system_manager"
-	"fmt"
+	"backend/pkg/logger"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -63,8 +64,7 @@ func (r *RoleMenuRepository) GetRoleMenuByID(roleId uint) (roleMeans []*sysModel
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println("pid", roleMeans[i])
-		fmt.Println("mids", roleMeans[i].MId)
+		logger.Logger.Debug("角色菜单信息", zap.Uint("pid", roleMeans[i].PId), zap.Any("mids", roleMeans[i].MId))
 	}
 
 	return roleMeans, err
