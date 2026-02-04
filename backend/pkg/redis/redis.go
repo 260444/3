@@ -9,11 +9,9 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-var Rdb *redis.Client
-
 // InitRedis 初始化Redis连接
-func InitRedis() error {
-	Rdb = redis.NewClient(&redis.Options{
+func InitRedis() (*redis.Client, error) {
+	db := redis.NewClient(&redis.Options{
 		Addr:     config.GlobalConfig.Redis.Addr,
 		Password: config.GlobalConfig.Redis.Password,
 		DB:       config.GlobalConfig.Redis.DB,
@@ -23,10 +21,10 @@ func InitRedis() error {
 	defer cancel()
 
 	// 测试连接
-	_, err := Rdb.Ping(ctx).Result()
+	_, err := db.Ping(ctx).Result()
 	if err != nil {
-		return fmt.Errorf("连接Redis失败: %w", err)
+		return nil, fmt.Errorf("连接Redis失败: %w", err)
 	}
 
-	return nil
+	return db, nil
 }

@@ -1,15 +1,10 @@
 package main
 
 import (
-	sysHandler "backend/api/handler/system_manager"
 	"backend/api/router"
 	"backend/config"
-	sysRepository "backend/internal/repository/system_manager"
-	sysService "backend/internal/service/system_manager"
-	"backend/pkg/casbin"
-	"backend/pkg/database"
+	"backend/pkg/di"
 	"backend/pkg/logger"
-	"backend/pkg/redis"
 	"fmt"
 	"net/http"
 	"os"
@@ -35,48 +30,26 @@ func main() {
 	// 设置Gin模式
 	gin.SetMode(config.GlobalConfig.Server.Mode)
 
-	// 初始化数据库
-	db, err := database.InitDB()
+	// 使用依赖注入容器初始化所有依赖
+	container, err := di.InitializeContainer()
 	if err != nil {
-		logger.Logger.Error("初始化数据库失败", zap.Error(err))
+		logger.Logger.Error("初始化依赖注入容器失败", zap.Error(err))
 		os.Exit(1)
 	}
+	defer func() {
+		if closeErr := container.Close(); closeErr != nil {
+			logger.Logger.Error("关闭资源失败", zap.Error(closeErr))
+		}
+	}()
 
-	// 初始化Redis (可选)
-	if err := redis.InitRedis(); err != nil {
-		logger.Logger.Warn("初始化Redis失败", zap.Error(err))
-		// Redis初始化失败不影响系统运行，仅记录警告
-	}
-
-	// 初始化Casbin权限管理
-	if err := casbin.InitCasbinWithGormAdapter(db); err != nil {
-		logger.Logger.Error("初始化Casbin失败", zap.Error(err))
-		os.Exit(1)
-	}
-
-	// 初始化仓库层
-	userRepo := sysRepository.NewUserRepository(db)
-	roleRepo := sysRepository.NewRoleRepository(db)
-	menuRepo := sysRepository.NewMenuRepository(db)
-	operationLogRepo := sysRepository.NewOperationLogRepository(db)
-	permissionRepo := sysRepository.NewPermissionRepository(db)
-	roleMenuRepository := sysRepository.NewRoleMenuRepository(db)
-
-	// 初始化服务层
-	userService := sysService.NewUserService(userRepo, roleRepo)
-	roleService := sysService.NewRoleService(roleRepo)
-	menuService := sysService.NewMenuService(menuRepo)
-	operationLogService := sysService.NewOperationLogService(operationLogRepo)
-	permissionService := sysService.NewPermissionService(roleRepo, menuRepo, permissionRepo)
-	roleMenuService := sysService.NewRoleMenuService(roleMenuRepository)
-
-	// 初始化处理器层
-	userHandler := sysHandler.NewUserHandler(userService)
-	roleHandler := sysHandler.NewRoleHandler(roleService)
-	menuHandler := sysHandler.NewMenuHandler(menuService)
-	operationLogHandler := sysHandler.NewOperationLogHandler(operationLogService)
-	permissionHandler := sysHandler.NewPermissionHandler(permissionService)
-	roleMenuHandler := sysHandler.NewRoleMenuHandler(roleMenuService)
+	// 从容器获取处理器层组件（用于路由设置）
+	userHandler := container.GetUserHandler()
+	roleHandler := container.GetRoleHandler()
+	menuHandler := container.GetMenuHandler()
+	operationLogHandler := container.GetOperationLogHandler()
+	permissionHandler := container.GetPermissionHandler()
+	roleMenuHandler := container.GetRoleMenuHandler()
+	operationLogService := container.GetOperationLogService()
 
 	// 设置路由
 	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler, roleMenuHandler, operationLogService)
