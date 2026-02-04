@@ -1,9 +1,10 @@
 package asset_management
 
 import (
-	"d:/ai/3/backend/internal/service/system_manager"
-	"d:/ai/3/backend/pkg/response"
-	"d:/ai/3/backend/pkg/utils"
+	assModel "backend/internal/model/asset_management"
+	assService "backend/internal/service/asset_management"
+	"backend/pkg/response"
+	"backend/pkg/utils"
 	"strconv"
 	"time"
 
@@ -11,20 +12,14 @@ import (
 )
 
 type HostHandler struct {
-	hostService       *system_manager.HostService
-	hostGroupService  *system_manager.HostGroupService
-	hostMetricService *system_manager.HostMetricService
+	HostService       *assService.HostService
+	HostMetricService *assService.HostMetricService
 }
 
-func NewHostHandler(
-	hostService *system_manager.HostService,
-	hostGroupService *system_manager.HostGroupService,
-	hostMetricService *system_manager.HostMetricService,
-) *HostHandler {
+func NewHostHandler(HostService *assService.HostService, HostMetricService *assService.HostMetricService) *HostHandler {
 	return &HostHandler{
-		hostService:       hostService,
-		hostGroupService:  hostGroupService,
-		hostMetricService: hostMetricService,
+		HostService:       HostService,
+		HostMetricService: HostMetricService,
 	}
 }
 
@@ -34,14 +29,14 @@ func NewHostHandler(
 // @Tags 主机管理
 // @Accept json
 // @Produce json
-// @Param host body system_manager.HostCreateRequest true "主机信息"
+// @Param host body assService.HostCreateRequest true "主机信息"
 // @Success 200 {object} response.APIResponse
 // @Failure 400 {object} response.APIResponse
 // @Failure 500 {object} response.APIResponse
 // @Router /api/v1/hosts [post]
 // @Security Bearer
 func (h *HostHandler) CreateHost(c *gin.Context) {
-	var req system_manager.HostCreateRequest
+	var req assModel.HostCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, "请求参数", err.Error())
 		return
@@ -50,7 +45,7 @@ func (h *HostHandler) CreateHost(c *gin.Context) {
 	// 获取当前用户ID
 	userID := utils.GetUserIDFromContext(c)
 
-	host, err := h.hostService.CreateHost(&req, userID)
+	host, err := h.HostService.CreateHost(&req, userID)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -76,6 +71,7 @@ func (h *HostHandler) CreateHost(c *gin.Context) {
 // @Router /api/v1/hosts [get]
 // @Security Bearer
 func (h *HostHandler) GetHostList(c *gin.Context) {
+
 	// 解析查询参数
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "10"))
@@ -99,7 +95,7 @@ func (h *HostHandler) GetHostList(c *gin.Context) {
 		}
 	}
 
-	hosts, total, err := h.hostService.ListHosts(page, pageSize, hostname, ipAddress, groupID, status, osType)
+	hosts, total, err := h.HostService.ListHosts(page, pageSize, hostname, ipAddress, groupID, status, osType)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -133,7 +129,7 @@ func (h *HostHandler) GetHostByID(c *gin.Context) {
 		return
 	}
 
-	host, err := h.hostService.GetHostByID(uint(id))
+	host, err := h.HostService.GetHostByID(uint(id))
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -149,7 +145,7 @@ func (h *HostHandler) GetHostByID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "主机ID"
-// @Param host body system_manager.HostUpdateRequest true "更新的主机信息"
+// @Param host body assService.HostUpdateRequest true "更新的主机信息"
 // @Success 200 {object} response.APIResponse
 // @Failure 400 {object} response.APIResponse
 // @Failure 404 {object} response.APIResponse
@@ -163,7 +159,7 @@ func (h *HostHandler) UpdateHost(c *gin.Context) {
 		return
 	}
 
-	var req system_manager.HostUpdateRequest
+	var req assModel.HostUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, "请求参数", err.Error())
 		return
@@ -171,7 +167,7 @@ func (h *HostHandler) UpdateHost(c *gin.Context) {
 
 	userID := utils.GetUserIDFromContext(c)
 
-	host, err := h.hostService.UpdateHost(uint(id), &req, userID)
+	host, err := h.HostService.UpdateHost(uint(id), &req, userID)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -198,7 +194,7 @@ func (h *HostHandler) DeleteHost(c *gin.Context) {
 		return
 	}
 
-	if err := h.hostService.DeleteHost(uint(id)); err != nil {
+	if err := h.HostService.DeleteHost(uint(id)); err != nil {
 		response.Error(c, err)
 		return
 	}
@@ -227,7 +223,7 @@ func (h *HostHandler) BatchDeleteHosts(c *gin.Context) {
 		return
 	}
 
-	affected, err := h.hostService.BatchDeleteHosts(req.IDs)
+	affected, err := h.HostService.BatchDeleteHosts(req.IDs)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -243,7 +239,7 @@ func (h *HostHandler) BatchDeleteHosts(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "主机ID"
-// @Param status body system_manager.HostStatusUpdateRequest true "状态信息"
+// @Param status body assService.HostStatusUpdateRequest true "状态信息"
 // @Success 200 {object} response.APIResponse
 // @Failure 400 {object} response.APIResponse
 // @Failure 404 {object} response.APIResponse
@@ -257,13 +253,13 @@ func (h *HostHandler) UpdateHostStatus(c *gin.Context) {
 		return
 	}
 
-	var req system_manager.HostStatusUpdateRequest
+	var req assModel.HostStatusUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, "请求参数", err.Error())
 		return
 	}
 
-	if err := h.hostService.UpdateHostStatus(uint(id), req.Status); err != nil {
+	if err := h.HostService.UpdateHostStatus(uint(id), req.Status); err != nil {
 		response.Error(c, err)
 		return
 	}
@@ -278,7 +274,7 @@ func (h *HostHandler) UpdateHostStatus(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "主机ID"
-// @Param monitoring body system_manager.HostMonitoringUpdateRequest true "监控状态"
+// @Param monitoring body assService.HostMonitoringUpdateRequest true "监控状态"
 // @Success 200 {object} response.APIResponse
 // @Failure 400 {object} response.APIResponse
 // @Failure 404 {object} response.APIResponse
@@ -292,13 +288,13 @@ func (h *HostHandler) UpdateHostMonitoring(c *gin.Context) {
 		return
 	}
 
-	var req system_manager.HostMonitoringUpdateRequest
+	var req assModel.HostMonitoringUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, "请求参数", err.Error())
 		return
 	}
 
-	if err := h.hostService.UpdateHostMonitoring(uint(id), req.MonitoringEnabled); err != nil {
+	if err := h.HostService.UpdateHostMonitoring(uint(id), req.MonitoringEnabled); err != nil {
 		response.Error(c, err)
 		return
 	}
@@ -315,15 +311,16 @@ func (h *HostHandler) UpdateHostMonitoring(c *gin.Context) {
 // @Failure 500 {object} response.APIResponse
 // @Router /api/v1/hosts/statistics [get]
 // @Security Bearer
-func (h *HostHandler) GetHostStatistics(c *gin.Context) {
-	stats, err := h.hostService.GetHostStatistics()
-	if err != nil {
-		response.Error(c, err)
-		return
-	}
 
-	response.SuccessWithMessage(c, "获取主机统计信息成功", stats)
-}
+//func (h *HostHandler) GetHostStatistics(c *gin.Context) {
+//	stats, err := h.HostService.GetHostStatistics()
+//	if err != nil {
+//		response.Error(c, err)
+//		return
+//	}
+//
+//	response.SuccessWithMessage(c, "获取主机统计信息成功", stats)
+//}
 
 // ReportHostMetrics 上报主机指标
 // @Summary 上报主机指标
@@ -331,20 +328,20 @@ func (h *HostHandler) GetHostStatistics(c *gin.Context) {
 // @Tags 主机监控
 // @Accept json
 // @Produce json
-// @Param metrics body system_manager.HostMetricsRequest true "指标数据"
+// @Param metrics body assService.HostMetricsRequest true "指标数据"
 // @Success 200 {object} response.APIResponse
 // @Failure 400 {object} response.APIResponse
 // @Failure 500 {object} response.APIResponse
 // @Router /api/v1/host-metrics [post]
 // @Security Bearer
 func (h *HostHandler) ReportHostMetrics(c *gin.Context) {
-	var req system_manager.HostMetricsRequest
+	var req assModel.HostMetricsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, "请求参数", err.Error())
 		return
 	}
 
-	insertedCount, err := h.hostMetricService.ReportHostMetrics(&req)
+	insertedCount, err := h.HostMetricService.ReportHostMetrics(&req)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -395,7 +392,7 @@ func (h *HostHandler) GetHostMetricsHistory(c *gin.Context) {
 		}
 	}
 
-	metrics, total, err := h.hostMetricService.GetHostMetricsHistory(
+	metrics, total, err := h.HostMetricService.GetHostMetricsHistory(
 		uint(hostID), metricType, metricName, startTime, endTime, page, pageSize)
 	if err != nil {
 		response.Error(c, err)
@@ -431,7 +428,7 @@ func (h *HostHandler) GetHostLatestMetrics(c *gin.Context) {
 		return
 	}
 
-	metrics, err := h.hostMetricService.GetHostLatestMetrics(uint(hostID))
+	metrics, err := h.HostMetricService.GetHostLatestMetrics(uint(hostID))
 	if err != nil {
 		response.Error(c, err)
 		return

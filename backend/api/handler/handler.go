@@ -1,7 +1,9 @@
 package handler
 
 import (
+	assHandler "backend/api/handler/asset_management"
 	sysHandler "backend/api/handler/system_manager"
+	assService "backend/internal/service/asset_management"
 	sysService "backend/internal/service/system_manager"
 )
 
@@ -13,6 +15,11 @@ type HandlerGroup struct {
 	OperationLogHandler *sysHandler.OperationLogHandler
 	PermissionHandler   *sysHandler.PermissionHandler
 	RoleMenuHandler     *sysHandler.RoleMenuHandler
+}
+
+type HostHandler struct {
+	HostGroupHandler *assHandler.HostGroupHandler
+	HostHandler      *assHandler.HostHandler
 }
 
 // NewHandlerGroup 创建所有处理器组
@@ -31,5 +38,16 @@ func NewHandlerGroup(
 		OperationLogHandler: sysHandler.NewOperationLogHandler(operationLogService),
 		PermissionHandler:   sysHandler.NewPermissionHandler(permissionService),
 		RoleMenuHandler:     sysHandler.NewRoleMenuHandler(roleMenuService),
+	}
+}
+
+func NewHostHandler(
+	hostService *assService.HostService,
+	hostGroupService *assService.HostGroupService,
+	hostMetricService *assService.HostMetricService,
+) *HostHandler {
+	return &HostHandler{
+		HostHandler:      assHandler.NewHostHandler(hostService, hostMetricService),
+		HostGroupHandler: assHandler.NewHostGroupHandler(hostGroupService),
 	}
 }

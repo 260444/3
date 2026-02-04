@@ -1,7 +1,9 @@
 package asset_management
 
 import (
-	assRepo "backend/internal/repository/asset_management"
+	assModel "backend/internal/model/asset_management"
+	assService "backend/internal/service/asset_management"
+
 	"backend/pkg/response"
 	"backend/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -9,12 +11,12 @@ import (
 )
 
 type HostGroupHandler struct {
-	hostGroupService *assRepo.HostRepository
+	HostGroupService *assService.HostGroupService
 }
 
-func NewHostGroupHandler(hostRepo *assRepo.HostRepository) *HostGroupHandler {
+func NewHostGroupHandler(HostGroupService *assService.HostGroupService) *HostGroupHandler {
 	return &HostGroupHandler{
-		hostGroupService: hostRepo,
+		HostGroupService: HostGroupService,
 	}
 }
 
@@ -24,14 +26,15 @@ func NewHostGroupHandler(hostRepo *assRepo.HostRepository) *HostGroupHandler {
 // @Tags 主机组管理
 // @Accept json
 // @Produce json
-// @Param group body system_manager.HostGroupCreateRequest true "主机组信息"
+// @Param group body assService.HostGroupCreateRequest true "主机组信息"
 // @Success 200 {object} response.APIResponse
 // @Failure 400 {object} response.APIResponse
 // @Failure 500 {object} response.APIResponse
 // @Router /api/v1/host-groups [post]
 // @Security Bearer
 func (h *HostGroupHandler) CreateHostGroup(c *gin.Context) {
-	var req system_manager.HostGroupCreateRequest
+	var req assModel.HostGroupCreateRequest
+
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, "请求参数", err.Error())
 		return
@@ -39,7 +42,7 @@ func (h *HostGroupHandler) CreateHostGroup(c *gin.Context) {
 
 	userID := utils.GetUserIDFromContext(c)
 
-	group, err := h.hostGroupService.CreateHostGroup(&req, userID)
+	group, err := h.HostGroupService.CreateHostGroup(&req, userID)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -74,7 +77,7 @@ func (h *HostGroupHandler) GetHostGroupList(c *gin.Context) {
 		}
 	}
 
-	groups, total, err := h.hostGroupService.ListHostGroups(page, pageSize, name, status)
+	groups, total, err := h.HostGroupService.ListHostGroups(page, pageSize, name, status)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -124,7 +127,7 @@ func (h *HostGroupHandler) GetHostGroupByID(c *gin.Context) {
 		return
 	}
 
-	group, err := h.hostGroupService.GetHostGroupWithHosts(uint(id))
+	group, err := h.HostGroupService.GetHostGroupWithHosts(uint(id))
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -140,7 +143,7 @@ func (h *HostGroupHandler) GetHostGroupByID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "主机组ID"
-// @Param group body system_manager.HostGroupUpdateRequest true "更新的主机组信息"
+// @Param group body assService.HostGroupUpdateRequest true "更新的主机组信息"
 // @Success 200 {object} response.APIResponse
 // @Failure 400 {object} response.APIResponse
 // @Failure 404 {object} response.APIResponse
@@ -154,7 +157,7 @@ func (h *HostGroupHandler) UpdateHostGroup(c *gin.Context) {
 		return
 	}
 
-	var req system_manager.HostGroupUpdateRequest
+	var req assModel.HostGroupUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, "请求参数", err.Error())
 		return
@@ -162,7 +165,7 @@ func (h *HostGroupHandler) UpdateHostGroup(c *gin.Context) {
 
 	userID := utils.GetUserIDFromContext(c)
 
-	group, err := h.hostGroupService.UpdateHostGroup(uint(id), &req, userID)
+	group, err := h.HostGroupService.UpdateHostGroup(uint(id), &req, userID)
 	if err != nil {
 		response.Error(c, err)
 		return
@@ -190,7 +193,7 @@ func (h *HostGroupHandler) DeleteHostGroup(c *gin.Context) {
 		return
 	}
 
-	if err := h.hostGroupService.DeleteHostGroup(uint(id)); err != nil {
+	if err := h.HostGroupService.DeleteHostGroup(uint(id)); err != nil {
 		response.Error(c, err)
 		return
 	}
@@ -205,7 +208,7 @@ func (h *HostGroupHandler) DeleteHostGroup(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path int true "主机组ID"
-// @Param status body system_manager.HostGroupStatusUpdateRequest true "状态信息"
+// @Param status body assService.HostGroupStatusUpdateRequest true "状态信息"
 // @Success 200 {object} response.APIResponse
 // @Failure 400 {object} response.APIResponse
 // @Failure 404 {object} response.APIResponse
@@ -219,13 +222,13 @@ func (h *HostGroupHandler) UpdateHostGroupStatus(c *gin.Context) {
 		return
 	}
 
-	var req system_manager.HostGroupStatusUpdateRequest
+	var req assModel.HostGroupStatusUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ValidationError(c, "请求参数", err.Error())
 		return
 	}
 
-	if err := h.hostGroupService.UpdateHostGroupStatus(uint(id), req.Status); err != nil {
+	if err := h.HostGroupService.UpdateHostGroupStatus(uint(id), req.Status); err != nil {
 		response.Error(c, err)
 		return
 	}

@@ -1,24 +1,25 @@
 package router
 
 import (
-	handler "backend/api/handler/system_manager"
+	assHandler "backend/api/handler/asset_management"
+	sysHandler "backend/api/handler/system_manager"
 	"backend/api/middleware"
 	sysService "backend/internal/service/system_manager"
 	"backend/pkg/utils"
-
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRouter(
-	userHandler *handler.UserHandler,
-	roleHandler *handler.RoleHandler,
-	menuHandler *handler.MenuHandler,
-	operationLogHandler *handler.OperationLogHandler,
-	permissionHandler *handler.PermissionHandler,
-	roleMenuHandler *handler.RoleMenuHandler,
-	hostHandler *handler.HostHandler,
-	hostGroupHandler *handler.HostGroupHandler,
+	userHandler *sysHandler.UserHandler,
+	roleHandler *sysHandler.RoleHandler,
+	menuHandler *sysHandler.MenuHandler,
+	operationLogHandler *sysHandler.OperationLogHandler,
+	permissionHandler *sysHandler.PermissionHandler,
+	roleMenuHandler *sysHandler.RoleMenuHandler,
+	hostHandler *assHandler.HostHandler,
+	hostGroupHandler *assHandler.HostGroupHandler,
 	operationLogService *sysService.OperationLogService,
+
 ) *gin.Engine {
 	r := gin.New()
 
@@ -113,7 +114,7 @@ func SetupRouter(
 		protected.DELETE("/hosts/batch", middleware.OperationLogMiddleware(operationLogService, "批量删除主机"), hostHandler.BatchDeleteHosts)
 		protected.PUT("/hosts/:id/status", middleware.OperationLogMiddleware(operationLogService, "更新主机状态"), hostHandler.UpdateHostStatus)
 		protected.PUT("/hosts/:id/monitoring", middleware.OperationLogMiddleware(operationLogService, "更新主机监控状态"), hostHandler.UpdateHostMonitoring)
-		protected.GET("/hosts/statistics", hostHandler.GetHostStatistics)
+		//protected.GET("/hosts/statistics", hostHandler.GetHostStatistics)
 
 		// 主机组管理相关路由
 		protected.POST("/host-groups", middleware.OperationLogMiddleware(operationLogService, "创建主机组"), hostGroupHandler.CreateHostGroup)

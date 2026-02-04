@@ -187,6 +187,7 @@ func CasbinMiddleware() gin.HandlerFunc {
 			} else {
 				// 页面请求，重定向到无权限页面
 				c.Redirect(http.StatusFound, "/no-permission")
+				logger.Logger.Error("权限不足", zap.String("user_id", sub), zap.String("path", path), zap.String("method", method))
 			}
 			c.Abort()
 			return
