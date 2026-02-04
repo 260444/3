@@ -21,6 +21,9 @@ type Container interface {
 	GetOperationLogRepository() *sysRepo.OperationLogRepository
 	GetPermissionRepository() *sysRepo.PermissionRepository
 	GetRoleMenuRepository() *sysRepo.RoleMenuRepository
+	GetHostRepository() *sysRepo.HostRepository
+	GetHostGroupRepository() *sysRepo.HostGroupRepository
+	GetHostMetricRepository() *sysRepo.HostMetricRepository
 
 	GetUserService() *sysService.UserService
 	GetRoleService() *sysService.RoleService
@@ -28,6 +31,9 @@ type Container interface {
 	GetOperationLogService() *sysService.OperationLogService
 	GetPermissionService() *sysService.PermissionService
 	GetRoleMenuService() *sysService.RoleMenuService
+	GetHostService() *sysService.HostService
+	GetHostGroupService() *sysService.HostGroupService
+	GetHostMetricService() *sysService.HostMetricService
 
 	GetUserHandler() *sysHandler.UserHandler
 	GetRoleHandler() *sysHandler.RoleHandler
@@ -35,6 +41,8 @@ type Container interface {
 	GetOperationLogHandler() *sysHandler.OperationLogHandler
 	GetPermissionHandler() *sysHandler.PermissionHandler
 	GetRoleMenuHandler() *sysHandler.RoleMenuHandler
+	GetHostHandler() *sysHandler.HostHandler
+	GetHostGroupHandler() *sysHandler.HostGroupHandler
 
 	GetDB() *gorm.DB
 	GetRedis() *redis.Client
@@ -56,6 +64,9 @@ type containerImpl struct {
 	operationLogRepo *sysRepo.OperationLogRepository
 	permissionRepo   *sysRepo.PermissionRepository
 	roleMenuRepo     *sysRepo.RoleMenuRepository
+	hostRepo         *sysRepo.HostRepository
+	hostGroupRepo    *sysRepo.HostGroupRepository
+	hostMetricRepo   *sysRepo.HostMetricRepository
 
 	// Services
 	userService         *sysService.UserService
@@ -64,6 +75,9 @@ type containerImpl struct {
 	operationLogService *sysService.OperationLogService
 	permissionService   *sysService.PermissionService
 	roleMenuService     *sysService.RoleMenuService
+	hostService         *sysService.HostService
+	hostGroupService    *sysService.HostGroupService
+	hostMetricService   *sysService.HostMetricService
 
 	// Handlers
 	userHandler         *sysHandler.UserHandler
@@ -72,6 +86,8 @@ type containerImpl struct {
 	operationLogHandler *sysHandler.OperationLogHandler
 	permissionHandler   *sysHandler.PermissionHandler
 	roleMenuHandler     *sysHandler.RoleMenuHandler
+	hostHandler         *sysHandler.HostHandler
+	hostGroupHandler    *sysHandler.HostGroupHandler
 }
 
 // InitializeContainer 初始化依赖注入容器
@@ -116,6 +132,9 @@ func (c *containerImpl) initRepositories() {
 	c.operationLogRepo = sysRepo.NewOperationLogRepository(c.db)
 	c.permissionRepo = sysRepo.NewPermissionRepository(c.db)
 	c.roleMenuRepo = sysRepo.NewRoleMenuRepository(c.db)
+	c.hostRepo = sysRepo.NewHostRepository(c.db)
+	c.hostGroupRepo = sysRepo.NewHostGroupRepository(c.db)
+	c.hostMetricRepo = sysRepo.NewHostMetricRepository(c.db)
 }
 
 // initServices 初始化Service层
@@ -126,6 +145,9 @@ func (c *containerImpl) initServices() {
 	c.operationLogService = sysService.NewOperationLogService(c.operationLogRepo)
 	c.permissionService = sysService.NewPermissionService(c.roleRepo, c.menuRepo, c.permissionRepo)
 	c.roleMenuService = sysService.NewRoleMenuService(c.roleMenuRepo)
+	c.hostService = sysService.NewHostService(c.hostRepo, c.hostGroupRepo, c.hostMetricRepo)
+	c.hostGroupService = sysService.NewHostGroupService(c.hostGroupRepo, c.hostRepo)
+	c.hostMetricService = sysService.NewHostMetricService(c.hostMetricRepo, c.hostRepo)
 }
 
 // initHandlers 初始化Handler层
@@ -136,6 +158,8 @@ func (c *containerImpl) initHandlers() {
 	c.operationLogHandler = sysHandler.NewOperationLogHandler(c.operationLogService)
 	c.permissionHandler = sysHandler.NewPermissionHandler(c.permissionService)
 	c.roleMenuHandler = sysHandler.NewRoleMenuHandler(c.roleMenuService)
+	c.hostHandler = sysHandler.NewHostHandler(c.hostService, c.hostGroupService, c.hostMetricService)
+	c.hostGroupHandler = sysHandler.NewHostGroupHandler(c.hostGroupService)
 }
 
 // Getters for repositories
@@ -163,6 +187,18 @@ func (c *containerImpl) GetRoleMenuRepository() *sysRepo.RoleMenuRepository {
 	return c.roleMenuRepo
 }
 
+func (c *containerImpl) GetHostRepository() *sysRepo.HostRepository {
+	return c.hostRepo
+}
+
+func (c *containerImpl) GetHostGroupRepository() *sysRepo.HostGroupRepository {
+	return c.hostGroupRepo
+}
+
+func (c *containerImpl) GetHostMetricRepository() *sysRepo.HostMetricRepository {
+	return c.hostMetricRepo
+}
+
 // Getters for services
 func (c *containerImpl) GetUserService() *sysService.UserService {
 	return c.userService
@@ -188,6 +224,18 @@ func (c *containerImpl) GetRoleMenuService() *sysService.RoleMenuService {
 	return c.roleMenuService
 }
 
+func (c *containerImpl) GetHostService() *sysService.HostService {
+	return c.hostService
+}
+
+func (c *containerImpl) GetHostGroupService() *sysService.HostGroupService {
+	return c.hostGroupService
+}
+
+func (c *containerImpl) GetHostMetricService() *sysService.HostMetricService {
+	return c.hostMetricService
+}
+
 // Getters for handlers
 func (c *containerImpl) GetUserHandler() *sysHandler.UserHandler {
 	return c.userHandler
@@ -211,6 +259,14 @@ func (c *containerImpl) GetPermissionHandler() *sysHandler.PermissionHandler {
 
 func (c *containerImpl) GetRoleMenuHandler() *sysHandler.RoleMenuHandler {
 	return c.roleMenuHandler
+}
+
+func (c *containerImpl) GetHostHandler() *sysHandler.HostHandler {
+	return c.hostHandler
+}
+
+func (c *containerImpl) GetHostGroupHandler() *sysHandler.HostGroupHandler {
+	return c.hostGroupHandler
 }
 
 // Getters for infrastructure

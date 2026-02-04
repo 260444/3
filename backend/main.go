@@ -48,10 +48,12 @@ func main() {
 	operationLogHandler := container.GetOperationLogHandler()
 	permissionHandler := container.GetPermissionHandler()
 	roleMenuHandler := container.GetRoleMenuHandler()
+	hostHandler := container.GetHostHandler()
+	hostGroupHandler := container.GetHostGroupHandler()
 	operationLogService := container.GetOperationLogService()
 
 	// 设置路由
-	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler, roleMenuHandler, operationLogService)
+	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler, roleMenuHandler, hostHandler, hostGroupHandler, operationLogService)
 
 	// 启动服务器
 	port := config.GlobalConfig.Server.Port

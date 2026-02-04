@@ -16,6 +16,8 @@ func SetupRouter(
 	operationLogHandler *handler.OperationLogHandler,
 	permissionHandler *handler.PermissionHandler,
 	roleMenuHandler *handler.RoleMenuHandler,
+	hostHandler *handler.HostHandler,
+	hostGroupHandler *handler.HostGroupHandler,
 	operationLogService *sysService.OperationLogService,
 ) *gin.Engine {
 	r := gin.New()
@@ -101,6 +103,30 @@ func SetupRouter(
 
 		// 获取当前用户信息
 		protected.GET("/users/profile", userHandler.GetCurrentUser)
+
+		// 主机管理相关路由
+		protected.POST("/hosts", middleware.OperationLogMiddleware(operationLogService, "创建主机"), hostHandler.CreateHost)
+		protected.GET("/hosts", hostHandler.GetHostList)
+		protected.GET("/hosts/:id", hostHandler.GetHostByID)
+		protected.PUT("/hosts/:id", middleware.OperationLogMiddleware(operationLogService, "更新主机"), hostHandler.UpdateHost)
+		protected.DELETE("/hosts/:id", middleware.OperationLogMiddleware(operationLogService, "删除主机"), hostHandler.DeleteHost)
+		protected.DELETE("/hosts/batch", middleware.OperationLogMiddleware(operationLogService, "批量删除主机"), hostHandler.BatchDeleteHosts)
+		protected.PUT("/hosts/:id/status", middleware.OperationLogMiddleware(operationLogService, "更新主机状态"), hostHandler.UpdateHostStatus)
+		protected.PUT("/hosts/:id/monitoring", middleware.OperationLogMiddleware(operationLogService, "更新主机监控状态"), hostHandler.UpdateHostMonitoring)
+		protected.GET("/hosts/statistics", hostHandler.GetHostStatistics)
+
+		// 主机组管理相关路由
+		protected.POST("/host-groups", middleware.OperationLogMiddleware(operationLogService, "创建主机组"), hostGroupHandler.CreateHostGroup)
+		protected.GET("/host-groups", hostGroupHandler.GetHostGroupList)
+		protected.GET("/host-groups/:id", hostGroupHandler.GetHostGroupByID)
+		protected.PUT("/host-groups/:id", middleware.OperationLogMiddleware(operationLogService, "更新主机组"), hostGroupHandler.UpdateHostGroup)
+		protected.DELETE("/host-groups/:id", middleware.OperationLogMiddleware(operationLogService, "删除主机组"), hostGroupHandler.DeleteHostGroup)
+		protected.PUT("/host-groups/:id/status", middleware.OperationLogMiddleware(operationLogService, "更新主机组状态"), hostGroupHandler.UpdateHostGroupStatus)
+
+		// 主机监控指标相关路由
+		protected.POST("/host-metrics", middleware.OperationLogMiddleware(operationLogService, "上报主机指标"), hostHandler.ReportHostMetrics)
+		protected.GET("/host-metrics/history", hostHandler.GetHostMetricsHistory)
+		protected.GET("/host-metrics/latest", hostHandler.GetHostLatestMetrics)
 
 		return r
 	}
