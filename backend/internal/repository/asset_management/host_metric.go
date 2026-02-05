@@ -96,7 +96,7 @@ func (r *HostMetricRepository) GetAverageMetrics(hostID uint, metricType, metric
 	err := r.DB.Model(&assModel.HostMetric{}).
 		Where("host_id = ? AND metric_type = ? AND metric_name = ? AND recorded_at BETWEEN ? AND ?",
 			hostID, metricType, metricName, startTime, endTime).
-		Select("AVG(metric_value)").
+		Select("COALESCE(AVG(metric_value), 0)").
 		Scan(&avgValue).Error
 	return avgValue, err
 }

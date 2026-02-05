@@ -3,8 +3,10 @@ package asset_management
 import (
 	assModel "backend/internal/model/asset_management"
 	assRepo "backend/internal/repository/asset_management"
+	"backend/pkg/logger"
 	"backend/pkg/response"
 	"errors"
+	"go.uber.org/zap"
 	"time"
 
 	"gorm.io/gorm"
@@ -58,7 +60,7 @@ func (s *HostMetricService) ReportHostMetrics(req *assModel.HostMetricsRequest) 
 }
 
 // GetHostMetricsHistory 获取主机指标历史数据
-func (s *HostMetricService) GetHostMetricsHistory(hostID uint, metricType, metricName string, startTime, endTime *time.Time, page, pageSize int) ([]assModel.HostMetric, int64, error) {
+func (s *HostService) GetHostMetricsHistory(hostID uint, metricType, metricName string, startTime, endTime *time.Time, page, pageSize int) ([]assModel.HostMetric, int64, error) {
 	// 检查主机是否存在
 	if _, err := s.hostRepo.GetByID(hostID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -116,20 +118,24 @@ func (s *HostMetricService) GetHostMetricsStatistics(hostID uint, metricType, me
 	// 检查主机是否存在
 	if _, err := s.hostRepo.GetByID(hostID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Logger.Error("获取主机指标统计信息失败", zap.Error(err))
 			return nil, response.ErrNotFound
 		}
+		logger.Logger.Error("获取主机指标统计信息失败", zap.Error(err))
 		return nil, response.ErrDatabaseError
 	}
 
 	// 获取平均值
 	avgValue, err := s.hostMetricRepo.GetAverageMetrics(hostID, metricType, metricName, startTime, endTime)
 	if err != nil {
+		logger.Logger.Error("获取主机指标统计信息失败", zap.Error(err))
 		return nil, response.ErrDatabaseError
 	}
 
 	// 获取最大最小值
 	maxValue, minValue, err := s.hostMetricRepo.GetMaxMinMetrics(hostID, metricType, metricName, startTime, endTime)
 	if err != nil {
+		logger.Logger.Error("获取主机指标统计信息失败", zap.Error(err))
 		return nil, response.ErrDatabaseError
 	}
 

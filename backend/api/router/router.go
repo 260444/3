@@ -114,7 +114,7 @@ func SetupRouter(
 		protected.DELETE("/hosts/batch", middleware.OperationLogMiddleware(operationLogService, "批量删除主机"), hostHandler.BatchDeleteHosts)
 		protected.PUT("/hosts/:id/status", middleware.OperationLogMiddleware(operationLogService, "更新主机状态"), hostHandler.UpdateHostStatus)
 		protected.PUT("/hosts/:id/monitoring", middleware.OperationLogMiddleware(operationLogService, "更新主机监控状态"), hostHandler.UpdateHostMonitoring)
-		//protected.GET("/hosts/statistics", hostHandler.GetHostStatistics)
+		protected.GET("/hosts/statistics", hostHandler.GetHostStatistics)
 
 		// 主机组管理相关路由
 		protected.POST("/host-groups", middleware.OperationLogMiddleware(operationLogService, "创建主机组"), hostGroupHandler.CreateHostGroup)

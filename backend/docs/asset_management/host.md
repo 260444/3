@@ -580,7 +580,7 @@ type HostMetric struct {
 - **请求参数**:
 ```json
 {
-    "status": 0
+    "status": 1
 }
 ```
 - **响应**:
@@ -589,10 +589,13 @@ type HostMetric struct {
     "message": "主机组状态更新成功",
     "data": {
         "id": 1,
-        "status": 0
+        "status": 1
     }
 }
 ```
+
+- **备注**:
+- 状态值：1-开启, 2-关闭
 
 ### 主机监控指标接口
 

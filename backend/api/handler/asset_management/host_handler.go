@@ -312,15 +312,54 @@ func (h *HostHandler) UpdateHostMonitoring(c *gin.Context) {
 // @Router /api/v1/hosts/statistics [get]
 // @Security Bearer
 
-//func (h *HostHandler) GetHostStatistics(c *gin.Context) {
-//	stats, err := h.HostService.GetHostStatistics()
-//	if err != nil {
-//		response.Error(c, err)
-//		return
-//	}
-//
-//	response.SuccessWithMessage(c, "获取主机统计信息成功", stats)
-//}
+func (h *HostHandler) GetHostStatistics(c *gin.Context) {
+	hostID, err := strconv.ParseUint(c.Query("host_id"), 10, 32)
+	if err != nil {
+		response.ValidationError(c, "host_id", "host_id参数不能为空")
+		return
+	}
+
+	//page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	//pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "50"))
+	metricType := c.Query("metric_type")
+	metricName := c.Query("metric_name")
+
+	// 处理时间参数，如果为空则使用默认值
+	var startTime, endTime time.Time
+	if startStr := c.Query("start_time"); startStr != "" {
+		if t, err := time.Parse(time.RFC3339, startStr); err == nil {
+			startTime = t
+		} else {
+			// 时间格式错误，返回错误
+			response.ValidationError(c, "start_time", "时间格式错误，应为RFC3339格式")
+			return
+		}
+	} else {
+		// 如果没有提供开始时间，默认使用24小时前
+		startTime = time.Now().Add(-24 * time.Hour)
+	}
+
+	if endStr := c.Query("end_time"); endStr != "" {
+		if t, err := time.Parse(time.RFC3339, endStr); err == nil {
+			endTime = t
+		} else {
+			// 时间格式错误，返回错误
+			response.ValidationError(c, "end_time", "时间格式错误，应为RFC3339格式")
+			return
+		}
+	} else {
+		// 如果没有提供结束时间，默认使用当前时间
+		endTime = time.Now()
+	}
+
+	stats, err := h.HostMetricService.GetHostMetricsStatistics(uint(hostID), metricType, metricName, startTime, endTime)
+	if err != nil {
+		response.Error(c, err)
+		return
+	}
+
+	response.SuccessWithMessage(c, "获取主机统计信息成功", stats)
+}
 
 // ReportHostMetrics 上报主机指标
 // @Summary 上报主机指标
@@ -392,7 +431,7 @@ func (h *HostHandler) GetHostMetricsHistory(c *gin.Context) {
 		}
 	}
 
-	metrics, total, err := h.HostMetricService.GetHostMetricsHistory(
+	metrics, total, err := h.HostService.GetHostMetricsHistory(
 		uint(hostID), metricType, metricName, startTime, endTime, page, pageSize)
 	if err != nil {
 		response.Error(c, err)
