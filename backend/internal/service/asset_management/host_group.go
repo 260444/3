@@ -5,7 +5,6 @@ import (
 	assRepo "backend/internal/repository/asset_management"
 	"backend/pkg/response"
 	"errors"
-
 	"gorm.io/gorm"
 )
 
@@ -86,7 +85,9 @@ func (s *HostGroupService) UpdateHostGroup(id uint, req *assModel.HostGroupUpdat
 
 	// 检查名称是否重复（排除自己）
 	if req.Name != "" && req.Name != group.Name {
-		if existing, _ := s.hostGroupRepo.GetByName(req.Name); existing != nil && existing.ID != id {
+		existing, _ := s.hostGroupRepo.GetByName(req.Name)
+
+		if existing.ID != 0 {
 			return nil, response.ErrValidationError
 		}
 		group.Name = req.Name

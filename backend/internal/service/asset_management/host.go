@@ -3,9 +3,10 @@ package asset_management
 import (
 	assModel "backend/internal/model/asset_management"
 	assRepo "backend/internal/repository/asset_management"
+	"backend/pkg/logger"
 	"backend/pkg/response"
 	"errors"
-
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -69,6 +70,7 @@ func (s *HostService) CreateHost(req *assModel.HostCreateRequest, userID uint) (
 	}
 
 	if err := s.hostRepo.Create(host); err != nil {
+		logger.Logger.Info("写入主机信息失败", zap.String("hostname", host.Hostname), zap.Error(err))
 		return nil, response.ErrDatabaseError
 	}
 

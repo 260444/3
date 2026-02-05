@@ -340,7 +340,7 @@ type HostMetric struct {
 - **请求参数**:
 ```json
 {
-    "status": 0
+    "status": 2
 }
 ```
 - **成功响应**:
@@ -350,10 +350,12 @@ type HostMetric struct {
     "message": "主机状态更新成功",
     "data": {
         "id": 1,
-        "status": 0
+        "status": 2
     }
 }
 ```
+- **备注**:
+- 状态值：1-在线, 2-离线, 3-故障
 
 - **错误响应**:
 ```json
@@ -372,8 +374,9 @@ type HostMetric struct {
 - **请求参数**:
 ```json
 {
-    "monitoring_enabled": 0
+    "monitoring_enabled": 2
 }
+
 ```
 - **响应**:
 ```json
@@ -381,10 +384,13 @@ type HostMetric struct {
     "message": "监控状态更新成功",
     "data": {
         "id": 1,
-        "monitoring_enabled": 0
+        "monitoring_enabled": 2
     }
 }
 ```
+- **备注**:
+- 状态值：1-开启, 2-关闭
+
 
 ### 主机组管理接口
 
