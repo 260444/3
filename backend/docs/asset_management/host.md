@@ -72,7 +72,6 @@ type HostMetric struct {
 
 #### 1. 创建主机
 - **URL**: `POST /api/v1/hosts`
-- **权限**: `host:create`
 - **请求参数**:
 ```json
 {
@@ -125,7 +124,6 @@ type HostMetric struct {
 
 #### 2. 获取主机列表
 - **URL**: `GET /api/v1/hosts`
-- **权限**: `host:list`
 - **查询参数**:
   - `page`: 页码，默认1
   - `page_size`: 每页数量，默认10
@@ -184,7 +182,6 @@ type HostMetric struct {
 
 #### 3. 获取主机详情
 - **URL**: `GET /api/v1/hosts/{id}`
-- **权限**: `host:view`
 - **路径参数**:
   - `id`: 主机ID
 - **成功响应**:
@@ -229,7 +226,6 @@ type HostMetric struct {
 
 #### 4. 更新主机信息
 - **URL**: `PUT /api/v1/hosts/{id}`
-- **权限**: `host:update`
 - **路径参数**:
   - `id`: 主机ID
 - **请求参数**:
@@ -283,7 +279,6 @@ type HostMetric struct {
 
 #### 5. 删除主机
 - **URL**: `DELETE /api/v1/hosts/{id}`
-- **权限**: `host:delete`
 - **路径参数**:
   - `id`: 主机ID
 - **成功响应**:
@@ -305,7 +300,6 @@ type HostMetric struct {
 
 #### 6. 批量删除主机
 - **URL**: `DELETE /api/v1/hosts/batch`
-- **权限**: `host:delete`
 - **请求参数**:
 ```json
 {
@@ -334,7 +328,6 @@ type HostMetric struct {
 
 #### 7. 更新主机状态
 - **URL**: `PUT /api/v1/hosts/{id}/status`
-- **权限**: `host:update`
 - **路径参数**:
   - `id`: 主机ID
 - **请求参数**:
@@ -368,7 +361,6 @@ type HostMetric struct {
 
 #### 8. 更新监控状态
 - **URL**: `PUT /api/v1/hosts/{id}/monitoring`
-- **权限**: `host:update`
 - **路径参数**:
   - `id`: 主机ID
 - **请求参数**:
@@ -396,7 +388,6 @@ type HostMetric struct {
 
 #### 9. 创建主机组
 - **URL**: `POST /api/v1/host-groups`
-- **权限**: `host-group:create`
 - **请求参数**:
 ```json
 {
@@ -430,7 +421,6 @@ type HostMetric struct {
 
 #### 10. 获取主机组列表
 - **URL**: `GET /api/v1/host-groups`
-- **权限**: `host-group:list`
 - **查询参数**:
   - `page`: 页码，默认1
   - `page_size`: 每页数量，默认10
@@ -480,7 +470,6 @@ type HostMetric struct {
 
 #### 11. 获取主机组详情
 - **URL**: `GET /api/v1/host-groups/{id}`
-- **权限**: `host-group:view`
 - **路径参数**:
   - `id`: 主机组ID
 - **成功响应**:
@@ -517,7 +506,6 @@ type HostMetric struct {
 
 #### 12. 更新主机组
 - **URL**: `PUT /api/v1/host-groups/{id}`
-- **权限**: `host-group:update`
 - **路径参数**:
   - `id`: 主机组ID
 - **请求参数**:
@@ -552,7 +540,6 @@ type HostMetric struct {
 
 #### 13. 删除主机组
 - **URL**: `DELETE /api/v1/host-groups/{id}`
-- **权限**: `host-group:delete`
 - **路径参数**:
   - `id`: 主机组ID
 - **成功响应**:
@@ -574,7 +561,6 @@ type HostMetric struct {
 
 #### 14. 更新主机组状态
 - **URL**: `PUT /api/v1/host-groups/{id}/status`
-- **权限**: `host-group:update`
 - **路径参数**:
   - `id`: 主机组ID
 - **请求参数**:
@@ -601,7 +587,6 @@ type HostMetric struct {
 
 #### 15. 上报主机指标
 - **URL**: `POST /api/v1/host-metrics`
-- **权限**: `host-metric:create`
 - **请求参数**:
 ```json
 {
@@ -644,7 +629,6 @@ type HostMetric struct {
 
 #### 16. 获取主机指标历史
 - **URL**: `GET /api/v1/host-metrics/history`
-- **权限**: `host-metric:list`
 - **查询参数**:
   - `host_id`: 主机ID（必填）
   - `metric_type`: 指标类型(cpu/memory/disk/network)
@@ -690,7 +674,6 @@ type HostMetric struct {
 
 #### 17. 获取主机最新指标
 - **URL**: `GET /api/v1/host-metrics/latest`
-- **权限**: `host-metric:list`
 - **查询参数**:
   - `host_id`: 主机ID（必填）
 - **成功响应**:
@@ -728,7 +711,14 @@ type HostMetric struct {
 
 #### 18. 获取主机统计信息
 - **URL**: `GET /api/v1/hosts/statistics`
-- **权限**: `host:list`
+- **查询参数**:
+  - `host_id`: 主机ID（必填）
+  - `metric_type`: 指标类型(cpu/memory/disk/network) (必填)
+  - `metric_name`: 指标名称 (必填)
+  - `start_time`: 开始时间
+  - `end_time`: 结束时间
+  - `page`: 页码，默认1
+  - `page_size`: 每页数量，默认50
 - **成功响应**:
 ```json
 {

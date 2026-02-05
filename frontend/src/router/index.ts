@@ -11,6 +11,8 @@ import MenuManageView from '@/views/menu/MenuManageView.vue'
 import OperationLogView from '@/views/OperationLogView.vue'
 import PermissionResourceView from '@/views/permission/PermissionResourceView.vue'
 import NoPermissionView from '@/views/NoPermissionView.vue'
+import HostManageView from '@/views/asset/host/HostManageView.vue'
+import HostGroupView from '@/views/asset/group/HostGroupView.vue'
 
 // 静态路由（不需要权限）
 const constantRoutes: RouteRecordRaw[] = [
@@ -46,7 +48,9 @@ const componentMap: Record<string, any> = {
   'RoleManageView': RoleManageView,
   'MenuManageView': MenuManageView,
   'OperationLogView': OperationLogView,
-  'PermissionResourceView': PermissionResourceView
+  'PermissionResourceView': PermissionResourceView,
+  'HostManageView': HostManageView,
+  'HostGroupView': HostGroupView
 }
 
 const router = createRouter({
