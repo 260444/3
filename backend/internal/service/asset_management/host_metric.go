@@ -6,8 +6,9 @@ import (
 	"backend/pkg/logger"
 	"backend/pkg/response"
 	"errors"
-	"go.uber.org/zap"
 	"time"
+
+	"go.uber.org/zap"
 
 	"gorm.io/gorm"
 )
@@ -60,7 +61,7 @@ func (s *HostMetricService) ReportHostMetrics(req *assModel.HostMetricsRequest) 
 }
 
 // GetHostMetricsHistory 获取主机指标历史数据
-func (s *HostService) GetHostMetricsHistory(hostID uint, metricType, metricName string, startTime, endTime *time.Time, page, pageSize int) ([]assModel.HostMetric, int64, error) {
+func (s *HostMetricService) GetHostMetricsHistory(hostID uint, metricType, metricName string, startTime, endTime *time.Time, page, pageSize int) ([]assModel.HostMetric, int64, error) {
 	// 检查主机是否存在
 	if _, err := s.hostRepo.GetByID(hostID); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

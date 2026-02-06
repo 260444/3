@@ -3,29 +3,33 @@ package asset_management
 import (
 	assModel "backend/internal/model/asset_management"
 	assRepo "backend/internal/repository/asset_management"
+
 	"backend/pkg/logger"
 	"backend/pkg/response"
 	"errors"
+
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type HostService struct {
-	hostRepo       *assRepo.HostRepository
-	hostGroupRepo  *assRepo.HostGroupRepository
-	hostMetricRepo *assRepo.HostMetricRepository
+	hostRepo      *assRepo.HostRepository
+	hostGroupRepo *assRepo.HostGroupRepository
+	// hostMetricRepo *assRepo.HostMetricRepository
+	// credentialRepo *assRepo.CredentialRepository
 }
 
 func NewHostService(
 	hostRepo *assRepo.HostRepository,
 	hostGroupRepo *assRepo.HostGroupRepository,
-	hostMetricRepo *assRepo.HostMetricRepository,
+	// hostMetricRepo *assRepo.HostMetricRepository,
+	// credentialService *assRepo.CredentialRepository,
 ) *HostService {
 	return &HostService{
-		hostRepo:       hostRepo,
-		hostGroupRepo:  hostGroupRepo,
-		hostMetricRepo: hostMetricRepo,
+		hostRepo:      hostRepo,
+		hostGroupRepo: hostGroupRepo,
+		// hostMetricRepo: hostMetricRepo,
+		// credentialRepo: credentialService,
 	}
 }
 
@@ -46,18 +50,10 @@ func (s *HostService) CreateHost(req *assModel.HostCreateRequest, userID uint) (
 		return nil, response.ErrValidationError
 	}
 
-	// 加密密码
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, response.ErrInternalError
-	}
-
 	host := &assModel.Host{
 		Hostname:         req.Hostname,
 		IPAddress:        req.IPAddress,
 		Port:             req.Port,
-		Username:         req.Username,
-		Password:         string(hashedPassword),
 		OSType:           req.OSType,
 		CPUCores:         req.CPUCores,
 		MemoryGB:         req.MemoryGB,
@@ -67,11 +63,46 @@ func (s *HostService) CreateHost(req *assModel.HostCreateRequest, userID uint) (
 		MonitoringEnable: 1, // 默认启用监控
 		Description:      req.Description,
 		CreatedBy:        &userID,
+		UpdatedBy:        &userID,
 	}
 
 	if err := s.hostRepo.Create(host); err != nil {
 		logger.Logger.Info("写入主机信息失败", zap.String("hostname", host.Hostname), zap.Error(err))
 		return nil, response.ErrDatabaseError
+	}
+
+	// 如果提供了凭据ID，则建立关联关系
+	if len(req.CredentialIDs) > 0 {
+		// 开始事务处理凭据关联
+		tx := s.hostRepo.DB.Begin()
+		defer func() {
+			if r := tx.Rollback(); r != nil {
+				logger.Logger.Error("事务回滚错误", zap.Error(r.Error))
+			}
+		}()
+
+		// 检查所有凭据ID是否存在
+		var existingCredentials []assModel.Credential
+		if err := tx.Find(&existingCredentials, "id IN ?", req.CredentialIDs).Error; err != nil {
+			tx.Rollback()
+			return nil, response.ErrDatabaseError
+		}
+
+		if len(existingCredentials) != len(req.CredentialIDs) {
+			tx.Rollback()
+			return nil, errors.New("存在不存在的凭据ID")
+		}
+
+		// 建立主机与凭据的关联
+		if err := tx.Model(host).Association("Credentials").Append(&existingCredentials); err != nil {
+			tx.Rollback()
+			return nil, response.ErrDatabaseError
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			logger.Logger.Error("提交事务失败", zap.Error(err))
+			return nil, response.ErrDatabaseError
+		}
 	}
 
 	return host, nil
@@ -128,17 +159,6 @@ func (s *HostService) UpdateHost(id uint, req *assModel.HostUpdateRequest, userI
 	if req.Port != 0 {
 		host.Port = req.Port
 	}
-	if req.Username != "" {
-		host.Username = req.Username
-	}
-	if req.Password != "" {
-		// 重新加密密码
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return nil, response.ErrInternalError
-		}
-		host.Password = string(hashedPassword)
-	}
 	if req.OSType != "" {
 		host.OSType = req.OSType
 	}
@@ -166,6 +186,49 @@ func (s *HostService) UpdateHost(id uint, req *assModel.HostUpdateRequest, userI
 
 	if err := s.hostRepo.Update(host); err != nil {
 		return nil, response.ErrDatabaseError
+	}
+
+	// 如果提供了凭据ID，则更新关联关系
+	if req.CredentialIDs != nil {
+		// 开始事务处理凭据关联
+		tx := s.hostRepo.DB.Begin()
+		defer func() {
+			if r := tx.Rollback(); r != nil {
+				logger.Logger.Error("事务回滚错误", zap.Error(r.Error))
+			}
+		}()
+
+		// 清除现有的凭据关联
+		if err := tx.Model(host).Association("Credentials").Clear(); err != nil {
+			tx.Rollback()
+			return nil, response.ErrDatabaseError
+		}
+
+		// 如果提供了新的凭据ID列表，则建立新的关联
+		if len(req.CredentialIDs) > 0 {
+			// 检查所有凭据ID是否存在
+			var existingCredentials []assModel.Credential
+			if err := tx.Find(&existingCredentials, "id IN ?", req.CredentialIDs).Error; err != nil {
+				tx.Rollback()
+				return nil, response.ErrDatabaseError
+			}
+
+			if len(existingCredentials) != len(req.CredentialIDs) {
+				tx.Rollback()
+				return nil, errors.New("存在不存在的凭据ID")
+			}
+
+			// 建立主机与凭据的关联
+			if err := tx.Model(host).Association("Credentials").Append(&existingCredentials); err != nil {
+				tx.Rollback()
+				return nil, response.ErrDatabaseError
+			}
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			logger.Logger.Error("提交事务失败", zap.Error(err))
+			return nil, response.ErrDatabaseError
+		}
 	}
 
 	return host, nil

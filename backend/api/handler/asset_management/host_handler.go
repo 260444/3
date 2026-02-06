@@ -14,12 +14,14 @@ import (
 type HostHandler struct {
 	HostService       *assService.HostService
 	HostMetricService *assService.HostMetricService
+	CredentialService *assService.CredentialService
 }
 
-func NewHostHandler(HostService *assService.HostService, HostMetricService *assService.HostMetricService) *HostHandler {
+func NewHostHandler(HostService *assService.HostService, HostMetricService *assService.HostMetricService, CredentialService *assService.CredentialService) *HostHandler {
 	return &HostHandler{
 		HostService:       HostService,
 		HostMetricService: HostMetricService,
+		CredentialService: CredentialService,
 	}
 }
 
@@ -431,7 +433,7 @@ func (h *HostHandler) GetHostMetricsHistory(c *gin.Context) {
 		}
 	}
 
-	metrics, total, err := h.HostService.GetHostMetricsHistory(
+	metrics, total, err := h.HostMetricService.GetHostMetricsHistory(
 		uint(hostID), metricType, metricName, startTime, endTime, page, pageSize)
 	if err != nil {
 		response.Error(c, err)

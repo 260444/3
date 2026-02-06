@@ -6,14 +6,25 @@ import (
 	"gorm.io/gorm"
 )
 
+// Credential 凭据模型
+type Credential struct {
+	ID          uint           `gorm:"primaryKey" json:"id"`
+	Name        string         `gorm:"size:100;not null;uniqueIndex" json:"name"` // 凭据名称
+	Username    string         `gorm:"size:50;not null" json:"username"`          // 登录用户名
+	Password    string         `gorm:"size:255;not null" json:"password"`         // 加密后的密码
+	Description string         `gorm:"size:500" json:"description"`               // 凭据描述
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+	Hosts       []Host         `gorm:"many2many:host_credentials" json:"hosts"` // 关联的主机
+}
+
 // Host 主机模型
 type Host struct {
 	ID               uint           `gorm:"primaryKey" json:"id"`
 	Hostname         string         `gorm:"size:100;not null;uniqueIndex" json:"hostname"`                 // 主机名
 	IPAddress        string         `gorm:"size:45;not null;uniqueIndex" json:"ip_address"`                // IP地址
 	Port             uint16         `gorm:"default:22" json:"port"`                                        // SSH端口
-	Username         string         `gorm:"size:50;not null" json:"username"`                              // 登录用户名
-	Password         string         `gorm:"size:255;not null" json:"password"`                             // 加密后的密码
 	OSType           string         `gorm:"size:20;default:'linux'" json:"os_type"`                        // 操作系统类型
 	CPUCores         *uint16        `json:"cpu_cores"`                                                     // CPU核心数
 	MemoryGB         *uint16        `json:"memory_gb"`                                                     // 内存大小(GB)
@@ -28,7 +39,8 @@ type Host struct {
 	CreatedAt        time.Time      `json:"created_at"`
 	UpdatedAt        time.Time      `json:"updated_at"`
 	DeletedAt        gorm.DeletedAt `gorm:"index" json:"deleted_at"`
-	Group            *HostGroup     `gorm:"foreignKey:GroupID" json:"group"` // 关联的主机组
+	Group            *HostGroup     `gorm:"foreignKey:GroupID" json:"group"`               // 关联的主机组
+	Credentials      []Credential   `gorm:"many2many:host_credentials" json:"credentials"` // 关联的凭据
 }
 
 // HostGroup 主机组模型
@@ -59,32 +71,30 @@ type HostMetric struct {
 
 // HostCreateRequest 创建主机请求
 type HostCreateRequest struct {
-	Hostname    string  `json:"hostname" binding:"required"`
-	IPAddress   string  `json:"ip_address" binding:"required"`
-	Port        uint16  `json:"port" binding:"required"`
-	Username    string  `json:"username" binding:"required"`
-	Password    string  `json:"password" binding:"required"`
-	OSType      string  `json:"os_type" binding:"required,oneof=linux windows"`
-	CPUCores    *uint16 `json:"cpu_cores"`
-	MemoryGB    *uint16 `json:"memory_gb"`
-	DiskSpaceGB *uint32 `json:"disk_space_gb"`
-	GroupID     uint    `json:"group_id" binding:"required"`
-	Description string  `json:"description"`
+	Hostname      string  `json:"hostname" binding:"required"`
+	IPAddress     string  `json:"ip_address" binding:"required"`
+	Port          uint16  `json:"port" binding:"required"`
+	OSType        string  `json:"os_type" binding:"required,oneof=linux windows"`
+	CPUCores      *uint16 `json:"cpu_cores"`
+	MemoryGB      *uint16 `json:"memory_gb"`
+	DiskSpaceGB   *uint32 `json:"disk_space_gb"`
+	GroupID       uint    `json:"group_id" binding:"required"`
+	Description   string  `json:"description"`
+	CredentialIDs []uint  `json:"credential_ids"` // 关联的凭据ID列表
 }
 
 // HostUpdateRequest 更新主机请求
 type HostUpdateRequest struct {
-	Hostname    string  `json:"hostname"`
-	IPAddress   string  `json:"ip_address"`
-	Port        uint16  `json:"port"`
-	Username    string  `json:"username"`
-	Password    string  `json:"password"`
-	OSType      string  `json:"os_type" binding:"omitempty,oneof=linux windows"`
-	CPUCores    *uint16 `json:"cpu_cores"`
-	MemoryGB    *uint16 `json:"memory_gb"`
-	DiskSpaceGB *uint32 `json:"disk_space_gb"`
-	GroupID     uint    `json:"group_id"`
-	Description string  `json:"description"`
+	Hostname      string  `json:"hostname"`
+	IPAddress     string  `json:"ip_address"`
+	Port          uint16  `json:"port"`
+	OSType        string  `json:"os_type" binding:"omitempty,oneof=linux windows"`
+	CPUCores      *uint16 `json:"cpu_cores"`
+	MemoryGB      *uint16 `json:"memory_gb"`
+	DiskSpaceGB   *uint32 `json:"disk_space_gb"`
+	GroupID       uint    `json:"group_id"`
+	Description   string  `json:"description"`
+	CredentialIDs []uint  `json:"credential_ids"` // 关联的凭据ID列表
 }
 
 // HostStatusUpdateRequest 更新主机状态请求
@@ -147,6 +157,30 @@ type HostGroupStatistics struct {
 	HostCount int    `json:"host_count"`
 }
 
+// CredentialCreateRequest 创建凭据请求
+type CredentialCreateRequest struct {
+	Name        string `json:"name" binding:"required"`
+	Username    string `json:"username" binding:"required"`
+	Password    string `json:"password" binding:"required"`
+	Description string `json:"description"`
+}
+
+// CredentialUpdateRequest 更新凭据请求
+type CredentialUpdateRequest struct {
+	Name        string `json:"name"`
+	Username    string `json:"username"`
+	Password    string `json:"password"`
+	Description string `json:"description"`
+}
+
+// CredentialListRequest 凭据列表查询请求
+type CredentialListRequest struct {
+	Page     int    `form:"page" json:"page"`
+	PageSize int    `form:"page_size" json:"page_size"`
+	Name     string `form:"name" json:"name"`
+	Username string `form:"username" json:"username"`
+}
+
 // TableName 设置表名
 func (Host) TableName() string {
 	return "hosts"
@@ -158,4 +192,9 @@ func (HostGroup) TableName() string {
 
 func (HostMetric) TableName() string {
 	return "host_metrics"
+}
+
+// TableName 设置表名
+func (Credential) TableName() string {
+	return "credentials"
 }

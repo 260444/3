@@ -4,6 +4,202 @@
 
 主机管理模块提供对服务器主机的增删改查、分组管理和监控功能。包括主机信息管理、主机组管理以及主机监控指标等功能。
 
+## 凭据管理
+
+### 概述
+
+凭据管理模块用于集中管理主机的登录凭据（用户名和密码），实现凭据的统一存储和安全访问。通过凭据管理，可以实现多个主机共享相同凭据，便于统一管理。
+
+### Credential（凭据模型）
+
+```go
+type Credential struct {
+    ID          uint           `gorm:"primaryKey" json:"id"`
+    Name        string         `gorm:"size:100;not null;uniqueIndex" json:"name"`    // 凭据名称
+    Username    string         `gorm:"size:50;not null" json:"username"`             // 登录用户名
+    Password    string         `gorm:"size:255;not null" json:"password"`            // 加密后的密码
+    Description string         `gorm:"size:500" json:"description"`                  // 凭据描述
+    CreatedBy   *uint          `json:"created_by"`                                   // 创建人用户ID
+    UpdatedBy   *uint          `json:"updated_by"`                                   // 更新人用户ID
+    CreatedAt   time.Time      `json:"created_at"`
+    UpdatedAt   time.Time      `json:"updated_at"`
+    DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+    Hosts       []Host         `gorm:"many2many:host_credentials" json:"hosts"` // 关联的主机
+}
+```
+
+### 凭据管理API接口
+
+#### 1. 创建凭据
+- **URL**: `POST /api/v1/credentials`
+- **请求参数**:
+```json
+{
+    "name": "生产服务器凭据",
+    "username": "root",
+    "password": "encrypted_password",
+    "description": "生产环境服务器通用凭据"
+}
+```
+- **成功响应**:
+```json
+{
+    "success": true,
+    "message": "凭据创建成功",
+    "data": {
+        "id": 1,
+        "name": "生产服务器凭据",
+        "username": "root",
+        "description": "生产环境服务器通用凭据",
+        "created_at": "2026-02-04T14:30:00Z",
+        "updated_at": "2026-02-04T14:30:00Z"
+    }
+}
+```
+
+#### 2. 获取凭据列表
+- **URL**: `GET /api/v1/credentials`
+- **查询参数**:
+  - `page`: 页码，默认1
+  - `page_size`: 每页数量，默认10
+  - `name`: 凭据名称模糊搜索
+  - `username`: 用户名模糊搜索
+- **成功响应**:
+```json
+{
+    "success": true,
+    "message": "获取凭据列表成功",
+    "data": {
+        "list": [
+            {
+                "id": 1,
+                "name": "生产服务器凭据",
+                "username": "root",
+                "description": "生产环境服务器通用凭据",
+                "created_at": "2026-02-04T14:30:00Z",
+                "hosts": [
+                    {
+                        "id": 1,
+                        "hostname": "web-server-01"
+                    }
+                ]
+            }
+        ],
+        "pagination": {
+            "page": 1,
+            "page_size": 10,
+            "total": 25
+        }
+    }
+}
+```
+
+#### 3. 获取凭据详情
+- **URL**: `GET /api/v1/credentials/{id}`
+- **路径参数**:
+  - `id`: 凭据ID
+- **成功响应**:
+```json
+{
+    "success": true,
+    "message": "获取凭据详情成功",
+    "data": {
+        "id": 1,
+        "name": "生产服务器凭据",
+        "username": "root",
+        "description": "生产环境服务器通用凭据",
+        "created_at": "2026-02-04T14:30:00Z",
+        "updated_at": "2026-02-04T14:30:00Z",
+        "hosts": [
+            {
+                "id": 1,
+                "hostname": "web-server-01",
+                "ip_address": "192.168.1.100"
+            }
+        ]
+    }
+}
+```
+
+#### 4. 更新凭据信息
+- **URL**: `PUT /api/v1/credentials/{id}`
+- **路径参数**:
+  - `id`: 凭据ID
+- **请求参数**:
+```json
+{
+    "name": "更新后的凭据",
+    "username": "admin",
+    "password": "new_encrypted_password",
+    "description": "更新后的凭据描述"
+}
+```
+- **成功响应**:
+```json
+{
+    "success": true,
+    "message": "凭据更新成功",
+    "data": {
+        "id": 1,
+        "name": "更新后的凭据",
+        "username": "admin",
+        "description": "更新后的凭据描述",
+        "updated_at": "2026-02-04T15:00:00Z"
+    }
+}
+```
+
+#### 5. 删除凭据
+- **URL**: `DELETE /api/v1/credentials/{id}`
+- **路径参数**:
+  - `id`: 凭据ID
+- **成功响应**:
+```json
+{
+    "success": true,
+    "message": "凭据删除成功"
+}
+```
+
+#### 6. 批量删除凭据
+- **URL**: `DELETE /api/v1/credentials/batch`
+- **请求参数**:
+```json
+{
+    "ids": [1, 2, 3]
+}
+```
+- **成功响应**:
+```json
+{
+    "success": true,
+    "message": "批量删除凭据成功",
+    "data": {
+        "deleted_count": 3
+    }
+}
+```
+
+#### 7. 获取主机关联的凭据
+- **URL**: `GET /api/v1/credentials/host`
+- **查询参数**:
+  - `host_id`: 主机ID
+- **成功响应**:
+```json
+{
+    "success": true,
+    "message": "获取主机凭据成功",
+    "data": [
+        {
+            "id": 1,
+            "name": "生产服务器凭据",
+            "username": "root",
+            "description": "生产环境服务器通用凭据"
+        }
+    ]
+}
+```
+
 ## 数据模型
 
 ### Host（主机模型）
@@ -14,8 +210,6 @@ type Host struct {
     Hostname         string         `gorm:"size:100;not null;uniqueIndex" json:"hostname"`                    // 主机名
     IPAddress        string         `gorm:"size:45;not null;uniqueIndex" json:"ip_address"`                   // IP地址
     Port             uint16         `gorm:"default:22" json:"port"`                                           // SSH端口
-    Username         string         `gorm:"size:50;not null" json:"username"`                                 // 登录用户名
-    Password         string         `gorm:"size:255;not null" json:"password"`                                // 加密后的密码
     OSType           string         `gorm:"size:20;default:'linux'" json:"os_type"`                           // 操作系统类型
     CPUCores         *uint16        `json:"cpu_cores"`                                                        // CPU核心数
     MemoryGB         *uint16        `json:"memory_gb"`                                                        // 内存大小(GB)
@@ -31,6 +225,7 @@ type Host struct {
     UpdatedAt        time.Time      `json:"updated_at"`
     DeletedAt        gorm.DeletedAt `gorm:"index" json:"deleted_at"`
     Group            *HostGroup     `gorm:"foreignKey:GroupID" json:"group"`                                  // 关联的主机组
+    Credentials      []Credential   `gorm:"many2many:host_credentials" json:"credentials"`                    // 关联的凭据
 }
 ```
 
@@ -65,7 +260,6 @@ type HostMetric struct {
     Host        *Host     `gorm:"foreignKey:HostID" json:"host"`                // 关联的主机
 }
 ```
-
 ## API接口列表
 
 ### 主机管理接口
@@ -78,14 +272,13 @@ type HostMetric struct {
     "hostname": "web-server-01",
     "ip_address": "192.168.1.100",
     "port": 22,
-    "username": "root",
-    "password": "encrypted_password",
     "os_type": "linux",
     "cpu_cores": 8,
     "memory_gb": 16,
     "disk_space_gb": 500,
     "group_id": 1,
-    "description": "Web服务器01"
+    "description": "Web服务器01",
+    "credential_ids": [1, 2]
 }
 ```
 - **成功响应**:
@@ -98,7 +291,6 @@ type HostMetric struct {
         "hostname": "web-server-01",
         "ip_address": "192.168.1.100",
         "port": 22,
-        "username": "root",
         "os_type": "linux",
         "cpu_cores": 8,
         "memory_gb": 16,
@@ -108,7 +300,14 @@ type HostMetric struct {
         "monitoring_enabled": 1,
         "description": "Web服务器01",
         "created_at": "2026-02-04T14:30:00Z",
-        "updated_at": "2026-02-04T14:30:00Z"
+        "updated_at": "2026-02-04T14:30:00Z",
+        "credentials": [
+            {
+                "id": 1,
+                "name": "生产服务器凭据",
+                "username": "root"
+            }
+        ]
     }
 }
 ```
@@ -144,7 +343,6 @@ type HostMetric struct {
                 "hostname": "web-server-01",
                 "ip_address": "192.168.1.100",
                 "port": 22,
-                "username": "root",
                 "os_type": "linux",
                 "cpu_cores": 8,
                 "memory_gb": 16,
@@ -159,7 +357,14 @@ type HostMetric struct {
                     "id": 1,
                     "name": "Web服务器组",
                     "description": "Web服务器主机组"
-                }
+                },
+                "credentials": [
+                    {
+                        "id": 1,
+                        "name": "生产服务器凭据",
+                        "username": "root"
+                    }
+                ]
             }
         ],
         "pagination": {
@@ -194,7 +399,6 @@ type HostMetric struct {
         "hostname": "web-server-01",
         "ip_address": "192.168.1.100",
         "port": 22,
-        "username": "root",
         "os_type": "linux",
         "cpu_cores": 8,
         "memory_gb": 16,
@@ -210,7 +414,14 @@ type HostMetric struct {
             "id": 1,
             "name": "Web服务器组",
             "description": "Web服务器主机组"
-        }
+        },
+        "credentials": [
+            {
+                "id": 1,
+                "name": "生产服务器凭据",
+                "username": "root"
+            }
+        ]
     }
 }
 ```
@@ -234,14 +445,13 @@ type HostMetric struct {
     "hostname": "web-server-01",
     "ip_address": "192.168.1.100",
     "port": 22,
-    "username": "root",
-    "password": "new_encrypted_password",
     "os_type": "linux",
     "cpu_cores": 16,
     "memory_gb": 32,
     "disk_space_gb": 1000,
     "group_id": 1,
-    "description": "升级后的Web服务器01"
+    "description": "升级后的Web服务器01",
+    "credential_ids": [1, 3]
 }
 ```
 - **成功响应**:
@@ -254,7 +464,6 @@ type HostMetric struct {
         "hostname": "web-server-01",
         "ip_address": "192.168.1.100",
         "port": 22,
-        "username": "root",
         "os_type": "linux",
         "cpu_cores": 16,
         "memory_gb": 32,
@@ -263,7 +472,19 @@ type HostMetric struct {
         "status": 1,
         "monitoring_enabled": 1,
         "description": "升级后的Web服务器01",
-        "updated_at": "2026-02-04T15:00:00Z"
+        "updated_at": "2026-02-04T15:00:00Z",
+        "credentials": [
+            {
+                "id": 1,
+                "name": "生产服务器凭据",
+                "username": "root"
+            },
+            {
+                "id": 3,
+                "name": "备份服务器凭据",
+                "username": "admin"
+            }
+        ]
     }
 }
 ```
@@ -777,7 +998,7 @@ type HostMetric struct {
 
 ## 注意事项
 
-1. 所有涉及密码的操作都需要对密码进行加密处理
+1. 主机凭据信息已独立到凭据管理模块，所有涉及主机登录凭据的操作请使用凭据管理相关接口
 2. 主机名和IP地址在系统中必须唯一
 3. 删除操作使用软删除，数据不会真正从数据库中删除
 4. 监控指标数据量较大，建议定期清理历史数据

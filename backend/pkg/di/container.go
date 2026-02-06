@@ -39,6 +39,7 @@ type Container interface {
 	GetHostService() *assService.HostService
 	GetHostGroupService() *assService.HostGroupService
 	GetHostMetricService() *assService.HostMetricService
+	GetCredentialService() *assService.CredentialService
 
 	GetUserHandler() *sysHandler.UserHandler
 	GetRoleHandler() *sysHandler.RoleHandler
@@ -48,6 +49,7 @@ type Container interface {
 	GetRoleMenuHandler() *sysHandler.RoleMenuHandler
 	GetHostHandler() *assHandler.HostHandler
 	GetHostGroupHandler() *assHandler.HostGroupHandler
+	GetCredentialHandler() *assHandler.CredentialHandler
 
 	GetDB() *gorm.DB
 	GetRedis() *redis.Client
@@ -72,6 +74,7 @@ type containerImpl struct {
 	hostRepo         *assRepo.HostRepository
 	hostGroupRepo    *assRepo.HostGroupRepository
 	hostMetricRepo   *assRepo.HostMetricRepository
+	credentialRepo   *assRepo.CredentialRepository
 
 	// Services
 	userService         *sysService.UserService
@@ -83,6 +86,7 @@ type containerImpl struct {
 	hostService         *assService.HostService
 	hostGroupService    *assService.HostGroupService
 	hostMetricService   *assService.HostMetricService
+	credentialService   *assService.CredentialService
 
 	// Handlers
 	userHandler         *sysHandler.UserHandler
@@ -93,6 +97,7 @@ type containerImpl struct {
 	roleMenuHandler     *sysHandler.RoleMenuHandler
 	hostHandler         *assHandler.HostHandler
 	hostGroupHandler    *assHandler.HostGroupHandler
+	credentialHandler   *assHandler.CredentialHandler
 }
 
 // InitializeContainer 初始化依赖注入容器
@@ -140,6 +145,7 @@ func (c *containerImpl) initRepositories() {
 	c.hostRepo = assRepo.NewHostRepository(c.db)
 	c.hostGroupRepo = assRepo.NewHostGroupRepository(c.db)
 	c.hostMetricRepo = assRepo.NewHostMetricRepository(c.db)
+	c.credentialRepo = assRepo.NewCredentialRepository(c.db)
 }
 
 // initServices 初始化Service层
@@ -150,7 +156,8 @@ func (c *containerImpl) initServices() {
 	c.operationLogService = sysService.NewOperationLogService(c.operationLogRepo)
 	c.permissionService = sysService.NewPermissionService(c.roleRepo, c.menuRepo, c.permissionRepo)
 	c.roleMenuService = sysService.NewRoleMenuService(c.roleMenuRepo)
-	c.hostService = assService.NewHostService(c.hostRepo, c.hostGroupRepo, c.hostMetricRepo)
+	c.credentialService = assService.NewCredentialService(c.credentialRepo)
+	c.hostService = assService.NewHostService(c.hostRepo, c.hostGroupRepo)
 	c.hostGroupService = assService.NewHostGroupService(c.hostGroupRepo, c.hostRepo)
 	c.hostMetricService = assService.NewHostMetricService(c.hostMetricRepo, c.hostRepo)
 }
@@ -163,8 +170,9 @@ func (c *containerImpl) initHandlers() {
 	c.operationLogHandler = sysHandler.NewOperationLogHandler(c.operationLogService)
 	c.permissionHandler = sysHandler.NewPermissionHandler(c.permissionService)
 	c.roleMenuHandler = sysHandler.NewRoleMenuHandler(c.roleMenuService)
-	c.hostHandler = assHandler.NewHostHandler(c.hostService, c.hostMetricService)
+	c.hostHandler = assHandler.NewHostHandler(c.hostService, c.hostMetricService, c.credentialService)
 	c.hostGroupHandler = assHandler.NewHostGroupHandler(c.hostGroupService)
+	c.credentialHandler = assHandler.NewCredentialHandler(c.credentialService)
 }
 
 // Getters for repositories
@@ -241,6 +249,10 @@ func (c *containerImpl) GetHostMetricService() *assService.HostMetricService {
 	return c.hostMetricService
 }
 
+func (c *containerImpl) GetCredentialService() *assService.CredentialService {
+	return c.credentialService
+}
+
 // Getters for handlers
 func (c *containerImpl) GetUserHandler() *sysHandler.UserHandler {
 	return c.userHandler
@@ -272,6 +284,10 @@ func (c *containerImpl) GetHostHandler() *assHandler.HostHandler {
 
 func (c *containerImpl) GetHostGroupHandler() *assHandler.HostGroupHandler {
 	return c.hostGroupHandler
+}
+
+func (c *containerImpl) GetCredentialHandler() *assHandler.CredentialHandler {
+	return c.credentialHandler
 }
 
 // Getters for infrastructure

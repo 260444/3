@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-这是一个全栈企业级后台管理系统，包含前后端分离架构的完整解决方案。系统提供了用户管理、角色管理、菜单管理、权限分配和操作日志等核心功能，使用 RBAC（基于角色的访问控制）模型进行权限管理。
+这是一个全栈企业级后台管理系统，包含前后端分离架构的完整解决方案。系统提供了用户管理、角色管理、菜单管理、权限分配、操作日志以及资产管理系统等核心功能，使用 RBAC（基于角色的访问控制）模型进行权限管理。
 
 ### 技术栈
 
@@ -43,6 +43,7 @@
 │   │   ├── repository/ # 数据访问层
 │   │   └── service/  # 业务逻辑层
 │   ├── pkg/          # 可被外部引用的公共包
+│   ├── sql/          # SQL脚本
 │   ├── docs/         # 项目文档
 │   ├── logs/         # 日志文件
 │   ├── main.go       # 应用入口
@@ -189,6 +190,24 @@ npm run preview
 - 图形验证码生成
 - 登录验证码验证
 
+### 7. 资产管理
+
+#### 7.1 主机管理
+
+- 主机信息管理（主机名、IP地址、端口等）
+- 主机组管理
+- 主机监控指标管理
+- 主机状态管理（在线/离线/故障）
+- 主机监控状态管理
+
+#### 7.2 凭据管理（新增）
+
+- 凭据信息管理（用户名和密码集中管理）
+- 凭据与主机的多对多关联
+- 凭据的CRUD操作（创建、查询、更新、删除）
+- 凭据安全存储和使用
+- 支持多个主机共享相同凭据
+
 ## 关键API接口
 
 ### 用户角色分配
@@ -275,6 +294,65 @@ npm run preview
 - `GET /roles/:id/policies`
 - 获取角色的所有权限策略
 
+### 资产管理API
+
+#### 主机管理API
+
+**创建主机**:
+- `POST /api/v1/hosts`
+- 请求体：`{ "hostname": "server01", "ip_address": "192.168.1.100", "port": 22, "os_type": "linux", "group_id": 1, "credential_ids": [1, 2] }`
+- 创建新的主机记录，支持关联凭据ID列表
+
+**获取主机列表**:
+- `GET /api/v1/hosts`
+- 查询参数：`page`, `page_size`, `hostname`, `ip_address`, `group_id`, `status`, `os_type`
+- 分页获取主机列表
+
+**获取主机详情**:
+- `GET /api/v1/hosts/{id}`
+- 获取指定主机的详细信息
+
+**更新主机信息**:
+- `PUT /api/v1/hosts/{id}`
+- 更新主机的基本信息，包括凭据关联
+
+**删除主机**:
+- `DELETE /api/v1/hosts/{id}`
+- 删除指定的主机记录
+
+#### 凭据管理API（新增）
+
+**创建凭据**:
+- `POST /api/v1/credentials`
+- 请求体：`{ "name": "生产服务器凭据", "username": "root", "password": "encrypted_password", "description": "生产环境服务器通用凭据" }`
+- 创建新的凭据记录
+
+**获取凭据列表**:
+- `GET /api/v1/credentials`
+- 查询参数：`page`, `page_size`, `name`, `username`
+- 分页获取凭据列表
+
+**获取凭据详情**:
+- `GET /api/v1/credentials/{id}`
+- 获取指定凭据的详细信息
+
+**更新凭据信息**:
+- `PUT /api/v1/credentials/{id}`
+- 更新凭据的基本信息
+
+**删除凭据**:
+- `DELETE /api/v1/credentials/{id}`
+- 删除指定的凭据记录
+
+**批量删除凭据**:
+- `DELETE /api/v1/credentials/batch`
+- 批量删除多个凭据记录
+
+**获取主机关联的凭据**:
+- `GET /api/v1/credentials/host`
+- 查询参数：`host_id`
+- 获取指定主机关联的凭据信息
+
 ## 开发规范
 
 ### 命名约定
@@ -309,7 +387,7 @@ npm run preview
 
 ### 数据库规范
 
-- **表名**: 使用复数形式（如 `users`, `roles`, `menus`）
+- **表名**: 使用复数形式（如 `users`, `roles`, `menus`, `credentials`）
 - **字段名**: 小写蛇形命名（如 `user_name`, `created_at`）
 - **主键**: 使用 `uint` 类型，`gorm:"primaryKey"`
 - **时间戳**: `time.Time` 类型，GORM 自动处理
@@ -343,6 +421,8 @@ npm run preview
   - `/roles` - 角色管理
   - `/menus` - 菜单管理
   - `/operation-logs` - 操作日志
+  - `/assets/hosts` - 主机管理
+  - `/assets/credentials` - 凭据管理
 
 ## 前端菜单权限处理
 
@@ -433,6 +513,55 @@ type Menu struct {
 }
 ```
 
+### Credential（凭据模型）- 新增
+
+```go
+type Credential struct {
+    ID          uint           `gorm:"primaryKey" json:"id"`
+    Name        string         `gorm:"size:100;not null;uniqueIndex" json:"name"`    // 凭据名称
+    Username    string         `gorm:"size:50;not null" json:"username"`             // 登录用户名
+    Password    string         `gorm:"size:255;not null" json:"password"`            // 加密后的密码
+    Description string         `gorm:"size:500" json:"description"`                  // 凭据描述
+    CreatedBy   *uint          `json:"created_by"`                                   // 创建人用户ID
+    UpdatedBy   *uint          `json:"updated_by"`                                   // 更新人用户ID
+    CreatedAt   time.Time      `json:"created_at"`
+    UpdatedAt   time.Time      `json:"updated_at"`
+    DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+    Hosts       []Host         `gorm:"many2many:host_credentials" json:"hosts"`      // 关联的主机
+}
+
+func (Credential) TableName() string {
+    return "credentials"
+}
+```
+
+### Host（主机模型）- 更新
+
+```go
+type Host struct {
+    ID               uint           `gorm:"primaryKey" json:"id"`
+    Hostname         string         `gorm:"size:100;not null;uniqueIndex" json:"hostname"`                 // 主机名
+    IPAddress        string         `gorm:"size:45;not null;uniqueIndex" json:"ip_address"`                // IP地址
+    Port             uint16         `gorm:"default:22" json:"port"`                                        // SSH端口
+    OSType           string         `gorm:"size:20;default:'linux'" json:"os_type"`                        // 操作系统类型
+    CPUCores         *uint16        `json:"cpu_cores"`                                                     // CPU核心数
+    MemoryGB         *uint16        `json:"memory_gb"`                                                     // 内存大小(GB)
+    DiskSpaceGB      *uint32        `json:"disk_space_gb"`                                                 // 磁盘空间(GB)
+    GroupID          uint           `gorm:"not null" json:"group_id"`                                      // 所属主机组ID
+    Status           int8           `gorm:"default:1" json:"status"`                                       // 主机状态: 1-在线, 0-离线, -1-故障
+    MonitoringEnable int8           `gorm:"column:monitoring_enabled;default:1" json:"monitoring_enabled"` // 监控是否启用
+    LastHeartbeat    *time.Time     `json:"last_heartbeat"`                                                // 最后心跳时间
+    Description      string         `gorm:"size:500" json:"description"`                                   // 主机描述
+    CreatedBy        *uint          `json:"created_by"`                                                    // 创建人用户ID
+    UpdatedBy        *uint          `json:"updated_by"`                                                    // 更新人用户ID
+    CreatedAt        time.Time      `json:"created_at"`
+    UpdatedAt        time.Time      `json:"updated_at"`
+    DeletedAt        gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+    Group            *HostGroup     `gorm:"foreignKey:GroupID" json:"group"`                               // 关联的主机组
+    Credentials      []Credential   `gorm:"many2many:host_credentials" json:"credentials"`                 // 关联的凭据
+}
+```
+
 ## 错误处理
 
 - 错误信息应清晰明了
@@ -496,6 +625,7 @@ feat(user): 添加用户注册功能
 - 敏感数据加密存储
 - 使用 HTTPS 传输（生产环境）
 - 实施访问日志记录
+- 凭据信息集中安全管理
 
 ## 测试
 

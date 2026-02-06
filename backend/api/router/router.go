@@ -18,6 +18,7 @@ func SetupRouter(
 	roleMenuHandler *sysHandler.RoleMenuHandler,
 	hostHandler *assHandler.HostHandler,
 	hostGroupHandler *assHandler.HostGroupHandler,
+	credentialHandler *assHandler.CredentialHandler,
 	operationLogService *sysService.OperationLogService,
 
 ) *gin.Engine {
@@ -129,9 +130,17 @@ func SetupRouter(
 		protected.GET("/host-metrics/history", hostHandler.GetHostMetricsHistory)
 		protected.GET("/host-metrics/latest", hostHandler.GetHostLatestMetrics)
 
+		// 凭据管理相关路由
+		protected.POST("/credentials", middleware.OperationLogMiddleware(operationLogService, "创建凭据"), credentialHandler.CreateCredential)
+		protected.GET("/credentials", credentialHandler.GetCredentialList)
+		protected.GET("/credentials/:id", credentialHandler.GetCredentialByID)
+		protected.PUT("/credentials/:id", middleware.OperationLogMiddleware(operationLogService, "更新凭据"), credentialHandler.UpdateCredential)
+		protected.DELETE("/credentials/:id", middleware.OperationLogMiddleware(operationLogService, "删除凭据"), credentialHandler.DeleteCredential)
+		protected.DELETE("/credentials/batch", middleware.OperationLogMiddleware(operationLogService, "批量删除凭据"), credentialHandler.BatchDeleteCredentials)
+		protected.GET("/credentials/host", credentialHandler.GetCredentialsByHost)
+
 		return r
 	}
-
 }
 
 // GenerateCaptcha 生成验证码

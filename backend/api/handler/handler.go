@@ -45,9 +45,10 @@ func NewHostHandler(
 	hostService *assService.HostService,
 	hostGroupService *assService.HostGroupService,
 	hostMetricService *assService.HostMetricService,
+	credentialService *assService.CredentialService,
 ) *HostHandler {
 	return &HostHandler{
-		HostHandler:      assHandler.NewHostHandler(hostService, hostMetricService),
+		HostHandler:      assHandler.NewHostHandler(hostService, hostMetricService, credentialService),
 		HostGroupHandler: assHandler.NewHostGroupHandler(hostGroupService),
 	}
 }
