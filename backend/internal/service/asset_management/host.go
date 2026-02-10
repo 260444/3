@@ -193,8 +193,12 @@ func (s *HostService) UpdateHost(id uint, req *assModel.HostUpdateRequest, userI
 		// 开始事务处理凭据关联
 		tx := s.hostRepo.DB.Begin()
 		defer func() {
-			if r := tx.Rollback(); r != nil {
-				logger.Logger.Error("事务回滚错误", zap.Error(r.Error))
+			// 只有在panic等异常情况下才回滚
+			if r := recover(); r != nil {
+				tx.Rollback()
+				logger.Logger.Error("事务因异常回滚", zap.Any("panic", r))
+				// 重新抛出panic
+				panic(r)
 			}
 		}()
 

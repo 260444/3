@@ -70,10 +70,25 @@
               />
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="250" fixed="right">
+        <el-table-column label="凭据" width="150">
+          <template #default="scope">
+            <el-tag 
+              v-for="credential in scope.row.credentials" 
+              :key="credential.id"
+              type="info" 
+              size="small" 
+              style="margin-right: 5px; margin-bottom: 2px;"
+            >
+              {{ credential.username }}
+            </el-tag>
+            <span v-if="!scope.row.credentials || scope.row.credentials.length === 0">无</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="320" fixed="right">
           <template #default="scope">
             <el-button link type="primary" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button link type="primary" @click="handleDetail(scope.row)">详情</el-button>
+            <el-button link type="warning" @click="handleUpdateCredentials(scope.row)">更新凭证</el-button>
             <el-button link type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
@@ -122,18 +137,7 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="用户名" prop="username">
-              <el-input v-model="form.username" placeholder="请输入用户名" />
-            </el-form-item>
-          </el-col>
-           <el-col :span="12">
-            <el-form-item label="密码" prop="password">
-              <el-input v-model="form.password" type="password" show-password placeholder="请输入密码" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+
         <el-row :gutter="20">
           <el-col :span="12">
              <el-form-item label="主机组" prop="group_id">
@@ -197,8 +201,74 @@
         <el-descriptions-item label="内存(GB)">{{ currentHost?.memory_gb }}</el-descriptions-item>
         <el-descriptions-item label="磁盘(GB)">{{ currentHost?.disk_space_gb }}</el-descriptions-item>
         <el-descriptions-item label="最后心跳">{{ formatDate(currentHost?.last_heartbeat) }}</el-descriptions-item>
+        <el-descriptions-item label="凭据" :span="2">
+          <div v-if="currentHost?.credentials && currentHost?.credentials.length > 0">
+            <el-tag 
+              v-for="credential in currentHost?.credentials" 
+              :key="credential.id"
+              type="info" 
+              style="margin-right: 10px; margin-bottom: 5px;"
+            >
+              {{ credential.name }} ({{ credential.username }})
+            </el-tag>
+          </div>
+          <span v-else>无关联凭据</span>
+        </el-descriptions-item>
         <el-descriptions-item label="描述" :span="2">{{ currentHost?.description }}</el-descriptions-item>
       </el-descriptions>
+    </el-dialog>
+
+    <!-- 更新凭证对话框 -->
+    <el-dialog title="更新主机凭证" v-model="credentialDialogVisible" width="500px">
+      <el-form 
+        ref="credentialFormRef" 
+        :model="credentialForm" 
+        :rules="credentialRules" 
+        label-width="100px"
+      >
+        <el-form-item label="主机名">
+          <el-input v-model="credentialForm.hostname" disabled />
+        </el-form-item>
+        <el-form-item label="IP地址">
+          <el-input v-model="credentialForm.ipAddress" disabled />
+        </el-form-item>
+        <el-form-item label="当前凭据">
+          <div v-if="credentialForm.currentCredentials.length > 0">
+            <el-tag 
+              v-for="cred in credentialForm.currentCredentials" 
+              :key="cred.id"
+              type="info" 
+              style="margin-right: 5px; margin-bottom: 5px;"
+            >
+              {{ cred.name }} ({{ cred.username }})
+            </el-tag>
+          </div>
+          <span v-else>无</span>
+        </el-form-item>
+        <el-form-item label="选择凭据" prop="selectedCredentialIds">
+          <el-select 
+            v-model="credentialForm.selectedCredentialIds" 
+            multiple 
+            placeholder="请选择要关联的凭据"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="credential in allCredentials"
+              :key="credential.id"
+              :label="`${credential.name} (${credential.username})`"
+              :value="credential.id"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="credentialDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitCredentialUpdate" :loading="credentialSubmitLoading">
+            确定
+          </el-button>
+        </div>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -208,6 +278,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
 import { 
   getHosts, 
+  getHost,
   createHost, 
   updateHost, 
   deleteHost,
@@ -217,6 +288,7 @@ import {
   type HostQuery 
 } from '@/api/host'
 import { getHostGroups, type HostGroup } from '@/api/hostGroup'
+import { credentialApi } from '@/api/credential'
 
 const loading = ref(false)
 const total = ref(0)
@@ -226,6 +298,26 @@ const selection = ref<Host[]>([])
 const formRef = ref<FormInstance>()
 const detailVisible = ref(false)
 const currentHost = ref<any>({})
+
+// 凭证更新相关
+const credentialDialogVisible = ref(false)
+const credentialFormRef = ref<FormInstance>()
+const credentialSubmitLoading = ref(false)
+const allCredentials = ref<any[]>([])
+
+const credentialForm = reactive({
+  hostId: 0,
+  hostname: '',
+  ipAddress: '',
+  currentCredentials: [] as any[],
+  selectedCredentialIds: [] as number[]
+})
+
+const credentialRules = {
+  selectedCredentialIds: [
+    { required: true, message: '请至少选择一个凭据', trigger: 'change', type: 'array' }
+  ]
+}
 
 const queryParams = reactive<HostQuery>({
   page: 1,
@@ -247,8 +339,6 @@ const form = reactive({
   hostname: '',
   ip_address: '',
   port: 22,
-  username: '',
-  password: '',
   os_type: 'linux',
   cpu_cores: undefined as number | undefined,
   memory_gb: undefined as number | undefined,
@@ -260,7 +350,6 @@ const form = reactive({
 const rules = {
   hostname: [{ required: true, message: '请输入主机名', trigger: 'blur' }],
   ip_address: [{ required: true, message: '请输入IP地址', trigger: 'blur' }],
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   group_id: [{ required: true, message: '请选择主机组', trigger: 'change' }]
 }
 
@@ -268,7 +357,18 @@ const getList = async () => {
   loading.value = true
   try {
     const res = await getHosts(queryParams)
-    hostList.value = res.data.list
+    // 获取每个主机的凭据信息
+    const hosts = res.data.list
+    for (const host of hosts) {
+      try {
+        const credentialRes = await credentialApi.getHostCredentials(host.id)
+        host.credentials = credentialRes.data || []
+      } catch (error) {
+        console.error(`获取主机 ${host.id} 的凭据失败:`, error)
+        host.credentials = []
+      }
+    }
+    hostList.value = hosts
     total.value = res.data.pagination.total
   } catch (error) {
     console.error(error)
@@ -311,8 +411,6 @@ const handleAdd = () => {
   form.hostname = ''
   form.ip_address = ''
   form.port = 22
-  form.username = ''
-  form.password = ''
   form.os_type = 'linux'
   form.cpu_cores = undefined
   form.memory_gb = undefined
@@ -332,8 +430,6 @@ const handleEdit = (row: Host) => {
   form.hostname = row.hostname
   form.ip_address = row.ip_address
   form.port = row.port
-  form.username = row.username
-  form.password = '' // 编辑时不显示密码，留空表示不修改
   form.os_type = row.os_type
   form.cpu_cores = row.cpu_cores
   form.memory_gb = row.memory_gb
@@ -348,10 +444,6 @@ const submitForm = async () => {
     if (valid) {
       try {
         if (form.id === 0) {
-           if (!form.password) {
-             ElMessage.warning('创建主机时密码不能为空')
-             return
-           }
           await createHost(form)
           ElMessage.success('添加成功')
         } else {
@@ -413,9 +505,80 @@ const handleMonitoringChange = async (row: Host) => {
    }
 }
 
-const handleDetail = (row: Host) => {
-  currentHost.value = row
-  detailVisible.value = true
+const handleDetail = async (row: Host) => {
+  try {
+    // 获取主机详细信息和凭据
+    const [hostRes, credentialRes] = await Promise.all([
+      getHost(row.id),
+      credentialApi.getHostCredentials(row.id)
+    ])
+    
+    currentHost.value = {
+      ...hostRes.data,
+      credentials: credentialRes.data || []
+    }
+    detailVisible.value = true
+  } catch (error) {
+    console.error('获取主机详情失败:', error)
+    ElMessage.error('获取主机详情失败')
+  }
+}
+
+// 更新凭证相关函数
+const handleUpdateCredentials = async (row: Host) => {
+  try {
+    // 获取所有凭据选项
+    const credentialRes = await credentialApi.getList({ page: 1, page_size: 1000 })
+    allCredentials.value = credentialRes.data.list || []
+    
+    // 获取主机当前凭据
+    const hostCredentialRes = await credentialApi.getHostCredentials(row.id)
+    const currentCredentials = hostCredentialRes.data || []
+    
+    // 设置表单数据
+    credentialForm.hostId = row.id
+    credentialForm.hostname = row.hostname
+    credentialForm.ipAddress = row.ip_address
+    credentialForm.currentCredentials = currentCredentials
+    credentialForm.selectedCredentialIds = currentCredentials.map((cred: any) => cred.id)
+    
+    credentialDialogVisible.value = true
+    
+    // 清除表单验证
+    setTimeout(() => {
+      credentialFormRef.value?.clearValidate()
+    }, 0)
+  } catch (error) {
+    console.error('获取凭据信息失败:', error)
+    ElMessage.error('获取凭据信息失败')
+  }
+}
+
+const submitCredentialUpdate = async () => {
+  if (!credentialFormRef.value) return
+  
+  await credentialFormRef.value.validate(async (valid) => {
+    if (valid) {
+      credentialSubmitLoading.value = true
+      try {
+        // 更新主机信息，包含凭据ID列表
+        await updateHost(credentialForm.hostId, {
+          ...form,
+          id: credentialForm.hostId,
+          credential_ids: credentialForm.selectedCredentialIds
+        })
+        
+        ElMessage.success('凭证更新成功')
+        credentialDialogVisible.value = false
+        getList() // 刷新列表
+      } catch (error) {
+        console.error('更新凭证失败:', error)
+        ElMessage.error('更新凭证失败')
+      } finally {
+        credentialSubmitLoading.value = false
+      }
+    }
+  })
 }
 
 const formatDate = (dateStr: string | undefined) => {

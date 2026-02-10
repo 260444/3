@@ -5,7 +5,6 @@ export interface Host {
   hostname: string
   ip_address: string
   port: number
-  username: string
   os_type: string
   cpu_cores?: number
   memory_gb?: number
@@ -37,8 +36,6 @@ export interface CreateHostReq {
   hostname: string
   ip_address: string
   port: number
-  username: string
-  password?: string
   os_type: string
   cpu_cores?: number
   memory_gb?: number
@@ -51,8 +48,6 @@ export interface UpdateHostReq {
   hostname: string
   ip_address: string
   port: number
-  username: string
-  password?: string
   os_type: string
   cpu_cores?: number
   memory_gb?: number

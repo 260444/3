@@ -21,7 +21,7 @@ func (r *HostRepository) Create(host *assModel.Host) error {
 // GetByID 根据ID获取主机
 func (r *HostRepository) GetByID(id uint) (*assModel.Host, error) {
 	var host assModel.Host
-	err := r.DB.Preload("Group").Where("id = ?", id).First(&host).Error
+	err := r.DB.Preload("Group").Preload("Credentials").Where("id = ?", id).First(&host).Error
 	return &host, err
 }
 
@@ -30,7 +30,7 @@ func (r *HostRepository) List(page, pageSize int, hostname, ipAddress string, gr
 	var hosts []assModel.Host
 	var total int64
 
-	query := r.DB.Model(&assModel.Host{}).Preload("Group")
+	query := r.DB.Model(&assModel.Host{}).Preload("Group").Preload("Credentials")
 
 	// 添加查询条件
 	if hostname != "" {
@@ -59,6 +59,8 @@ func (r *HostRepository) List(page, pageSize int, hostname, ipAddress string, gr
 	if err := query.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&hosts).Error; err != nil {
 		return nil, 0, err
 	}
+
+	//查询凭据
 
 	return hosts, total, nil
 }
