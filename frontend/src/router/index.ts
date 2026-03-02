@@ -14,6 +14,7 @@ import NoPermissionView from '@/views/NoPermissionView.vue'
 import HostManageView from '@/views/asset/host/HostManageView.vue'
 import HostGroupView from '@/views/asset/group/HostGroupView.vue'
 import CredentialManageView from '@/views/asset/credential/CredentialManageView.vue'
+import SSHTerminalView from '@/views/asset/terminal/SSHTerminalView.vue'
 
 // 静态路由（不需要权限）
 const constantRoutes: RouteRecordRaw[] = [
@@ -28,6 +29,12 @@ const constantRoutes: RouteRecordRaw[] = [
     name: 'no-permission',
     component: NoPermissionView,
     meta: { title: '无权限访问', requiresAuth: false }
+  },
+  {
+    path: '/ssh-terminal',
+    name: 'ssh-terminal',
+    component: SSHTerminalView,
+    meta: { title: 'SSH 终端', requiresAuth: true }
   }
 ]
 

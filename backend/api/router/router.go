@@ -19,6 +19,7 @@ func SetupRouter(
 	hostHandler *assHandler.HostHandler,
 	hostGroupHandler *assHandler.HostGroupHandler,
 	credentialHandler *assHandler.CredentialHandler,
+	sshHandler *assHandler.SSHHandler,
 	operationLogService *sysService.OperationLogService,
 
 ) *gin.Engine {
@@ -139,8 +140,15 @@ func SetupRouter(
 		protected.DELETE("/credentials/batch", middleware.OperationLogMiddleware(operationLogService, "批量删除凭据"), credentialHandler.BatchDeleteCredentials)
 		protected.GET("/credentials/host", credentialHandler.GetCredentialsByHost)
 
-		return r
+		// SSH 相关路由（WebSocket 连接需要单独处理，不在 protected 组中）
+		protected.POST("/ssh/test", middleware.OperationLogMiddleware(operationLogService, "测试SSH连接"), sshHandler.TestSSHConnection)
 	}
+
+	// SSH WebSocket 连接（需要认证，但不在 protected 组中，因为需要特殊处理）
+	// WebSocket 升级请求不支持标准的 Authorization header，所以需要手动处理认证
+	r.GET("/api/v1/ssh/ws", sshHandler.HandleSSHWebSocket)
+
+	return r
 }
 
 // GenerateCaptcha 生成验证码

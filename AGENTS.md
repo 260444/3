@@ -4,28 +4,35 @@
 
 这是一个全栈企业级后台管理系统，包含前后端分离架构的完整解决方案。系统提供了用户管理、角色管理、菜单管理、权限分配、操作日志以及资产管理系统等核心功能，使用 RBAC（基于角色的访问控制）模型进行权限管理。
 
+**版本要求**：
+- Go 1.24.12+
+- Node.js 16+ (推荐 LTS 版本)
+- MySQL 8.0+ (兼容 5.7+)
+- Redis 5.0+ (推荐 7.2+)
+
 ### 技术栈
 
 **后端技术栈**：
 - **语言**: Go 1.24.12
-- **Web 框架**: Gin
-- **ORM**: GORM
-- **数据库**: MySQL
-- **缓存**: Redis
-- **权限管理**: Casbin
-- **日志**: Zap
-- **配置管理**: Viper
-- **认证**: JWT (golang-jwt/jwt/v5)
-- **验证码**: base64Captcha
+- **Web 框架**: Gin v1.11.0
+- **ORM**: GORM v1.31.1
+- **数据库**: MySQL 8.0
+- **缓存**: Redis 7.2
+- **权限管理**: Casbin v3.8.1
+- **日志**: Zap v1.27.1 + Lumberjack v2.2.1
+- **配置管理**: Viper v1.21.0
+- **认证**: JWT (golang-jwt/jwt/v5 v5.2.2)
+- **验证码**: base64Captcha v1.3.8
 
 **前端技术栈**：
-- **框架**: Vue 3 (Composition API)
-- **语言**: TypeScript
-- **构建工具**: Vite
-- **UI 组件库**: Element Plus
-- **路由**: Vue Router 4
-- **状态管理**: Pinia
-- **HTTP 客户端**: Axios
+- **框架**: Vue 3.4.21 (Composition API)
+- **语言**: TypeScript 5.2.2
+- **构建工具**: Vite 5.2.0
+- **UI 组件库**: Element Plus 2.6.1
+- **图标库**: @element-plus/icons-vue 2.3.1
+- **路由**: Vue Router 4.3.0
+- **状态管理**: Pinia 2.1.7
+- **HTTP 客户端**: Axios 1.6.8
 
 ### 项目架构
 
@@ -71,9 +78,14 @@
 
 #### 前置条件
 
+**方式一：本地环境**
 - Go 1.24.12 或更高版本
-- MySQL 5.7 或更高版本
-- Redis 5.0 或更高版本（可选）
+- MySQL 5.7 或更高版本（推荐 MySQL 8.0）
+- Redis 5.0 或更高版本（推荐 Redis 7.2）
+
+**方式二：Docker 环境**
+- Docker 和 Docker Compose
+- 项目提供 `backend/docker/docker-compose.yaml` 配置文件
 
 #### 配置文件
 
@@ -94,7 +106,7 @@ server:
 
 database:
   host: "localhost"       # 数据库主机
-  port: 13306             # 数据库端口 (更新为当前配置)
+  port: 13306             # 数据库端口（Docker 部署使用 13306，本地 MySQL 可使用 3306）
   user: "root"            # 数据库用户
   password: "123456"      # 数据库密码
   dbname: "admin_system"  # 数据库名称
@@ -118,6 +130,11 @@ jwt:
 # 后端
 cd backend
 go mod tidy
+
+# 使用 Docker 启动依赖服务（MySQL + Redis）
+cd docker
+docker-compose up -d
+cd ..
 
 # 构建
 go build -o backend main.go
@@ -151,6 +168,28 @@ npm run build
 # 预览生产构建
 npm run preview
 ```
+
+### 数据库初始化
+
+项目提供了多个 SQL 脚本用于数据库初始化：
+
+- **`backend/docker/init.sql`** - Docker 部署时的初始化脚本
+- **`backend/sql/hosts.sql`** - 主机相关表结构
+- **`backend/sql/credentials.sql`** - 凭据相关表结构
+- **`backend/sql/add_host_permissions.sql`** - 添加主机权限
+- **`backend/sql/test_data.sql`** - 测试数据
+- **`backend/sql/generate_test_data.sql`** - 生成测试数据的脚本
+- **`backend/sql/quick_test_data.sql`** - 快速测试数据
+
+**初始化步骤**：
+
+1. 使用 Docker Compose 启动 MySQL 时会自动执行 `init.sql`
+2. 如需手动初始化，可执行相关 SQL 脚本：
+   ```bash
+   mysql -h localhost -P 13306 -u root -p admin_system < backend/sql/hosts.sql
+   mysql -h localhost -P 13306 -u root -p admin_system < backend/sql/credentials.sql
+   mysql -h localhost -P 13306 -u root -p admin_system < backend/sql/add_host_permissions.sql
+   ```
 
 ## 核心功能模块
 
@@ -215,8 +254,7 @@ npm run preview
 - 凭据的CRUD操作（创建、查询、更新、删除）
 - 凭据安全存储和使用
 - 支持多个主机共享相同凭据
-
-**注意**: 后端已实现完整的凭据管理功能，但前端界面尚未开发完成。
+- 完整的前端管理界面（CredentialManageView.vue）
 
 ## 关键API接口
 
@@ -442,6 +480,7 @@ npm run preview
 ### 前端路由配置
 
 - `/login` - 登录页面
+- `/no-permission` - 无权限访问页面
 - `/` - 主布局（包含子路由）
   - `/dashboard` - 首页
   - `/users` - 用户管理
@@ -450,7 +489,7 @@ npm run preview
   - `/operation-logs` - 操作日志
   - `/assets/hosts` - 主机管理
   - `/assets/groups` - 主机组管理
-  - `/assets/credentials` - 凭据管理（后端已实现，前端待开发）
+  - `/assets/credentials` - 凭据管理
 
 ## 前端菜单权限处理
 
@@ -716,6 +755,26 @@ npm run test
 - 后端运行在 `http://localhost:8080`
 - 前端运行在 `http://localhost:3000`，通过代理转发 API 请求到后端
 
+### Docker 部署
+
+项目提供 Docker Compose 配置文件，可以快速启动开发环境：
+
+```bash
+# 启动服务（MySQL + Redis）
+cd backend/docker
+docker-compose up -d
+
+# 查看服务状态
+docker-compose ps
+
+# 停止服务
+docker-compose down
+```
+
+Docker 服务配置：
+- **MySQL**: 端口 13306，密码 123456
+- **Redis**: 端口 6379，密码 123456
+
 ### 生产环境
 
 - 构建前端项目并部署到静态服务器
@@ -735,13 +794,22 @@ npm run test
 ## 项目状态
 
 - **当前版本**: 1.0.0
-- **开发状态**: 活跃开发中
+- **开发状态**: 功能完整，持续优化中
+- **核心功能**: 已全部实现并可用
+  - 用户管理 ✅
+  - 角色管理 ✅
+  - 菜单管理 ✅
+  - 权限管理 ✅
+  - 操作日志 ✅
+  - 资产管理（主机、主机组、凭据）✅
 
 ## 重要注意事项
 
-1. **功能不完整**: 后端已实现完整的凭据管理功能（API、服务、模型、数据库等），但前端界面尚未开发完成。这意味着凭据管理功能在后端层面是完整的，但用户无法通过前端界面直接操作。
+1. **完整实现**: 资产管理模块（主机管理、主机组管理、凭据管理）前后端已完整实现，包括 API 接口、业务逻辑、数据模型和前端界面。
 
-2. **前后端不一致**: 项目中存在功能实现不一致的情况，后端功能比前端界面更完整。
+2. **权限控制**: 系统采用基于 Casbin 的 RBAC 权限模型，实现细粒度的权限控制，包括菜单权限和接口权限。
+
+3. **数据安全**: 凭据信息采用加密存储，确保敏感数据的安全性。
 
 ## 联系方式
 

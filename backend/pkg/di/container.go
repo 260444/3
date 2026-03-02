@@ -50,6 +50,7 @@ type Container interface {
 	GetHostHandler() *assHandler.HostHandler
 	GetHostGroupHandler() *assHandler.HostGroupHandler
 	GetCredentialHandler() *assHandler.CredentialHandler
+	GetSSHHandler() *assHandler.SSHHandler
 
 	GetDB() *gorm.DB
 	GetRedis() *redis.Client
@@ -98,6 +99,7 @@ type containerImpl struct {
 	hostHandler         *assHandler.HostHandler
 	hostGroupHandler    *assHandler.HostGroupHandler
 	credentialHandler   *assHandler.CredentialHandler
+	sshHandler          *assHandler.SSHHandler
 }
 
 // InitializeContainer 初始化依赖注入容器
@@ -173,6 +175,7 @@ func (c *containerImpl) initHandlers() {
 	c.hostHandler = assHandler.NewHostHandler(c.hostService, c.hostMetricService, c.credentialService)
 	c.hostGroupHandler = assHandler.NewHostGroupHandler(c.hostGroupService)
 	c.credentialHandler = assHandler.NewCredentialHandler(c.credentialService)
+	c.sshHandler = assHandler.NewSSHHandler(c.hostService, c.credentialService)
 }
 
 // Getters for repositories
@@ -288,6 +291,10 @@ func (c *containerImpl) GetHostGroupHandler() *assHandler.HostGroupHandler {
 
 func (c *containerImpl) GetCredentialHandler() *assHandler.CredentialHandler {
 	return c.credentialHandler
+}
+
+func (c *containerImpl) GetSSHHandler() *assHandler.SSHHandler {
+	return c.sshHandler
 }
 
 // Getters for infrastructure

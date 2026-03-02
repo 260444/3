@@ -89,8 +89,9 @@
             <span v-else>-</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="300" fixed="right">
+        <el-table-column label="操作" width="350" fixed="right">
           <template #default="scope">
+            <el-button link type="success" @click="handleSSHLogin(scope.row)" :disabled="!scope.row.credentials || scope.row.credentials.length === 0">SSH登录</el-button>
             <el-button link type="primary" @click="handleEditCredentials(scope.row)">修改凭据</el-button>
             <el-button link type="primary" @click="handleEdit(scope.row)">编辑</el-button>
             <el-button link type="primary" @click="handleDetail(scope.row)">详情</el-button>
@@ -265,12 +266,14 @@
         <el-descriptions-item label="描述" :span="2">{{ currentHost?.description }}</el-descriptions-item>
       </el-descriptions>
     </el-dialog>
+
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance } from 'element-plus'
+import { useRouter } from 'vue-router'
 import { 
   getHosts, 
   createHost, 
@@ -283,6 +286,9 @@ import {
 } from '@/api/host'
 import { getHostGroups, type HostGroup } from '@/api/hostGroup'
 import { getCredentials, type Credential } from '@/api/credential'
+
+const router = useRouter()
+import SSHLoginDialog from '@/components/SSHLoginDialog.vue'
 
 const loading = ref(false)
 const total = ref(0)
@@ -526,6 +532,21 @@ const submitCredentialForm = async () => {
 const formatDate = (dateStr: string | undefined) => {
   if (!dateStr) return '-'
   return new Date(dateStr).toLocaleString()
+}
+
+// SSH 登录
+const handleSSHLogin = (row: Host) => {
+  if (!row.credentials || row.credentials.length === 0) {
+    ElMessage.warning('该主机没有关联的凭据，请先添加凭据')
+    return
+  }
+
+  router.push({
+    path: '/ssh-terminal',
+    query: {
+      host_id: row.id.toString()
+    }
+  })
 }
 
 onMounted(() => {

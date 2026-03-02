@@ -8,6 +8,7 @@ require (
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang-jwt/jwt/v5 v5.2.2
+	github.com/gorilla/websocket v1.5.1
 	github.com/mojocn/base64Captcha v1.3.8
 	github.com/spf13/viper v1.21.0
 	go.uber.org/zap v1.27.1

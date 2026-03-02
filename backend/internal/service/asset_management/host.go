@@ -303,6 +303,24 @@ func (s *HostService) UpdateHostMonitoring(id uint, monitoringEnabled int8) erro
 	return nil
 }
 
+// CheckHostAccess 检查用户是否有权限访问主机
+// 简化版本：暂时返回 true，后续可以根据实际需求添加权限控制逻辑
+func (s *HostService) CheckHostAccess(hostID uint, userID uint) bool {
+	// 检查主机是否存在
+	host, err := s.hostRepo.GetByID(hostID)
+	if err != nil {
+		return false
+	}
+
+	// 这里可以添加更复杂的权限检查逻辑
+	// 例如：检查用户是否属于某个角色，该角色是否有权限访问该主机组等
+	// 目前简化为：只要主机存在就允许访问
+	_ = userID
+	_ = host
+
+	return true
+}
+
 // GetHostStatistics 获取主机统计信息
 //func (s *HostService) GetHostStatistics() (*assModel.HostStatisticsResponse, error) {
 //	stats, err := s.hostRepo.GetStatistics()
