@@ -85,23 +85,31 @@ server:
   mode: "debug"           # 运行模式: debug/release
   read_timeout: 60        # 读取超时（秒）
   write_timeout: 60       # 写入超时（秒）
+  log_file: "./logs/app.log" # 日志文件路径
+  max_size: 128           # 日志文件最大大小(MB)
+  max_backups: 30         # 保留旧文件的最大个数
+  max_age: 7              # 保留旧文件的最大天数
+  compress: true          # 是否压缩旧文件
+  is_console: true        # 是否输出到控制台
 
 database:
   host: "localhost"       # 数据库主机
-  port: 3306              # 数据库端口
+  port: 13306             # 数据库端口 (更新为当前配置)
   user: "root"            # 数据库用户
   password: "123456"      # 数据库密码
   dbname: "admin_system"  # 数据库名称
   charset: "utf8mb4"      # 字符集
+  log_file: "./logs/gorm.log" # GORM日志文件
+  log_level: "info"       # GORM日志级别 (silent/error/warn/info)
 
 redis:
   addr: "localhost:6379"  # Redis 地址
-  password: ""            # Redis 密码
+  password: "123456"      # Redis 密码 (更新为当前配置)
   db: 0                   # Redis 数据库
 
 jwt:
   secret: "your-secret-key"  # JWT 密钥
-  timeout: 7200              # Token 过期时间（秒）
+  timeout: 2               # Token 过期时间（秒）(更新为当前配置)
 ```
 
 #### 构建命令
@@ -200,13 +208,15 @@ npm run preview
 - 主机状态管理（在线/离线/故障）
 - 主机监控状态管理
 
-#### 7.2 凭据管理（新增）
+#### 7.2 凭据管理
 
 - 凭据信息管理（用户名和密码集中管理）
 - 凭据与主机的多对多关联
 - 凭据的CRUD操作（创建、查询、更新、删除）
 - 凭据安全存储和使用
 - 支持多个主机共享相同凭据
+
+**注意**: 后端已实现完整的凭据管理功能，但前端界面尚未开发完成。
 
 ## 关键API接口
 
@@ -320,7 +330,24 @@ npm run preview
 - `DELETE /api/v1/hosts/{id}`
 - 删除指定的主机记录
 
-#### 凭据管理API（新增）
+**批量删除主机**:
+- `DELETE /api/v1/hosts/batch`
+- 批量删除多个主机记录
+
+**更新主机状态**:
+- `PUT /api/v1/hosts/{id}/status`
+- 更新主机的状态
+
+**更新主机监控状态**:
+- `PUT /api/v1/hosts/{id}/monitoring`
+- 更新主机的监控启用状态
+
+**获取主机最新监控指标**:
+- `GET /api/v1/host-metrics/latest`
+- 查询参数：`host_id`
+- 获取指定主机的最新监控指标
+
+#### 凭据管理API
 
 **创建凭据**:
 - `POST /api/v1/credentials`
@@ -422,7 +449,8 @@ npm run preview
   - `/menus` - 菜单管理
   - `/operation-logs` - 操作日志
   - `/assets/hosts` - 主机管理
-  - `/assets/credentials` - 凭据管理
+  - `/assets/groups` - 主机组管理
+  - `/assets/credentials` - 凭据管理（后端已实现，前端待开发）
 
 ## 前端菜单权限处理
 
@@ -513,7 +541,7 @@ type Menu struct {
 }
 ```
 
-### Credential（凭据模型）- 新增
+### Credential（凭据模型）
 
 ```go
 type Credential struct {
@@ -522,8 +550,6 @@ type Credential struct {
     Username    string         `gorm:"size:50;not null" json:"username"`             // 登录用户名
     Password    string         `gorm:"size:255;not null" json:"password"`            // 加密后的密码
     Description string         `gorm:"size:500" json:"description"`                  // 凭据描述
-    CreatedBy   *uint          `json:"created_by"`                                   // 创建人用户ID
-    UpdatedBy   *uint          `json:"updated_by"`                                   // 更新人用户ID
     CreatedAt   time.Time      `json:"created_at"`
     UpdatedAt   time.Time      `json:"updated_at"`
     DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
@@ -535,7 +561,7 @@ func (Credential) TableName() string {
 }
 ```
 
-### Host（主机模型）- 更新
+### Host（主机模型）
 
 ```go
 type Host struct {
@@ -559,6 +585,42 @@ type Host struct {
     DeletedAt        gorm.DeletedAt `gorm:"index" json:"deleted_at"`
     Group            *HostGroup     `gorm:"foreignKey:GroupID" json:"group"`                               // 关联的主机组
     Credentials      []Credential   `gorm:"many2many:host_credentials" json:"credentials"`                 // 关联的凭据
+}
+```
+
+### HostGroup（主机组模型）
+
+```go
+type HostGroup struct {
+    ID          uint           `gorm:"primaryKey" json:"id"`
+    Name        string         `gorm:"size:100;not null;uniqueIndex" json:"name"` // 主机组名称
+    Description string         `gorm:"size:500" json:"description"`               // 描述信息
+    Status      int8           `gorm:"default:1" json:"status"`                   // 状态: 1-启用, 0-禁用
+    CreatedBy   *uint          `json:"created_by"`                                // 创建人用户ID
+    UpdatedBy   *uint          `json:"updated_by"`                                // 更新人用户ID
+    CreatedAt   time.Time      `json:"created_at"`
+    UpdatedAt   time.Time      `json:"updated_at"`
+    DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at"`
+    Hosts       []Host         `gorm:"foreignKey:GroupID" json:"hosts"` // 关联的主机
+}
+```
+
+### HostMetric（主机监控指标模型）
+
+```go
+type HostMetric struct {
+    ID          uint      `gorm:"primaryKey" json:"id"`
+    HostID      uint      `gorm:"not null" json:"host_id"`                         // 主机ID
+    MetricType  string    `gorm:"size:30;not null" json:"metric_type"`             // 指标类型: cpu,memory,disk,network
+    MetricName  string    `gorm:"size:50;not null" json:"metric_name"`             // 指标名称
+    MetricValue float64   `gorm:"type:decimal(10,2);not null" json:"metric_value"` // 指标值
+    Unit        string    `gorm:"size:20" json:"unit"`                             // 单位
+    RecordedAt  time.Time `gorm:"not null" json:"recorded_at"`                     // 记录时间
+    Host        *Host     `gorm:"foreignKey:HostID" json:"host"`                   // 关联的主机
+}
+
+func (HostMetric) TableName() string {
+    return "host_metrics"
 }
 ```
 
@@ -598,11 +660,13 @@ logger.Logger.Info("用户登录",
 
 示例：
 ```
-feat(user): 添加用户注册功能
-
-- 实现用户注册接口
-- 添加密码加密逻辑
-- 完善错误处理机制
+feat(asset): 添加资产管理模块 - 实现主机管理和凭据管理功能
+- 添加主机信息管理（主机名、IP地址、端口等）
+- 实现主机组管理和主机监控指标管理
+- 添加凭据信息集中安全管理功能
+- 实现凭据与主机的多对多关联管理
+- 完善资产管理系统API接口和数据库表结构
+- 更新项目文档中的技术架构和功能说明
 ```
 
 ## 安全规范
@@ -672,6 +736,12 @@ npm run test
 
 - **当前版本**: 1.0.0
 - **开发状态**: 活跃开发中
+
+## 重要注意事项
+
+1. **功能不完整**: 后端已实现完整的凭据管理功能（API、服务、模型、数据库等），但前端界面尚未开发完成。这意味着凭据管理功能在后端层面是完整的，但用户无法通过前端界面直接操作。
+
+2. **前后端不一致**: 项目中存在功能实现不一致的情况，后端功能比前端界面更完整。
 
 ## 联系方式
 

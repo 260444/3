@@ -5,7 +5,6 @@ export interface Host {
   hostname: string
   ip_address: string
   port: number
-  username: string
   os_type: string
   cpu_cores?: number
   memory_gb?: number
@@ -21,6 +20,11 @@ export interface Host {
     id: number
     name: string
   }
+  credentials?: Array<{
+    id: number
+    name: string
+    username: string
+  }> // 关联的凭据信息
 }
 
 export interface HostQuery {
@@ -37,28 +41,26 @@ export interface CreateHostReq {
   hostname: string
   ip_address: string
   port: number
-  username: string
-  password?: string
   os_type: string
   cpu_cores?: number
   memory_gb?: number
   disk_space_gb?: number
   group_id: number | undefined
   description: string
+  credential_ids?: number[] // 关联的凭据ID列表
 }
 
 export interface UpdateHostReq {
   hostname: string
   ip_address: string
   port: number
-  username: string
-  password?: string
   os_type: string
   cpu_cores?: number
   memory_gb?: number
   disk_space_gb?: number
   group_id: number | undefined
   description: string
+  credential_ids?: number[] // 关联的凭据ID列表
 }
 
 export function getHosts(params: HostQuery) {

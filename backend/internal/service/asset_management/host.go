@@ -110,7 +110,7 @@ func (s *HostService) CreateHost(req *assModel.HostCreateRequest, userID uint) (
 
 // GetHostByID 根据ID获取主机
 func (s *HostService) GetHostByID(id uint) (*assModel.Host, error) {
-	host, err := s.hostRepo.GetByID(id)
+	host, err := s.hostRepo.GetByIDWithCredentials(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, response.ErrNotFound
@@ -122,7 +122,7 @@ func (s *HostService) GetHostByID(id uint) (*assModel.Host, error) {
 
 // ListHosts 获取主机列表
 func (s *HostService) ListHosts(page, pageSize int, hostname, ipAddress string, groupID *uint, status *int8, osType string) ([]assModel.Host, int64, error) {
-	hosts, total, err := s.hostRepo.List(page, pageSize, hostname, ipAddress, groupID, status, osType)
+	hosts, total, err := s.hostRepo.ListWithCredentials(page, pageSize, hostname, ipAddress, groupID, status, osType)
 	if err != nil {
 		return nil, 0, response.ErrDatabaseError
 	}

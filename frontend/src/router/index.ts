@@ -13,6 +13,7 @@ import PermissionResourceView from '@/views/permission/PermissionResourceView.vu
 import NoPermissionView from '@/views/NoPermissionView.vue'
 import HostManageView from '@/views/asset/host/HostManageView.vue'
 import HostGroupView from '@/views/asset/group/HostGroupView.vue'
+import CredentialManageView from '@/views/asset/credential/CredentialManageView.vue'
 
 // 静态路由（不需要权限）
 const constantRoutes: RouteRecordRaw[] = [
@@ -50,7 +51,8 @@ const componentMap: Record<string, any> = {
   'OperationLogView': OperationLogView,
   'PermissionResourceView': PermissionResourceView,
   'HostManageView': HostManageView,
-  'HostGroupView': HostGroupView
+  'HostGroupView': HostGroupView,
+  'CredentialManageView': CredentialManageView
 }
 
 const router = createRouter({

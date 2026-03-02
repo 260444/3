@@ -25,12 +25,57 @@ func (r *HostRepository) GetByID(id uint) (*assModel.Host, error) {
 	return &host, err
 }
 
+// GetByIDWithCredentials 根据ID获取主机（包含凭据信息）
+func (r *HostRepository) GetByIDWithCredentials(id uint) (*assModel.Host, error) {
+	var host assModel.Host
+	err := r.DB.Preload("Group").Preload("Credentials").Where("id = ?", id).First(&host).Error
+	return &host, err
+}
+
 // List 获取主机列表
 func (r *HostRepository) List(page, pageSize int, hostname, ipAddress string, groupID *uint, status *int8, osType string) ([]assModel.Host, int64, error) {
 	var hosts []assModel.Host
 	var total int64
 
 	query := r.DB.Model(&assModel.Host{}).Preload("Group")
+
+	// 添加查询条件
+	if hostname != "" {
+		query = query.Where("hostname LIKE ?", "%"+hostname+"%")
+	}
+	if ipAddress != "" {
+		query = query.Where("ip_address LIKE ?", "%"+ipAddress+"%")
+	}
+	if groupID != nil {
+		query = query.Where("group_id = ?", *groupID)
+	}
+	if status != nil {
+		query = query.Where("status = ?", *status)
+	}
+	if osType != "" {
+		query = query.Where("os_type = ?", osType)
+	}
+
+	// 获取总数
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// 分页查询
+	offset := (page - 1) * pageSize
+	if err := query.Offset(offset).Limit(pageSize).Order("created_at DESC").Find(&hosts).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return hosts, total, nil
+}
+
+// ListWithCredentials 获取主机列表（包含凭据信息）
+func (r *HostRepository) ListWithCredentials(page, pageSize int, hostname, ipAddress string, groupID *uint, status *int8, osType string) ([]assModel.Host, int64, error) {
+	var hosts []assModel.Host
+	var total int64
+
+	query := r.DB.Model(&assModel.Host{}).Preload("Group").Preload("Credentials")
 
 	// 添加查询条件
 	if hostname != "" {

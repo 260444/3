@@ -11,7 +11,7 @@
  Target Server Version : 80027 (8.0.27)
  File Encoding         : 65001
 
- Date: 06/02/2026 14:58:55
+ Date: 02/03/2026 15:14:03
 */
 
 SET NAMES utf8mb4;
@@ -32,7 +32,7 @@ CREATE TABLE `casbin_rule`  (
   `v5` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `idx_casbin_rule`(`ptype` ASC, `v0` ASC, `v1` ASC, `v2` ASC, `v3` ASC, `v4` ASC, `v5` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 118 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 125 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of casbin_rule
@@ -43,6 +43,13 @@ INSERT INTO `casbin_rule` VALUES (19, 'g', 'ceshi2', 'user', '', '', '', '');
 INSERT INTO `casbin_rule` VALUES (91, 'g', 'ceshiadmin', 'surperadmin', '', '', '', '');
 INSERT INTO `casbin_rule` VALUES (15, 'g', 'superadmin', 'surperadmin', '', '', '', '');
 INSERT INTO `casbin_rule` VALUES (56, 'p', 'admin', '/api/v1/captcha', 'GET', '', '', '');
+INSERT INTO `casbin_rule` VALUES (119, 'p', 'admin', '/api/v1/credentials', 'GET', '', '', '');
+INSERT INTO `casbin_rule` VALUES (118, 'p', 'admin', '/api/v1/credentials', 'POST', '', '', '');
+INSERT INTO `casbin_rule` VALUES (122, 'p', 'admin', '/api/v1/credentials/:id', 'DELETE', '', '', '');
+INSERT INTO `casbin_rule` VALUES (120, 'p', 'admin', '/api/v1/credentials/:id', 'GET', '', '', '');
+INSERT INTO `casbin_rule` VALUES (121, 'p', 'admin', '/api/v1/credentials/:id', 'PUT', '', '', '');
+INSERT INTO `casbin_rule` VALUES (123, 'p', 'admin', '/api/v1/credentials/batch', 'DELETE', '', '', '');
+INSERT INTO `casbin_rule` VALUES (124, 'p', 'admin', '/api/v1/credentials/host', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (109, 'p', 'admin', '/api/v1/host-groups', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (108, 'p', 'admin', '/api/v1/host-groups', 'POST', '', '', '');
 INSERT INTO `casbin_rule` VALUES (112, 'p', 'admin', '/api/v1/host-groups/:id', 'DELETE', '', '', '');
@@ -69,7 +76,6 @@ INSERT INTO `casbin_rule` VALUES (78, 'p', 'admin', '/api/v1/menus/:id', 'DELETE
 INSERT INTO `casbin_rule` VALUES (77, 'p', 'admin', '/api/v1/menus/:id', 'PUT', '', '', '');
 INSERT INTO `casbin_rule` VALUES (76, 'p', 'admin', '/api/v1/menus/all', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (98, 'p', 'admin', '/api/v1/operation-logs', 'GET', '', '', '');
-INSERT INTO `casbin_rule` VALUES (99, 'p', 'admin', '/api/v1/operation-logs/stats', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (86, 'p', 'admin', '/api/v1/permissions', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (85, 'p', 'admin', '/api/v1/permissions', 'POST', '', '', '');
 INSERT INTO `casbin_rule` VALUES (90, 'p', 'admin', '/api/v1/permissions/:id', 'DELETE', '', '', '');
@@ -77,7 +83,6 @@ INSERT INTO `casbin_rule` VALUES (87, 'p', 'admin', '/api/v1/permissions/:id', '
 INSERT INTO `casbin_rule` VALUES (88, 'p', 'admin', '/api/v1/permissions/:id', 'PUT', '', '', '');
 INSERT INTO `casbin_rule` VALUES (89, 'p', 'admin', '/api/v1/permissions/:id/status', 'PUT', '', '', '');
 INSERT INTO `casbin_rule` VALUES (95, 'p', 'admin', '/api/v1/permissions/all', 'GET', '', '', '');
-INSERT INTO `casbin_rule` VALUES (94, 'p', 'admin', '/api/v1/permissions/all/:id', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (70, 'p', 'admin', '/api/v1/roles', 'GET', '', '', '');
 INSERT INTO `casbin_rule` VALUES (69, 'p', 'admin', '/api/v1/roles', 'POST', '', '', '');
 INSERT INTO `casbin_rule` VALUES (73, 'p', 'admin', '/api/v1/roles/:id', 'DELETE', '', '', '');
@@ -154,19 +159,21 @@ CREATE TABLE `credentials`  (
   `status` tinyint NOT NULL DEFAULT 1 COMMENT '凭据状态：1-启用，0-禁用',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  `deleted_at` datetime(3) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_name`(`name` ASC) USING BTREE COMMENT '凭据名称唯一索引',
   INDEX `idx_status`(`status` ASC) USING BTREE COMMENT '状态索引，用于快速筛选启用/禁用的凭据',
   INDEX `idx_username`(`username` ASC) USING BTREE COMMENT '用户名索引，便于按用户名查询'
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机凭据信息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机凭据信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of credentials
 -- ----------------------------
-INSERT INTO `credentials` VALUES (1, 'root-default', 'root', '$2a$10$example_hashed_password', '默认root用户凭据', 1, '2026-02-06 05:54:01', '2026-02-06 05:54:01');
-INSERT INTO `credentials` VALUES (2, 'admin-default', 'admin', '$2a$10$example_hashed_password', '默认管理员凭据', 1, '2026-02-06 05:54:01', '2026-02-06 05:54:01');
-INSERT INTO `credentials` VALUES (3, 'ubuntu-default', 'ubuntu', '$2a$10$example_hashed_password', 'Ubuntu系统默认用户凭据', 1, '2026-02-06 05:54:01', '2026-02-06 05:54:01');
-INSERT INTO `credentials` VALUES (4, 'centos-default', 'centos', '$2a$10$example_hashed_password', 'CentOS系统默认用户凭据', 1, '2026-02-06 05:54:01', '2026-02-06 05:54:01');
+INSERT INTO `credentials` VALUES (1, 'root-default', 'root', '$2a$10$example_hashed_password', '默认root用户凭据', 1, '2026-02-06 05:54:01', '2026-02-06 05:54:01', NULL);
+INSERT INTO `credentials` VALUES (2, 'admin-default', 'admin', '$2a$10$example_hashed_password', '默认管理员凭据', 1, '2026-02-06 05:54:01', '2026-03-02 06:55:16', '2026-03-02 14:55:16.228');
+INSERT INTO `credentials` VALUES (3, 'ubuntu-default', 'ubuntu', '$2a$10$example_hashed_password', 'Ubuntu系统默认用户凭据', 1, '2026-02-06 05:54:01', '2026-03-02 06:55:16', '2026-03-02 14:55:16.228');
+INSERT INTO `credentials` VALUES (4, 'centos-default', 'centos', '$2a$10$example_hashed_password', 'CentOS系统默认用户凭据', 1, '2026-02-06 05:54:01', '2026-03-02 06:55:16', '2026-03-02 14:55:16.228');
+INSERT INTO `credentials` VALUES (5, 'root账号', 'root', '1234567890', 'haha', 1, '2026-03-02 15:02:37', '2026-03-02 15:11:03', NULL);
 
 -- ----------------------------
 -- Table structure for host_credentials
@@ -178,21 +185,20 @@ CREATE TABLE `host_credentials`  (
   `credential_id` bigint UNSIGNED NOT NULL COMMENT '凭据ID，关联credentials表',
   `created_at` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+  `deleted_at` datetime(3) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_host_credential`(`host_id` ASC, `credential_id` ASC) USING BTREE COMMENT '主机-凭据组合唯一约束，防止重复关联',
   INDEX `idx_host_id`(`host_id` ASC) USING BTREE COMMENT '主机ID索引，便于查询某主机的所有凭据',
   INDEX `idx_credential_id`(`credential_id` ASC) USING BTREE COMMENT '凭据ID索引，便于查询使用某凭据的所有主机',
   CONSTRAINT `fk_host_credentials_credential_id` FOREIGN KEY (`credential_id`) REFERENCES `credentials` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_host_credentials_host_id` FOREIGN KEY (`host_id`) REFERENCES `hosts` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机与凭据关联关系表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机与凭据关联关系表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of host_credentials
 -- ----------------------------
-INSERT INTO `host_credentials` VALUES (1, 1, 1, '2026-02-06 05:54:01', NULL);
-INSERT INTO `host_credentials` VALUES (2, 1, 2, '2026-02-06 05:54:01', NULL);
-INSERT INTO `host_credentials` VALUES (3, 2, 3, '2026-02-06 05:54:01', NULL);
-INSERT INTO `host_credentials` VALUES (4, 3, 4, '2026-02-06 05:54:01', NULL);
+INSERT INTO `host_credentials` VALUES (1, 1, 1, '2026-02-06 05:54:01', NULL, NULL);
+INSERT INTO `host_credentials` VALUES (7, 13, 1, '2026-03-02 06:48:45', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for host_groups
@@ -213,7 +219,7 @@ CREATE TABLE `host_groups`  (
   INDEX `idx_host_groups_status`(`status` ASC) USING BTREE,
   INDEX `idx_host_groups_created_at`(`created_at` ASC) USING BTREE,
   INDEX `idx_host_groups_deleted_at`(`deleted_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机组表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机组表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of host_groups
@@ -223,6 +229,7 @@ INSERT INTO `host_groups` VALUES (2, '数据库服务器组', '用于存放数�
 INSERT INTO `host_groups` VALUES (3, '缓存服务器组', '用于存放Redis、Memcached等缓存服务器的主机组', 1, 1, 1, '2026-02-05 04:11:27', '2026-02-05 04:11:27', NULL);
 INSERT INTO `host_groups` VALUES (4, '存储服务器组', '用于存放文件存储和备份服务器的主机组', 1, 1, 1, '2026-02-05 04:11:27', '2026-02-05 04:11:27', NULL);
 INSERT INTO `host_groups` VALUES (5, 'BBB应用服务器组', 'AAA应用服务器主机组', 1, 10, 10, '2026-02-05 13:51:54', '2026-02-05 14:06:49', NULL);
+INSERT INTO `host_groups` VALUES (6, 'zh', '', 1, 10, NULL, '2026-03-02 11:55:09', '2026-03-02 11:55:09', NULL);
 
 -- ----------------------------
 -- Table structure for host_metrics
@@ -240,7 +247,7 @@ CREATE TABLE `host_metrics`  (
   INDEX `idx_host_metrics_host_id`(`host_id` ASC) USING BTREE,
   INDEX `idx_host_metrics_metric_type`(`metric_type` ASC) USING BTREE,
   INDEX `idx_host_metrics_recorded_at`(`recorded_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机监控指标表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机监控指标表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of host_metrics
@@ -275,8 +282,6 @@ CREATE TABLE `hosts`  (
   `hostname` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主机名',
   `ip_address` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'IP地址(IPv4或IPv6)',
   `port` smallint UNSIGNED NOT NULL DEFAULT 22 COMMENT 'SSH端口',
-  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '登录用户名',
-  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '加密后的密码',
   `os_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'linux' COMMENT '操作系统类型: linux,windows',
   `cpu_cores` smallint UNSIGNED NULL DEFAULT NULL COMMENT 'CPU核心数',
   `memory_gb` smallint UNSIGNED NULL DEFAULT NULL COMMENT '内存大小(GB)',
@@ -301,23 +306,24 @@ CREATE TABLE `hosts`  (
   INDEX `idx_hosts_last_heartbeat`(`last_heartbeat` ASC) USING BTREE,
   INDEX `idx_hosts_created_at`(`created_at` ASC) USING BTREE,
   INDEX `idx_hosts_deleted_at`(`deleted_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '主机表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of hosts
 -- ----------------------------
-INSERT INTO `hosts` VALUES (1, 'web-server-01', '192.168.1.101', 22, 'root', '$2a$10$example_hash_01', 'linux', 8, 16, 500, 1, 2, 1, '2026-02-05 04:06:27', '生产环境Web服务器01', 1, 1, '2026-02-05 04:11:27', '2026-02-06 11:25:54', NULL);
-INSERT INTO `hosts` VALUES (2, 'web-server-02', '192.168.1.102', 22, 'root', '$2a$10$example_hash_02', 'linux', 8, 16, 500, 1, 1, 1, '2026-02-05 04:08:27', '生产环境Web服务器02', 1, 1, '2026-02-05 04:11:27', '2026-02-05 04:11:27', NULL);
-INSERT INTO `hosts` VALUES (3, 'web-server-03', '192.168.1.103', 22, 'root', '$2a$10$example_hash_03', 'linux', 16, 32, 1000, 1, 1, 1, '2026-02-05 04:10:27', '生产环境Web服务器03', 1, 1, '2026-02-05 04:11:27', '2026-02-05 04:11:27', NULL);
-INSERT INTO `hosts` VALUES (4, 'db-master-01', '192.168.2.101', 22, 'root', '$2a$10$example_hash_04', 'linux', 16, 64, 2000, 2, 1, 1, '2026-02-05 04:09:27', '主数据库服务器', 1, 1, '2026-02-05 04:11:27', '2026-02-05 04:11:27', NULL);
-INSERT INTO `hosts` VALUES (5, 'db-slave-01', '192.168.2.102', 22, 'root', '$2a$10$example_hash_05', 'linux', 16, 64, 2000, 2, 1, 1, '2026-02-05 04:07:27', '从数据库服务器01', 1, 1, '2026-02-05 04:11:27', '2026-02-05 04:11:27', NULL);
-INSERT INTO `hosts` VALUES (6, 'db-slave-02', '192.168.2.103', 22, 'root', '$2a$10$example_hash_06', 'linux', 16, 64, 2000, 2, 0, 1, '2026-02-05 03:41:27', '从数据库服务器02（离线）', 1, 1, '2026-02-05 04:11:27', '2026-02-05 04:11:27', NULL);
-INSERT INTO `hosts` VALUES (7, 'redis-cache-01', '192.168.3.101', 22, 'root', '$2a$10$example_hash_07', 'linux', 8, 32, 500, 3, 1, 1, '2026-02-05 04:10:27', 'Redis缓存服务器01', 1, 1, '2026-02-05 04:11:27', '2026-02-05 04:11:27', NULL);
-INSERT INTO `hosts` VALUES (8, 'redis-cache-02', '192.168.3.102', 22, 'root', '$2a$10$example_hash_08', 'linux', 8, 32, 500, 3, -1, 1, '2026-02-05 02:11:27', 'Redis缓存服务器02（故障）', 1, 1, '2026-02-05 04:11:27', '2026-02-05 05:30:38', '2026-02-05 13:30:38');
-INSERT INTO `hosts` VALUES (9, 'storage-nfs-01', '192.168.4.101', 22, 'root', '$2a$10$example_hash_09', 'linux', 12, 64, 5000, 4, 1, 0, '2026-02-05 04:01:27', 'NFS文件存储服务器（监控已禁用）', 1, 1, '2026-02-05 04:11:27', '2026-02-05 05:30:38', '2026-02-05 13:30:38');
-INSERT INTO `hosts` VALUES (10, 'backup-server-01', '192.168.4.102', 22, 'backup', '$2a$10$example_hash_10', 'windows', 8, 16, 3000, 4, 1, 1, '2026-02-05 03:56:27', 'Windows备份服务器', 1, 1, '2026-02-05 04:11:27', '2026-02-05 05:30:38', '2026-02-05 13:30:38');
-INSERT INTO `hosts` VALUES (11, 'database', '10.100.1.100', 1202, 'root', '$2a$10$u6E6v5Jcp5T9jVuyiVRMy.uFXtfU83QxCLl9/zRRtYhRqmHWkM8L6', 'linux', 16, 32, 1000, 1, 1, 1, NULL, '升级后的Web服务器01', 10, 10, '2026-02-05 13:16:44', '2026-02-05 05:24:34', '2026-02-05 13:24:35');
-INSERT INTO `hosts` VALUES (12, '测试', '19.168.0.1', 22, 'root', '$2a$10$TQIO.3roAbEldwr6ccmEVOifGIXvdsZsP3gC/Yav8Kv/dnxAG8BLy', 'linux', 1, 1, 1, 5, 1, 1, NULL, '', 10, NULL, '2026-02-06 11:26:37', '2026-02-06 03:28:28', '2026-02-06 11:28:28');
+INSERT INTO `hosts` VALUES (1, 'web-server-01', '192.168.1.101', 22, 'linux', 8, 16, 500, 1, 2, 1, '2026-02-05 04:06:27', '生产环境Web服务器01', 1, 1, '2026-02-05 04:11:27', '2026-03-02 06:54:55', '2026-03-02 14:54:56');
+INSERT INTO `hosts` VALUES (2, 'web-server-02', '192.168.1.102', 22, 'linux', 8, 16, 500, 1, 1, 1, '2026-02-05 04:08:27', '生产环境Web服务器02', 1, 1, '2026-02-05 04:11:27', '2026-03-02 06:54:55', '2026-03-02 14:54:56');
+INSERT INTO `hosts` VALUES (3, 'web-server-03', '192.168.1.103', 22, 'linux', 16, 32, 1000, 1, 1, 1, '2026-02-05 04:10:27', '生产环境Web服务器03', 1, 1, '2026-02-05 04:11:27', '2026-03-02 06:54:55', '2026-03-02 14:54:56');
+INSERT INTO `hosts` VALUES (4, 'db-master-01', '192.168.2.101', 22, 'linux', 16, 64, 2000, 2, 1, 1, '2026-02-05 04:09:27', '主数据库服务器', 1, 1, '2026-02-05 04:11:27', '2026-03-02 06:54:55', '2026-03-02 14:54:56');
+INSERT INTO `hosts` VALUES (5, 'db-slave-01', '192.168.2.102', 22, 'linux', 16, 64, 2000, 2, 1, 1, '2026-02-05 04:07:27', '从数据库服务器01', 1, 1, '2026-02-05 04:11:27', '2026-03-02 06:54:55', '2026-03-02 14:54:56');
+INSERT INTO `hosts` VALUES (6, 'db-slave-02', '192.168.2.103', 22, 'linux', 16, 64, 2000, 2, 0, 1, '2026-02-05 03:41:27', '从数据库服务器02（离线）', 1, 1, '2026-02-05 04:11:27', '2026-03-02 06:54:55', '2026-03-02 14:54:56');
+INSERT INTO `hosts` VALUES (7, 'redis-cache-01', '192.168.3.101', 22, 'linux', 8, 32, 500, 3, 1, 1, '2026-02-05 04:10:27', 'Redis缓存服务器01', 1, 1, '2026-02-05 04:11:27', '2026-03-02 06:54:55', '2026-03-02 14:54:56');
+INSERT INTO `hosts` VALUES (8, 'redis-cache-02', '192.168.3.102', 22, 'linux', 8, 32, 500, 3, -1, 1, '2026-02-05 02:11:27', 'Redis缓存服务器02（故障）', 1, 1, '2026-02-05 04:11:27', '2026-02-05 05:30:38', '2026-02-05 13:30:38');
+INSERT INTO `hosts` VALUES (9, 'storage-nfs-01', '192.168.4.101', 22, 'linux', 12, 64, 5000, 4, 1, 0, '2026-02-05 04:01:27', 'NFS文件存储服务器（监控已禁用）', 1, 1, '2026-02-05 04:11:27', '2026-02-05 05:30:38', '2026-02-05 13:30:38');
+INSERT INTO `hosts` VALUES (10, 'backup-server-01', '192.168.4.102', 22, 'windows', 8, 16, 3000, 4, 1, 1, '2026-02-05 03:56:27', 'Windows备份服务器', 1, 1, '2026-02-05 04:11:27', '2026-02-05 05:30:38', '2026-02-05 13:30:38');
+INSERT INTO `hosts` VALUES (11, 'database', '10.100.1.100', 1202, 'linux', 16, 32, 1000, 1, 1, 1, NULL, '升级后的Web服务器01', 10, 10, '2026-02-05 13:16:44', '2026-02-05 05:24:34', '2026-02-05 13:24:35');
+INSERT INTO `hosts` VALUES (12, '测试', '19.168.0.1', 22, 'linux', 1, 1, 1, 5, 1, 1, NULL, '', 10, NULL, '2026-02-06 11:26:37', '2026-02-06 03:28:28', '2026-02-06 11:28:28');
+INSERT INTO `hosts` VALUES (13, '35.24.100.1', '35.24.100.1', 22, 'linux', 1, 2, 100, 6, 1, 1, NULL, '', 10, 10, '2026-03-02 11:58:41', '2026-03-02 14:48:46', NULL);
 
 -- ----------------------------
 -- Table structure for menus
@@ -343,7 +349,7 @@ CREATE TABLE `menus`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_menus_deleted_at`(`deleted_at` ASC) USING BTREE,
   INDEX `fk_menus_parent`(`parent_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 120 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 121 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of menus
@@ -358,6 +364,7 @@ INSERT INTO `menus` VALUES (14, NULL, NULL, NULL, 'operation-logs', '操作日�
 INSERT INTO `menus` VALUES (15, NULL, NULL, NULL, 'permissions', '权限管理', '/permissions', 'PermissionResourceView', NULL, 2, 'Lock', 5, 0, 0, NULL, 1);
 INSERT INTO `menus` VALUES (118, NULL, NULL, NULL, 'group', '主机组管理', '/asset/group', 'HostGroupView', NULL, 3, 'User', 1, 0, 0, NULL, 1);
 INSERT INTO `menus` VALUES (119, NULL, NULL, NULL, 'host', '主机管理', '/asset/host', 'HostManageView', NULL, 3, 'User', 2, 0, 0, NULL, 1);
+INSERT INTO `menus` VALUES (120, '2026-03-02 14:49:22.437', '2026-03-02 14:49:22.437', NULL, 'credential', '凭据管理', 'asset/credential', 'CredentialManageView', NULL, 3, 'User', 3, 0, 0, NULL, 1);
 
 -- ----------------------------
 -- Table structure for operation_logs
@@ -385,7 +392,7 @@ CREATE TABLE `operation_logs`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_operation_logs_deleted_at`(`deleted_at` ASC) USING BTREE,
   INDEX `idx_operation_logs_refer_id`(`refer_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 82 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 111 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of operation_logs
@@ -452,6 +459,35 @@ INSERT INTO `operation_logs` VALUES (78, '2026-02-06 11:25:46.875', '2026-02-06 
 INSERT INTO `operation_logs` VALUES (79, '2026-02-06 11:25:54.211', '2026-02-06 11:25:54.211', '更新主机监控状态', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', 200, 'PUT', '/api/v1/hosts/:id/monitoring', '{\"monitoring_enabled\":1}', '{\"success\":true,\"message\":\"监控状态更新成功\",\"data\":{\"id\":1,\"monitoring_enabled\":1}}', 139, NULL, NULL, 1, NULL);
 INSERT INTO `operation_logs` VALUES (80, '2026-02-06 11:26:37.125', '2026-02-06 11:26:37.125', '创建主机', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', 200, 'POST', '/api/v1/hosts', '{\"id\":0,\"hostname\":\"测试\",\"ip_address\":\"19.168.0.1\",\"port\":22,\"username\":\"root\",\"password\":\"Zhy20250730!\",\"os_type\":\"linux\",\"cpu_cores\":1,\"memory_gb\":1,\"disk_space_gb\":1,\"group_id\":5,\"description\":\"\"}', '{\"success\":true,\"message\":\"主机创建成功\",\"data\":{\"id\":12,\"hostname\":\"测试\",\"ip_address\":\"19.168.0.1\",\"port\":22,\"username\":\"root\",\"password\":\"$2a$10$TQIO.3roAbEldwr6ccmEVOifGIXvdsZsP3gC/Yav8Kv/dnxAG8BLy\",\"os_type\":\"linux\",\"cpu_cores\":1,\"memory_gb\":1,\"disk_space_gb\":1,\"group_id\":5,\"status\":1,\"monitoring_enabled\":1,\"last_heartbeat\":null,\"description\":\"\",\"created_by\":10,\"updated_by\":null,\"created_at\":\"2026-02-06T11:26:37.074+08:00\",\"updated_at\":\"2026-02-06T11:26:37.074+08:00\",\"deleted_at\":null,\"group\":null}}', 257, NULL, NULL, 1, NULL);
 INSERT INTO `operation_logs` VALUES (81, '2026-02-06 11:28:28.370', '2026-02-06 11:28:28.370', '删除主机', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0', 200, 'DELETE', '/api/v1/hosts/:id', '', '{\"success\":true,\"message\":\"主机删除成功\"}', 147, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (82, '2026-03-02 11:38:22.215', '2026-03-02 11:38:22.215', '创建菜单', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/menus', '{\"parent_id\":3,\"name\":\"credential\",\"title\":\"凭据管理\",\"path\":\"asset\\\\credential\",\"component\":\"\",\"redirect\":\"\",\"icon\":\"\",\"sort\":3,\"is_hidden\":false,\"status\":1}', '{\"data\":{\"id\":120,\"created_at\":\"2026-03-02T11:38:22.162+08:00\",\"updated_at\":\"2026-03-02T11:38:22.162+08:00\",\"deleted_at\":null,\"name\":\"credential\",\"title\":\"凭据管理\",\"path\":\"asset\\\\credential\",\"component\":\"\",\"parent_id\":3,\"parent\":null,\"children\":null,\"icon\":\"\",\"sort\":3,\"is_hidden\":false,\"status\":1},\"message\":\"菜单创建成功\"}', 53, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (83, '2026-03-02 11:38:32.077', '2026-03-02 11:38:32.077', '更新菜单', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'PUT', '/api/v1/menus/:id', '{\"id\":120,\"created_at\":\"2026-03-02T11:38:22.162+08:00\",\"updated_at\":\"2026-03-02T11:38:22.162+08:00\",\"deleted_at\":null,\"name\":\"credential\",\"title\":\"凭据管理\",\"path\":\"asset/credential\",\"component\":\"\",\"parent_id\":3,\"parent\":null,\"children\":[],\"icon\":\"\",\"sort\":3,\"is_hidden\":false,\"status\":1,\"level\":1}', '{\"message\":\"更新成功\"}', 51, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (84, '2026-03-02 11:38:45.464', '2026-03-02 11:38:45.464', '更新菜单', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'PUT', '/api/v1/menus/:id', '{\"id\":120,\"created_at\":\"2026-03-02T11:38:32.025+08:00\",\"updated_at\":\"2026-03-02T11:38:32.025+08:00\",\"deleted_at\":null,\"name\":\"credential\",\"title\":\"凭据管理\",\"path\":\"asset/credential\",\"component\":\"CredentialManageView\",\"parent_id\":3,\"parent\":null,\"children\":[],\"icon\":\"\",\"sort\":3,\"is_hidden\":false,\"status\":1,\"level\":1}', '{\"message\":\"更新成功\"}', 52, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (85, '2026-03-02 11:39:02.858', '2026-03-02 11:39:02.858', '为角色分配菜单', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/roles/:id/menus', '{\"menu_ids\":[120]}', '{\"message\":\"菜单权限分配成功\"}', 84, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (86, '2026-03-02 11:42:58.147', '2026-03-02 11:42:58.147', '添加Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/credentials\",\"method\":\"POST\"}', '{\"message\":\"策略添加成功\"}', 131, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (87, '2026-03-02 11:42:58.245', '2026-03-02 11:42:58.245', '添加Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/credentials\",\"method\":\"GET\"}', '{\"message\":\"策略添加成功\"}', 92, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (88, '2026-03-02 11:42:58.343', '2026-03-02 11:42:58.343', '添加Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/credentials/:id\",\"method\":\"GET\"}', '{\"message\":\"策略添加成功\"}', 93, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (89, '2026-03-02 11:42:58.443', '2026-03-02 11:42:58.443', '添加Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/credentials/:id\",\"method\":\"PUT\"}', '{\"message\":\"策略添加成功\"}', 93, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (90, '2026-03-02 11:42:58.544', '2026-03-02 11:42:58.544', '添加Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/credentials/:id\",\"method\":\"DELETE\"}', '{\"message\":\"策略添加成功\"}', 95, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (91, '2026-03-02 11:42:58.644', '2026-03-02 11:42:58.644', '添加Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/credentials/batch\",\"method\":\"DELETE\"}', '{\"message\":\"策略添加成功\"}', 94, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (92, '2026-03-02 11:42:58.745', '2026-03-02 11:42:58.745', '添加Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/credentials/host\",\"method\":\"GET\"}', '{\"message\":\"策略添加成功\"}', 95, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (93, '2026-03-02 11:42:58.842', '2026-03-02 11:42:58.842', '移除Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'DELETE', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/permissions/all/:id\",\"method\":\"GET\"}', '{\"message\":\"策略移除成功\"}', 92, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (94, '2026-03-02 11:42:58.939', '2026-03-02 11:42:58.939', '移除Casbin策略', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'DELETE', '/api/v1/roles/:id/policies', '{\"path\":\"/api/v1/operation-logs/stats\",\"method\":\"GET\"}', '{\"message\":\"策略移除成功\"}', 92, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (95, '2026-03-02 11:43:12.285', '2026-03-02 11:43:12.285', '创建凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 500, 'POST', '/api/v1/credentials', '{\"name\":\"234\",\"username\":\"234\",\"password\":\"111111\",\"description\":\"\"}', '{\"success\":false,\"message\":\"服务器内部错误\",\"error\":\"凭据创建失败\"}', 2, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (96, '2026-03-02 11:45:21.973', '2026-03-02 11:45:21.973', '创建凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 500, 'POST', '/api/v1/credentials', '{\"name\":\"234\",\"username\":\"234\",\"password\":\"111111\",\"description\":\"\"}', '{\"success\":false,\"message\":\"服务器内部错误\",\"error\":\"凭据创建失败\"}', 6, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (97, '2026-03-02 11:55:09.491', '2026-03-02 11:55:09.491', '创建主机组', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/host-groups', '{\"name\":\"zh\",\"description\":\"\"}', '{\"success\":true,\"message\":\"主机组创建成功\",\"data\":{\"id\":6,\"name\":\"zh\",\"description\":\"\",\"status\":1,\"created_by\":10,\"updated_by\":null,\"created_at\":\"2026-03-02T11:55:09.437+08:00\",\"updated_at\":\"2026-03-02T11:55:09.437+08:00\",\"deleted_at\":null,\"hosts\":null}}', 99, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (98, '2026-03-02 11:55:40.438', '2026-03-02 11:55:40.438', '创建主机', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 500, 'POST', '/api/v1/hosts', '{\"id\":0,\"hostname\":\"35.24.100.1\",\"ip_address\":\"35.24.100.1\",\"port\":22,\"os_type\":\"linux\",\"cpu_cores\":1,\"memory_gb\":2,\"disk_space_gb\":100,\"group_id\":6,\"description\":\"\",\"credential_ids\":[1]}', '{\"success\":false,\"message\":\"数据库操作失败\",\"error\":\"数据库操作失败\"}', 227, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (99, '2026-03-02 11:58:41.029', '2026-03-02 11:58:41.029', '创建主机', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/hosts', '{\"id\":0,\"hostname\":\"35.24.100.1\",\"ip_address\":\"35.24.100.1\",\"port\":22,\"os_type\":\"linux\",\"cpu_cores\":1,\"memory_gb\":2,\"disk_space_gb\":100,\"group_id\":6,\"description\":\"\",\"credential_ids\":[1]}', '{\"success\":true,\"message\":\"主机创建成功\",\"data\":{\"id\":13,\"hostname\":\"35.24.100.1\",\"ip_address\":\"35.24.100.1\",\"port\":22,\"os_type\":\"linux\",\"cpu_cores\":1,\"memory_gb\":2,\"disk_space_gb\":100,\"group_id\":6,\"status\":1,\"monitoring_enabled\":1,\"last_heartbeat\":null,\"description\":\"\",\"created_by\":10,\"updated_by\":10,\"created_at\":\"2026-03-02T11:58:40.8+08:00\",\"updated_at\":\"2026-03-02T11:58:40.847+08:00\",\"deleted_at\":null,\"group\":null,\"credentials\":[{\"id\":1,\"name\":\"root-default\",\"username\":\"root\",\"password\":\"$2a$10$example_hashed_password\",\"description\":\"默认root用户凭据\",\"created_at\":\"2026-02-06T05:54:01+08:00\",\"updated_at\":\"2026-02-06T05:54:01+08:00\",\"deleted_at\":null,\"hosts\":null}]}}', 405, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (100, '2026-03-02 13:12:15.586', '2026-03-02 13:12:15.586', '更新主机', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'PUT', '/api/v1/hosts/:id', '{\"credential_ids\":[1]}', '{\"success\":true,\"message\":\"主机更新成功\",\"data\":{\"id\":13,\"hostname\":\"35.24.100.1\",\"ip_address\":\"35.24.100.1\",\"port\":22,\"os_type\":\"linux\",\"cpu_cores\":1,\"memory_gb\":2,\"disk_space_gb\":100,\"group_id\":6,\"status\":1,\"monitoring_enabled\":1,\"last_heartbeat\":null,\"description\":\"\",\"created_by\":10,\"updated_by\":10,\"created_at\":\"2026-03-02T11:58:41+08:00\",\"updated_at\":\"2026-03-02T13:12:15.397+08:00\",\"deleted_at\":null,\"group\":{\"id\":6,\"name\":\"zh\",\"description\":\"\",\"status\":1,\"created_by\":10,\"updated_by\":null,\"created_at\":\"2026-03-02T11:55:09+08:00\",\"updated_at\":\"2026-03-02T11:55:09+08:00\",\"deleted_at\":null,\"hosts\":null},\"credentials\":[{\"id\":1,\"name\":\"root-default\",\"username\":\"root\",\"password\":\"$2a$10$example_hashed_password\",\"description\":\"默认root用户凭据\",\"created_at\":\"2026-02-06T05:54:01+08:00\",\"updated_at\":\"2026-02-06T05:54:01+08:00\",\"deleted_at\":null,\"hosts\":null}]}}', 418, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (101, '2026-03-02 14:48:45.797', '2026-03-02 14:48:45.797', '更新主机', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'PUT', '/api/v1/hosts/:id', '{\"credential_ids\":[1,2,3,4]}', '{\"success\":true,\"message\":\"主机更新成功\",\"data\":{\"id\":13,\"hostname\":\"35.24.100.1\",\"ip_address\":\"35.24.100.1\",\"port\":22,\"os_type\":\"linux\",\"cpu_cores\":1,\"memory_gb\":2,\"disk_space_gb\":100,\"group_id\":6,\"status\":1,\"monitoring_enabled\":1,\"last_heartbeat\":null,\"description\":\"\",\"created_by\":10,\"updated_by\":10,\"created_at\":\"2026-03-02T11:58:41+08:00\",\"updated_at\":\"2026-03-02T14:48:45.61+08:00\",\"deleted_at\":null,\"group\":{\"id\":6,\"name\":\"zh\",\"description\":\"\",\"status\":1,\"created_by\":10,\"updated_by\":null,\"created_at\":\"2026-03-02T11:55:09+08:00\",\"updated_at\":\"2026-03-02T11:55:09+08:00\",\"deleted_at\":null,\"hosts\":null},\"credentials\":[{\"id\":1,\"name\":\"root-default\",\"username\":\"root\",\"password\":\"$2a$10$example_hashed_password\",\"description\":\"默认root用户凭据\",\"created_at\":\"2026-02-06T05:54:01+08:00\",\"updated_at\":\"2026-02-06T05:54:01+08:00\",\"deleted_at\":null,\"hosts\":null},{\"id\":2,\"name\":\"admin-default\",\"username\":\"admin\",\"password\":\"$2a$10$example_hashed_password\",\"description\":\"默认管理员凭据\",\"created_at\":\"2026-02-06T05:54:01+08:00\",\"updated_at\":\"2026-02-06T05:54:01+08:00\",\"deleted_at\":null,\"hosts\":null},{\"id\":3,\"name\":\"ubuntu-default\",\"username\":\"ubuntu\",\"password\":\"$2a$10$example_hashed_password\",\"description\":\"Ubuntu系统默认用户凭据\",\"created_at\":\"2026-02-06T05:54:01+08:00\",\"updated_at\":\"2026-02-06T05:54:01+08:00\",\"deleted_at\":null,\"hosts\":null},{\"id\":4,\"name\":\"centos-default\",\"username\":\"centos\",\"password\":\"$2a$10$example_hashed_password\",\"description\":\"CentOS系统默认用户凭据\",\"created_at\":\"2026-02-06T05:54:01+08:00\",\"updated_at\":\"2026-02-06T05:54:01+08:00\",\"deleted_at\":null,\"hosts\":null}]}}', 421, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (102, '2026-03-02 14:49:22.489', '2026-03-02 14:49:22.489', '更新菜单', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'PUT', '/api/v1/menus/:id', '{\"id\":120,\"created_at\":\"2026-03-02T11:38:45.411+08:00\",\"updated_at\":\"2026-03-02T11:38:45.411+08:00\",\"deleted_at\":null,\"name\":\"credential\",\"title\":\"凭据管理\",\"path\":\"asset/credential\",\"component\":\"CredentialManageView\",\"parent_id\":3,\"parent\":null,\"children\":[],\"icon\":\"User\",\"sort\":3,\"is_hidden\":false,\"status\":1,\"level\":1}', '{\"message\":\"更新成功\"}', 52, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (103, '2026-03-02 14:54:55.978', '2026-03-02 14:54:55.978', '批量删除主机', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'DELETE', '/api/v1/hosts/batch', '{\"ids\":[2,1,3,4,5,6,7]}', '{\"success\":true,\"message\":\"批量删除主机成功\",\"data\":{\"deleted_count\":7}}', 52, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (104, '2026-03-02 14:55:16.318', '2026-03-02 14:55:16.318', '批量删除凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'DELETE', '/api/v1/credentials/batch', '{\"ids\":[2,3,4]}', '{\"success\":true,\"message\":\"批量删除凭据成功\",\"data\":{\"deleted_count\":3}}', 92, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (105, '2026-03-02 15:02:37.222', '2026-03-02 15:02:37.222', '创建凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'POST', '/api/v1/credentials', '{\"name\":\"root账号\",\"username\":\"root\",\"password\":\"Zhy20250730!\",\"description\":\"\"}', '{\"success\":true,\"message\":\"凭据创建成功\",\"data\":{\"id\":5,\"name\":\"root账号\",\"username\":\"root\",\"password\":\"Zhy20250730!\",\"description\":\"\",\"created_at\":\"2026-03-02T15:02:37.168+08:00\",\"updated_at\":\"2026-03-02T15:02:37.168+08:00\",\"deleted_at\":null,\"hosts\":null}}', 55, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (106, '2026-03-02 15:06:49.426', '2026-03-02 15:06:49.426', '更新凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 400, 'PUT', '/api/v1/credentials/:id', '{\"name\":\"root账号\",\"username\":\"root\",\"password\":\"123456\",\"description\":\"\"}', '{\"success\":false,\"message\":\"参数验证失败\",\"error\":\"id: 无效的凭据ID\"}', 0, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (107, '2026-03-02 15:07:35.795', '2026-03-02 15:07:35.795', '更新凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 400, 'PUT', '/api/v1/credentials/:id', '{\"name\":\"root账号\",\"username\":\"root\",\"description\":\"hahh\"}', '{\"success\":false,\"message\":\"参数验证失败\",\"error\":\"id: 无效的凭据ID\"}', 0, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (108, '2026-03-02 15:08:33.243', '2026-03-02 15:08:33.243', '更新凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 400, 'PUT', '/api/v1/credentials/:id', '{\"name\":\"root-default\",\"username\":\"root\",\"description\":\"默\"}', '{\"success\":false,\"message\":\"参数验证失败\",\"error\":\"id: 无效的凭据ID\"}', 0, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (109, '2026-03-02 15:10:51.664', '2026-03-02 15:10:51.664', '更新凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'PUT', '/api/v1/credentials/:id', '{\"name\":\"root账号\",\"username\":\"root\",\"description\":\"haha\",\"id\":5}', '{\"success\":true,\"message\":\"凭据更新成功\",\"data\":{\"id\":5,\"name\":\"root账号\",\"username\":\"root\",\"password\":\"Zhy20250730!\",\"description\":\"haha\",\"created_at\":\"2026-03-02T15:02:37+08:00\",\"updated_at\":\"2026-03-02T15:10:51.614+08:00\",\"deleted_at\":null,\"hosts\":[]}}', 139, NULL, NULL, 1, NULL);
+INSERT INTO `operation_logs` VALUES (110, '2026-03-02 15:11:03.256', '2026-03-02 15:11:03.256', '更新凭据', 10, 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0', 200, 'PUT', '/api/v1/credentials/:id', '{\"name\":\"root账号\",\"username\":\"root\",\"password\":\"1234567890\",\"description\":\"haha\",\"id\":5}', '{\"success\":true,\"message\":\"凭据更新成功\",\"data\":{\"id\":5,\"name\":\"root账号\",\"username\":\"root\",\"password\":\"1234567890\",\"description\":\"haha\",\"created_at\":\"2026-03-02T15:02:37+08:00\",\"updated_at\":\"2026-03-02T15:11:03.202+08:00\",\"deleted_at\":null,\"hosts\":[]}}', 144, NULL, NULL, 1, NULL);
 
 -- ----------------------------
 -- Table structure for permission
@@ -648,6 +684,7 @@ INSERT INTO `role_menus` VALUES (2, 14);
 INSERT INTO `role_menus` VALUES (2, 15);
 INSERT INTO `role_menus` VALUES (2, 118);
 INSERT INTO `role_menus` VALUES (2, 119);
+INSERT INTO `role_menus` VALUES (2, 120);
 INSERT INTO `role_menus` VALUES (3, 1);
 INSERT INTO `role_menus` VALUES (4, 1);
 INSERT INTO `role_menus` VALUES (5, 1);
@@ -720,7 +757,7 @@ CREATE TABLE `users`  (
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (10, '2026-02-06 11:25:38.245', '2026-02-06 11:25:38.245', NULL, 'admin', '$2a$10$ocZQAxtwX0K8aSywcLjICeMqyWv8KqvqJ7ZeoKSu9bMSIKjKhpkAq', 'admin2@example.com', '13800138009', '管理员', '', 1, '2026-02-06 11:25:38.243', '', 2, '', NULL);
+INSERT INTO `users` VALUES (10, '2026-03-02 15:10:36.281', '2026-03-02 15:10:36.281', NULL, 'admin', '$2a$10$ocZQAxtwX0K8aSywcLjICeMqyWv8KqvqJ7ZeoKSu9bMSIKjKhpkAq', 'admin2@example.com', '13800138009', '管理员', '', 1, '2026-03-02 15:10:36.279', '', 2, '', NULL);
 INSERT INTO `users` VALUES (16, NULL, NULL, NULL, 'ceshi', '$2a$10$3J.aR7claboqAQuKPWeWUenxV.jY7Hjasi.eBBqYicedQgyzWG4KO', '2603485744@qq.com', '', '测试', '', 1, '2026-01-27 20:59:45.972', '', 5, '', NULL);
 INSERT INTO `users` VALUES (22, NULL, NULL, NULL, '1111', '$2a$10$gwhoeJZElt8CrJQp5Kb64uig2X6uEc0BHrn36IIM/e7vE04tkD12e', '1111@12313.com', '', '1111', '', 1, NULL, '', NULL, NULL, NULL);
 INSERT INTO `users` VALUES (23, '2026-02-05 03:40:17.941', '2026-02-05 03:43:07.705', NULL, '11111', '$2a$10$SstBKyW61Anu8rt7zwgSRuPSHFq.hqhYdpOR66jZ1dcUIXSDRVLI6', '1111111@123.com', '', '1111111', '', 1, NULL, '', NULL, NULL, NULL);
