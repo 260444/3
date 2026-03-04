@@ -271,3 +271,7 @@ func TestConnection(host, port, username, password string) error {
 
 	return nil
 }
+
+// 执行单个命令
+func (m *SSHManager) ExecOne(string) {
+}

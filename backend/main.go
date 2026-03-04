@@ -53,9 +53,10 @@ func main() {
 	credentialHandler := container.GetCredentialHandler()
 	sshHandler := container.GetSSHHandler()
 	operationLogService := container.GetOperationLogService()
+	deploymentHandler := container.GetDeploymentHandler()
 
 	// 设置路由
-	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler, roleMenuHandler, hostHandler, hostGroupHandler, credentialHandler, sshHandler, operationLogService)
+	r := router.SetupRouter(userHandler, roleHandler, menuHandler, operationLogHandler, permissionHandler, roleMenuHandler, hostHandler, hostGroupHandler, credentialHandler, sshHandler, operationLogService, deploymentHandler)
 
 	// 启动服务器
 	port := config.GlobalConfig.Server.Port

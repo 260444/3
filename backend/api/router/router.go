@@ -2,10 +2,12 @@ package router
 
 import (
 	assHandler "backend/api/handler/asset_management"
+	operationtool "backend/api/handler/operationTool"
 	sysHandler "backend/api/handler/system_manager"
 	"backend/api/middleware"
 	sysService "backend/internal/service/system_manager"
 	"backend/pkg/utils"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +23,7 @@ func SetupRouter(
 	credentialHandler *assHandler.CredentialHandler,
 	sshHandler *assHandler.SSHHandler,
 	operationLogService *sysService.OperationLogService,
+	deploymentHandler *operationtool.DeploymentAgentHandler,
 
 ) *gin.Engine {
 	r := gin.New()
@@ -142,12 +145,13 @@ func SetupRouter(
 
 		// SSH 相关路由（WebSocket 连接需要单独处理，不在 protected 组中）
 		protected.POST("/ssh/test", middleware.OperationLogMiddleware(operationLogService, "测试SSH连接"), sshHandler.TestSSHConnection)
+
 	}
 
 	// SSH WebSocket 连接（需要认证，但不在 protected 组中，因为需要特殊处理）
 	// WebSocket 升级请求不支持标准的 Authorization header，所以需要手动处理认证
 	r.GET("/api/v1/ssh/ws", sshHandler.HandleSSHWebSocket)
-
+	r.POST("/api/v1/deployment-agent/:host_id/:credential_id", deploymentHandler.DeploymentAgent)
 	return r
 }
 
