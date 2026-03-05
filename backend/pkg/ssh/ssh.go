@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"io"
 	"net"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -272,6 +276,206 @@ func TestConnection(host, port, username, password string) error {
 	return nil
 }
 
-// 执行单个命令
-func (m *SSHManager) ExecOne(string) {
+// SSHCommandResult SSH 命令执行结果
+type SSHCommandResult struct {
+	SuccessCount  int    // 成功执行的命令数
+	TotalCommands int    // 总命令数
+	Output        string // 标准输出
+	ErrorOutput   string // 错误输出
+	Success       bool   // 是否全部成功
+}
+
+// ExecuteSSHCommands 执行多条命令
+func ExecuteSSHCommands(
+	sshManager *SSHManager,
+	host string,
+	port uint16,
+	username string,
+	password string,
+	commands []string,
+	cmdWaitTime time.Duration,
+) (*SSHCommandResult, error) {
+	// 建立 SSH 连接
+	portStr := strconv.FormatUint(uint64(port), 10)
+	client, err := sshManager.CreateSSHClient(host, portStr, username, password)
+	if err != nil {
+		return nil, fmt.Errorf("SSH 连接失败：%w", err)
+	}
+	defer client.Close()
+
+	// 创建会话
+	session, err := sshManager.CreateSession(client)
+	if err != nil {
+		return nil, fmt.Errorf("创建 SSH 会话失败：%w", err)
+	}
+	defer sshManager.CloseSession(session)
+
+	// 启动 Shell
+	if err := sshManager.StartShell(session); err != nil {
+		return nil, fmt.Errorf("启动 Shell 失败：%w", err)
+	}
+
+	// 初始化输出缓冲区
+	var output bytes.Buffer
+	var errorOutput bytes.Buffer
+	successCount := 0
+	totalCommands := len(commands)
+
+	// 使用 channel 同步读取输出
+	stdoutChan := make(chan []byte, 100)
+	stderrChan := make(chan []byte, 100)
+	doneChan := make(chan struct{})
+
+	// 启动读取 goroutine
+	go func() {
+		buf := make([]byte, 4086)
+		for {
+			n, err := session.StdoutPipe.Read(buf)
+			if n > 0 {
+				data := make([]byte, n)
+				copy(data, buf[:n])
+				stdoutChan <- data
+			}
+			if err != nil {
+				if err != io.EOF {
+					zap.L().Warn("读取 stdout 错误", zap.Error(err))
+				}
+				break
+			}
+		}
+	}()
+
+	go func() {
+		buf := make([]byte, 4086)
+		for {
+			n, err := session.StderrPipe.Read(buf)
+			if n > 0 {
+				data := make([]byte, n)
+				copy(data, buf[:n])
+				stderrChan <- data
+			}
+			if err != nil {
+				if err != io.EOF {
+					zap.L().Warn("读取 stderr 错误", zap.Error(err))
+				}
+				break
+			}
+		}
+	}()
+
+	// 收集输出
+	go func() {
+		for {
+			select {
+			case data := <-stdoutChan:
+				output.Write(data)
+			case data := <-stderrChan:
+				errorOutput.Write(data)
+			case <-doneChan:
+				return
+			}
+		}
+	}()
+
+	// 执行每个命令
+	for i, cmd := range commands {
+		zap.L().Info("执行命令",
+			zap.Int("index", i+1),
+			zap.Int("total", totalCommands),
+			zap.String("command", cmd))
+
+		if _, err := session.StdinPipe.Write([]byte(cmd + "\n")); err != nil {
+			close(doneChan)
+			return nil, fmt.Errorf("写入命令失败：%w", err)
+		}
+
+		// 等待命令执行
+		time.Sleep(cmdWaitTime)
+		successCount++
+	}
+
+	// 执行 echo $? 获取最后一个命令的退出码
+	if _, err := session.StdinPipe.Write([]byte("echo $?\n")); err != nil {
+		close(doneChan)
+		return nil, fmt.Errorf("写入状态检查命令失败：%w", err)
+	}
+	time.Sleep(1 * time.Second)
+
+	// 等待输出收集完成
+	close(doneChan)
+	time.Sleep(500 * time.Millisecond)
+
+	// 判断执行结果
+	errorStr := errorOutput.String()
+	if errorStr != "" {
+		zap.L().Error("命令执行出错",
+			zap.String("error_output", errorStr),
+			zap.Int("success_count", successCount),
+			zap.Int("total_commands", totalCommands))
+	}
+
+	if successCount != totalCommands {
+		return nil, fmt.Errorf("部分命令执行失败：成功 %d/%d", successCount, totalCommands)
+	}
+
+	return &SSHCommandResult{
+		SuccessCount:  successCount,
+		TotalCommands: totalCommands,
+		Output:        output.String(),
+		ErrorOutput:   errorStr,
+		Success:       errorStr == "",
+	}, nil
+}
+
+func (m *SSHManager) CreateSFTPClient(client *ssh.Client) (*sftp.Client, error) {
+	sftpClient, err := sftp.NewClient(client)
+	if err != nil {
+		return nil, fmt.Errorf("创建 SFTP 客户端失败：%w", err)
+	}
+	return sftpClient, nil
+}
+
+// UploadFile 上传文件
+func UploadFile(sshManager *SSHManager, filename, host, username, password string, port uint16) (*SSHCommandResult, error) {
+	filepath := fmt.Sprintf("tools/%s", filename)
+	// 检查文件是否存在
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("文件 %s 不存在", filepath)
+	}
+
+	// 建立 SSH 连接
+	portStr := strconv.FormatUint(uint64(port), 10)
+	client, err := sshManager.CreateSSHClient(host, portStr, username, password)
+	if err != nil {
+		return nil, fmt.Errorf("SSH 连接失败：%w", err)
+	}
+	defer client.Close()
+
+	// 创建会话
+	sftpClient, err := sshManager.CreateSFTPClient(client)
+	if err != nil {
+		return nil, fmt.Errorf("创建 SSH 会话失败：%w", err)
+	}
+	defer sftpClient.Close()
+
+	file, err := os.Open(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("打开文件 %s 失败：%w", file, err)
+	}
+
+	remotePath := fmt.Sprintf("/tmp/%s", filename)
+	remotefile, err := sftpClient.Create(remotePath)
+	if err != nil {
+		return nil, fmt.Errorf("创建远程文件 %s 失败：%w", remotePath, err)
+	}
+	_, err = io.Copy(remotefile, file)
+	if err != nil {
+		return nil, fmt.Errorf("写入远程文件 %s 失败：%w", remotePath, err)
+	}
+	return &SSHCommandResult{
+		Success:      true,
+		Output:       fmt.Sprintf("文件 %s 上传成功", filepath),
+		ErrorOutput:  "",
+		SuccessCount: 1,
+	}, nil
 }
