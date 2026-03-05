@@ -67,22 +67,20 @@ func (h *DeploymentAgentHandler) DeploymentAgent(c *gin.Context) {
 	}
 
 	// 上传文件
-	_, err = ssh.UploadFile(h.SSHManager, "node_exporter-1.10.2.linux-amd64.tar.gz", host.IPAddress, credential.Username, credential.Password, host.Port)
+	result, err := ssh.UploadFile(h.SSHManager, "node_exporter-1.10.2.linux-amd64.tar.gz", host.IPAddress, credential.Username, credential.Password, host.Port)
 	if err != nil {
 		response.Error(c, err)
 		return
 	}
+	fmt.Println("上传文件结果:", result.Output)
 	// 定义要执行的命令序列
 	commands := []string{
-		"ls /home/tools",
-		// "wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz",
-		"tar xvf /tmp/node_exporter-1.10.2.linux-amd64.tar.gz -C /usr/local",
-		"cd /usr/local && ln -s node_exporter-1.10.2.linux-amd64 node_exporter",
-		"pwd",
+		"[ -e /usr/local/node_exporter-1.10.2.linux-amd64 ] || tar xvf /tmp/node_exporter-1.10.2.linux-amd64.tar.gz -C /usr/local",
+		"[ -L /usr/local/node_exporter ] || (cd /usr/local && ln -s node_exporter-1.10.2.linux-amd64 node_exporter)",
 	}
 
 	// 执行 SSH 命令
-	result, err := ssh.ExecuteSSHCommands(
+	err = ssh.ExecuteSSHCommands(
 		h.SSHManager,
 		host.IPAddress,
 		host.Port,
@@ -103,6 +101,5 @@ func (h *DeploymentAgentHandler) DeploymentAgent(c *gin.Context) {
 			"host_id":       hostID,
 			"credential_id": credentialID,
 			"status":        "completed",
-			"output":        result.Output,
 		})
 }
