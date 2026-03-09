@@ -53,5 +53,8 @@ coverage/
 .parcel-cache/
 .eslintcache
 
+*.zip
+
 /backend/docker/redis_data/
 /backend/docker/mysql_data/
+/backend/docker/prometheus/data/

@@ -1,8 +1,7 @@
 services:
   redis:
     image: redis:7.2-alpine  # 使用更轻量、版本明确的镜像
-    container_name: my-redis
-    restart: always          # 随 Docker 守护进程自启
+    container_name: my-redis          # 随 Docker 守护进程自启
     ports:
       - "6379:6379"
     command: >
@@ -13,12 +12,12 @@ services:
       #      - redis_data:/data      # 挂载数据卷实现持久化
       - ./redis_data:/data      # 挂载数据卷实现持久化
       # - ./redis.conf:/usr/local/etc/redis/redis.conf # 如果有自定义配置文件可开启
+    restart: no
   #volumes:
   #  redis_data:
   mysql:
     image: mysql:8.0.27
     container_name: mysql-db
-    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: admin_system
@@ -28,4 +27,21 @@ services:
       - ./mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # 可选：初始化 SQL 脚本
     command: --default-authentication-plugin=mysql_native_password  # 兼容旧客户端（可选）
+    restart: no
 
+  prometheus:
+        image: prom/prometheus:latest
+        container_name: prometheus
+        volumes:
+            - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./prometheus/data:/prometheus
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+            - '--web.console.templates=/usr/share/prometheus/consoles'
+            - '--web.enable-lifecycle' # 允许热重载配置
+        ports:
+            - "9090:9090"
+        # restart: unless-stopped
+        restart: no
