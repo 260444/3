@@ -2,6 +2,8 @@ package asset_management
 
 import (
 	assModel "backend/internal/model/asset_management"
+	"context"
+
 	"gorm.io/gorm"
 )
 
@@ -110,6 +112,15 @@ func (r *HostRepository) ListWithCredentials(page, pageSize int, hostname, ipAdd
 	return hosts, total, nil
 }
 
+// ListWithCredentials 获取主机列表（需要监控的）
+func (r *HostRepository) ListForMonitoring(ctx context.Context) ([]assModel.Host, error) {
+	var hosts []assModel.Host
+	if err := r.DB.Where("monitoring_enabled = ?", 1).Find(&hosts).Error; err != nil {
+		return nil, err
+	}
+	return hosts, nil
+}
+
 // Update 更新主机
 func (r *HostRepository) Update(host *assModel.Host) error {
 	return r.DB.Save(host).Error
@@ -200,3 +211,8 @@ func (r *HostRepository) GetHostsWithGroup(id uint) (*assModel.Host, error) {
 //
 //	return &stats, nil
 //}
+
+// 更新主机指标
+func (r *HostRepository) SaveMetrics(ctx context.Context, hostID uint, metric *assModel.HostMetric) error {
+	return r.DB.Save(metric).Error
+}

@@ -195,3 +195,5 @@ func (s *HostMetricService) GetHostMetricsOverview(hostID uint) (map[string]inte
 
 	return overview, nil
 }
+
+// 采集主机指标

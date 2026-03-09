@@ -153,6 +153,9 @@ func SetupRouter(
 	r.GET("/api/v1/ssh/ws", sshHandler.HandleSSHWebSocket)
 	r.POST("/api/v1/deployment-agent/:host_id/:credential_id", operationToolsHandler.DeploymentAgentHandler)
 	r.POST("/api/v1/execute-command/:credential_id", operationToolsHandler.ExecuteCommandOnHosts)
+	// r.GET("/host-metrics", assHandler.GetHostsMetrics)
+	// r.GET("/host-metrics/:id", assHandler.GetHostMetrics)
+
 	return r
 }
 

@@ -67,6 +67,9 @@ type HostMetric struct {
 	Unit        string    `gorm:"size:20" json:"unit"`                             // 单位
 	RecordedAt  time.Time `gorm:"not null" json:"recorded_at"`                     // 记录时间
 	Host        *Host     `gorm:"foreignKey:HostID" json:"host"`                   // 关联的主机
+	CPUUsage    float64
+	MemoryUsage float64
+	DiskUsage   float64
 }
 
 // HostCreateRequest 创建主机请求

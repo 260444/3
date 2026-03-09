@@ -30,6 +30,7 @@ type Container interface {
 	GetHostRepository() *assRepo.HostRepository
 	GetHostGroupRepository() *assRepo.HostGroupRepository
 	GetHostMetricRepository() *assRepo.HostMetricRepository
+	// NewPrometheusClient() *repository.PrometheusClient
 
 	GetUserService() *sysService.UserService
 	GetRoleService() *sysService.RoleService
@@ -41,6 +42,7 @@ type Container interface {
 	GetHostGroupService() *assService.HostGroupService
 	GetHostMetricService() *assService.HostMetricService
 	GetCredentialService() *assService.CredentialService
+	// NewHostMonitorService() *service.HostMonitorService
 
 	GetUserHandler() *sysHandler.UserHandler
 	GetRoleHandler() *sysHandler.RoleHandler
@@ -78,6 +80,7 @@ type containerImpl struct {
 	hostGroupRepo    *assRepo.HostGroupRepository
 	hostMetricRepo   *assRepo.HostMetricRepository
 	credentialRepo   *assRepo.CredentialRepository
+	// prometheusClient *repository.PrometheusClient
 
 	// Services
 	userService         *sysService.UserService
