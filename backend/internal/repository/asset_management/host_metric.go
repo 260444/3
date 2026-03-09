@@ -2,9 +2,11 @@ package asset_management
 
 import (
 	assModel "backend/internal/model/asset_management"
+	"backend/pkg/logger"
 	"context"
 	"encoding/json"
 	"fmt"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"time"
@@ -25,7 +27,7 @@ func NewHostMetricRepository(db *gorm.DB) *HostMetricRepository {
 }
 
 // Create 创建主机指标
-func (r *HostMetricRepository) Create(metric *assModel.HostMetric) error {
+func (r *HostMetricRepository) Create(metric []*assModel.HostMetric) error {
 	return r.DB.Create(metric).Error
 }
 
@@ -138,40 +140,43 @@ type PromQLResponse struct {
 }
 
 // GetCPUUsage 查询 CPU 使用率
-func (pc *HostMetricRepository) GetCPUUsage(ctx context.Context) (float64, error) {
-	query := `100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)`
+func (pc *HostMetricRepository) GetCPUUsage(ctx context.Context, instance string) (float64, error) {
+	query := fmt.Sprintf(`100 - (rate(node_cpu_seconds_total{mode="idle", job="%s"}[5m]) * 100)`, instance)
+	logger.Logger.Info("查询CPU使用率", zap.String("query", query))
 	return pc.querySingleValue(ctx, query)
 }
 
 // GetMemoryUsage 查询内存使用率
-func (pc *HostMetricRepository) GetMemoryUsage(ctx context.Context) (float64, error) {
-	query := `(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100`
+func (pc *HostMetricRepository) GetMemoryUsage(ctx context.Context, instance string) (float64, error) {
+	query := fmt.Sprintf(`(1 - (node_memory_MemAvailable_bytes{job="%s"} / node_memory_MemTotal_bytes{job="%s"})) * 100`, instance, instance)
+	logger.Logger.Info("查询内存使用率", zap.String("query", query))
 	return pc.querySingleValue(ctx, query)
 }
 
 // GetDiskUsage 查询磁盘使用率
-func (pc *HostMetricRepository) GetDiskUsage(ctx context.Context, mountpoint string) (float64, error) {
-	query := fmt.Sprintf(`(1 - (node_filesystem_avail_bytes{mountpoint="%s"} / node_filesystem_size_bytes{mountpoint="%s"})) * 100`,
-		mountpoint, mountpoint)
+func (pc *HostMetricRepository) GetDiskUsage(ctx context.Context, mountpoint, instance string) (float64, error) {
+	query := fmt.Sprintf(`(1 - (node_filesystem_avail_bytes{job="%s",mountpoint="%s"} / node_filesystem_size_bytes{job="%s",mountpoint="%s"})) * 100`,
+		instance, mountpoint, instance, mountpoint)
+	logger.Logger.Info("查询磁盘使用率", zap.String("query", query))
 	return pc.querySingleValue(ctx, query)
 }
 
 // GetHostMetrics 查询主机监控指标（用于你的资产管理系统）
-func (pc *HostMetricRepository) GetHostMetrics(ctx context.Context, hostIP string) (*assModel.HostMetric, error) {
+func (pc *HostMetricRepository) GetHostMetrics(ctx context.Context, instance string) (*assModel.HostMetric, error) {
 	// CPU 使用率
-	cpuUsage, err := pc.GetCPUUsage(ctx)
+	cpuUsage, err := pc.GetCPUUsage(ctx, instance)
 	if err != nil {
 		return nil, err
 	}
 
 	// 内存使用率
-	memoryUsage, err := pc.GetMemoryUsage(ctx)
+	memoryUsage, err := pc.GetMemoryUsage(ctx, instance)
 	if err != nil {
 		return nil, err
 	}
 
 	// 磁盘使用率
-	diskUsage, err := pc.GetDiskUsage(ctx, "/")
+	diskUsage, err := pc.GetDiskUsage(ctx, "/", instance)
 	if err != nil {
 		return nil, err
 	}

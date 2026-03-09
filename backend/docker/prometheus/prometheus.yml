@@ -22,6 +22,14 @@ scrape_configs:
     static_configs:
       - targets: ['node-exporter:9100']
 
+
+  # 监控主机系统指标 (Node Exporter)
+  - job_name: '10.0.1.12'
+
+    static_configs:
+      - targets: ['10.0.1.12:9100']
+        
+
   # 监控 Docker 容器指标 (cAdvisor)
   # - job_name: 'cadvisor'
   #   static_configs:

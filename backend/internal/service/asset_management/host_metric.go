@@ -228,27 +228,86 @@ func (s *HostMetricService) GetHostMetricsOverview(hostID uint) (map[string]inte
 //}
 
 // CreateHostMetrics 采集数据到数据库中
+//func (s *HostMetricService) CreateHostMetrics(ctx context.Context) error {
+//	hosts, err := s.hostRepo.ListForMonitoring(ctx)
+//	if err != nil {
+//		return err
+//	}
+//	var metrics []*assModel.HostMetric
+//	for _, host := range hosts {
+//		hostMetrics, err := s.hostMetricRepo.GetHostMetrics(ctx, host.IPAddress)
+//		if err != nil {
+//			logger.Logger.Error("获取主机指标数据失败",
+//				zap.Uint("host_id", host.ID),
+//				zap.Error(err))
+//			continue
+//		}
+//		metrics = append(metrics, &assModel.HostMetric{
+//			HostID:      host.ID,
+//			CPUUsage:    hostMetrics.CPUUsage,
+//			MemoryUsage: hostMetrics.MemoryUsage,
+//			DiskUsage:   hostMetrics.DiskUsage,
+//			RecordedAt:  hostMetrics.RecordedAt,
+//		})
+//
+//		//// 处理完本次循环后，metrics 自动被销毁
+//		if err := s.processMetrics(metrics); err != nil {
+//			log.Error("处理指标失败", err)
+//			continue
+//		}
+//
+//	}
+//	// 保存到数据库
+//	s.hostMetricRepo.Create(metrics)
+//
+//	if err != nil {
+//		logger.Logger.Error("save host metrics failed",
+//			zap.Uint("host_id", host.ID),
+//			zap.Error(err))
+//	}
+//	return nil
+//}
+
+// ... existing code ...
+
+// CreateHostMetrics 采集数据到数据库中
 func (s *HostMetricService) CreateHostMetrics(ctx context.Context) error {
 	hosts, err := s.hostRepo.ListForMonitoring(ctx)
 	if err != nil {
 		return err
 	}
 
+	var allMetrics []*assModel.HostMetric
+
 	for _, host := range hosts {
-		metrics, err := s.hostMetricRepo.GetHostMetrics(ctx, host.IPAddress)
+		hostMetrics, err := s.hostMetricRepo.GetHostMetrics(ctx, host.IPAddress)
 		if err != nil {
-			logger.Logger.Error("get host metrics failed",
+			logger.Logger.Error("获取主机指标数据失败",
 				zap.Uint("host_id", host.ID),
 				zap.Error(err))
 			continue
 		}
+		logger.Logger.Info("获取主机指标数据成功",
+			zap.Uint("host_id", host.ID),
+			zap.String("ip_address", host.IPAddress),
+			zap.Float64("CPUUsage", hostMetrics.CPUUsage),
+		)
 
-		// 保存到数据库
-		s.hostMetricRepo.Create(metrics)
-		if err != nil {
-			logger.Logger.Error("save host metrics failed",
-				zap.Uint("host_id", host.ID),
+		allMetrics = append(allMetrics, &assModel.HostMetric{
+			HostID:      host.ID,
+			CPUUsage:    hostMetrics.CPUUsage,
+			MemoryUsage: hostMetrics.MemoryUsage,
+			DiskUsage:   hostMetrics.DiskUsage,
+			RecordedAt:  hostMetrics.RecordedAt,
+		})
+	}
+
+	// 批量保存到数据库
+	if len(allMetrics) > 0 {
+		if err := s.hostMetricRepo.Create(allMetrics); err != nil {
+			logger.Logger.Error("保存主机指标失败",
 				zap.Error(err))
+			return err
 		}
 	}
 

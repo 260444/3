@@ -185,7 +185,6 @@ func (c *containerImpl) initHandlers() {
 	c.operationToolsHandler = operationtool.NewOperationToolsHandler(c.hostService, c.credentialService)
 }
 
-// Getters for repositories
 func (c *containerImpl) GetUserRepository() *sysRepo.UserRepository {
 	return c.userRepo
 }

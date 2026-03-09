@@ -477,3 +477,13 @@ func (h *HostHandler) GetHostLatestMetrics(c *gin.Context) {
 
 	response.SuccessWithMessage(c, "获取最新指标成功", metrics)
 }
+
+// SyncPrometheusMetrics 从prometheus获取指标数据到数据库
+func (h *HostHandler) SyncPrometheusMetrics(c *gin.Context) {
+	// 获取所有主机的ID
+	err := h.HostMetricService.CreateHostMetrics(c)
+	if err != nil {
+		response.Error(c, err)
+		return
+	}
+}
