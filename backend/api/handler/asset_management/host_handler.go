@@ -363,11 +363,6 @@ func (h *HostHandler) GetHostStatistics(c *gin.Context) {
 	response.SuccessWithMessage(c, "获取主机统计信息成功", stats)
 }
 
-// 采集主机指标
-func (h *HostHandler) CollectHostMetrics(c *gin.Context) {
-
-}
-
 // ReportHostMetrics 上报主机指标
 // @Summary 上报主机指标
 // @Description 上报主机的监控指标数据
