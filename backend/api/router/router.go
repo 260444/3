@@ -23,7 +23,7 @@ func SetupRouter(
 	credentialHandler *assHandler.CredentialHandler,
 	sshHandler *assHandler.SSHHandler,
 	operationLogService *sysService.OperationLogService,
-	deploymentHandler *operationtool.DeploymentAgentHandler,
+	operationToolsHandler *operationtool.OperationToolsHandler,
 
 ) *gin.Engine {
 	r := gin.New()
@@ -151,7 +151,8 @@ func SetupRouter(
 	// SSH WebSocket 连接（需要认证，但不在 protected 组中，因为需要特殊处理）
 	// WebSocket 升级请求不支持标准的 Authorization header，所以需要手动处理认证
 	r.GET("/api/v1/ssh/ws", sshHandler.HandleSSHWebSocket)
-	r.POST("/api/v1/deployment-agent/:host_id/:credential_id", deploymentHandler.DeploymentAgent)
+	r.POST("/api/v1/deployment-agent/:host_id/:credential_id", operationToolsHandler.DeploymentAgentHandler)
+	r.POST("/api/v1/execute-command/:credential_id", operationToolsHandler.ExecuteCommandOnHosts)
 	return r
 }
 

@@ -52,7 +52,7 @@ type Container interface {
 	GetHostGroupHandler() *assHandler.HostGroupHandler
 	GetCredentialHandler() *assHandler.CredentialHandler
 	GetSSHHandler() *assHandler.SSHHandler
-	GetDeploymentHandler() *operationtool.DeploymentAgentHandler
+	GetDeploymentHandler() *operationtool.OperationToolsHandler
 
 	GetDB() *gorm.DB
 	GetRedis() *redis.Client
@@ -92,17 +92,17 @@ type containerImpl struct {
 	credentialService   *assService.CredentialService
 
 	// Handlers
-	userHandler         *sysHandler.UserHandler
-	roleHandler         *sysHandler.RoleHandler
-	menuHandler         *sysHandler.MenuHandler
-	operationLogHandler *sysHandler.OperationLogHandler
-	permissionHandler   *sysHandler.PermissionHandler
-	roleMenuHandler     *sysHandler.RoleMenuHandler
-	hostHandler         *assHandler.HostHandler
-	hostGroupHandler    *assHandler.HostGroupHandler
-	credentialHandler   *assHandler.CredentialHandler
-	sshHandler          *assHandler.SSHHandler
-	deploymentHandler   *operationtool.DeploymentAgentHandler
+	userHandler           *sysHandler.UserHandler
+	roleHandler           *sysHandler.RoleHandler
+	menuHandler           *sysHandler.MenuHandler
+	operationLogHandler   *sysHandler.OperationLogHandler
+	permissionHandler     *sysHandler.PermissionHandler
+	roleMenuHandler       *sysHandler.RoleMenuHandler
+	hostHandler           *assHandler.HostHandler
+	hostGroupHandler      *assHandler.HostGroupHandler
+	credentialHandler     *assHandler.CredentialHandler
+	sshHandler            *assHandler.SSHHandler
+	operationToolsHandler *operationtool.OperationToolsHandler
 }
 
 // InitializeContainer 初始化依赖注入容器
@@ -179,7 +179,7 @@ func (c *containerImpl) initHandlers() {
 	c.hostGroupHandler = assHandler.NewHostGroupHandler(c.hostGroupService)
 	c.credentialHandler = assHandler.NewCredentialHandler(c.credentialService)
 	c.sshHandler = assHandler.NewSSHHandler(c.hostService, c.credentialService)
-	c.deploymentHandler = operationtool.NewDeploymentAgentHandler(c.hostService, c.credentialService)
+	c.operationToolsHandler = operationtool.NewOperationToolsHandler(c.hostService, c.credentialService)
 }
 
 // Getters for repositories
@@ -301,8 +301,8 @@ func (c *containerImpl) GetSSHHandler() *assHandler.SSHHandler {
 	return c.sshHandler
 }
 
-func (c *containerImpl) GetDeploymentHandler() *operationtool.DeploymentAgentHandler {
-	return c.deploymentHandler
+func (c *containerImpl) GetDeploymentHandler() *operationtool.OperationToolsHandler {
+	return c.operationToolsHandler
 }
 
 // Getters for infrastructure

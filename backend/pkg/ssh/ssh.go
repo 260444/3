@@ -5,13 +5,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"go.uber.org/zap"
 	"io"
 	"net"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -287,8 +288,7 @@ type SSHCommandResult struct {
 }
 
 // ExecuteSSHCommands 执行多条命令
-func ExecuteSSHCommands(
-	sshManager *SSHManager,
+func (sshManager *SSHManager) ExecuteMultipleCommands(
 	host string,
 	port uint16,
 	username string,
@@ -343,7 +343,7 @@ func (m *SSHManager) CreateSFTPClient(client *ssh.Client) (*sftp.Client, error) 
 }
 
 // UploadFile 上传文件
-func UploadFile(sshManager *SSHManager, filename, host, username, password string, port uint16) (*SSHCommandResult, error) {
+func (sshManager *SSHManager) UploadFile(filename, host, username, password string, port uint16) (*SSHCommandResult, error) {
 	filepath := fmt.Sprintf("tools/%s", filename)
 	remotePath := fmt.Sprintf("/tmp/%s", filename)
 	// 检查文件是否存在
@@ -378,7 +378,7 @@ func UploadFile(sshManager *SSHManager, filename, host, username, password strin
 
 	file, err := os.Open(filepath)
 	if err != nil {
-		return nil, fmt.Errorf("打开文件 %s 失败：%w", file, err)
+		return nil, fmt.Errorf("打开文件 %v 失败：%v", file, err)
 	}
 
 	remotefile, err := sftpClient.Create(remotePath)
@@ -392,6 +392,46 @@ func UploadFile(sshManager *SSHManager, filename, host, username, password strin
 	return &SSHCommandResult{
 		Success:      true,
 		Output:       fmt.Sprintf("文件 %s 上传成功", filepath),
+		SuccessCount: 1,
+	}, nil
+}
+
+func (sshManager *SSHManager) ExecuteSingleCommand(host, username, password, command string, port uint16, cmdWaitTime time.Duration) (*SSHCommandResult, error) {
+	// 建立 SSH 连接
+	portStr := strconv.FormatUint(uint64(port), 10)
+	client, err := sshManager.CreateSSHClient(host, portStr, username, password)
+	if err != nil {
+		logger.Logger.Error("SSH 连接失败", zap.String("err", err.Error()))
+		return nil, fmt.Errorf("SSH 连接失败：%w", err)
+	}
+	defer client.Close()
+
+	var errorBuffer bytes.Buffer
+	var infoBuffer bytes.Buffer
+
+	session, err := client.NewSession()
+	if err != nil {
+		logger.Logger.Error("创建 SSH 会话失败：", zap.String("err", err.Error()))
+		return nil, fmt.Errorf("创建 SSH 会话失败：%w", err)
+	}
+	logger.Logger.Info("执行命令", zap.String("command", command))
+	session.Stderr = &errorBuffer
+	session.Stdout = &infoBuffer
+	err = session.Run(command)
+	if err != nil {
+		stderrStr := errorBuffer.String()
+		logger.Logger.Error("命令执行失败：", zap.String("err", err.Error()),
+			zap.String("stderr", stderrStr))
+		return nil, err
+	}
+
+	// 等待命令执行
+	time.Sleep(cmdWaitTime)
+	session.Close()
+	return &SSHCommandResult{
+		Success:      true,
+		Output:       infoBuffer.String(),
+		ErrorOutput:  errorBuffer.String(),
 		SuccessCount: 1,
 	}, nil
 }

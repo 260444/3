@@ -2,23 +2,25 @@ package operationtool
 
 import (
 	assService "backend/internal/service/asset_management"
+
+	"backend/pkg/logger"
 	"backend/pkg/response"
 	"backend/pkg/ssh"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
-type DeploymentAgentHandler struct {
+type OperationToolsHandler struct {
 	SSHManager        *ssh.SSHManager
 	HostService       *assService.HostService
 	CredentialService *assService.CredentialService
 }
 
-func NewDeploymentAgentHandler(HostService *assService.HostService, CredentialService *assService.CredentialService) *DeploymentAgentHandler {
-	return &DeploymentAgentHandler{
+func NewOperationToolsHandler(HostService *assService.HostService, CredentialService *assService.CredentialService) *OperationToolsHandler {
+	return &OperationToolsHandler{
 		SSHManager:        ssh.NewSSHManager(),
 		HostService:       HostService,
 		CredentialService: CredentialService,
@@ -39,7 +41,7 @@ func NewDeploymentAgentHandler(HostService *assService.HostService, CredentialSe
 // @Failure 500 {object} response.APIResponse
 // @Router /api/v1/deployment-agent/{host_id}/{credential_id} [post]
 // @Security Bearer
-func (h *DeploymentAgentHandler) DeploymentAgent(c *gin.Context) {
+func (h *OperationToolsHandler) DeploymentAgentHandler(c *gin.Context) {
 	// 解析路径参数
 	hostID, err := strconv.ParseUint(c.Param("host_id"), 10, 32)
 	if err != nil {
@@ -67,21 +69,23 @@ func (h *DeploymentAgentHandler) DeploymentAgent(c *gin.Context) {
 	}
 
 	// 上传文件
-	result, err := ssh.UploadFile(h.SSHManager, "node_exporter-1.10.2.linux-amd64.tar.gz", host.IPAddress, credential.Username, credential.Password, host.Port)
+	result, err := h.SSHManager.UploadFile("node_export.zip", host.IPAddress, credential.Username, credential.Password, host.Port)
 	if err != nil {
 		response.Error(c, err)
 		return
 	}
-	fmt.Println("上传文件结果:", result.Output)
+
+	logger.Logger.Info("上传文件结果:", zap.String("output", result.Output))
 	// 定义要执行的命令序列
 	commands := []string{
-		"[ -e /usr/local/node_exporter-1.10.2.linux-amd64 ] || tar xvf /tmp/node_exporter-1.10.2.linux-amd64.tar.gz -C /usr/local",
-		"[ -L /usr/local/node_exporter ] || (cd /usr/local && ln -s node_exporter-1.10.2.linux-amd64 node_exporter)",
-	}
+		// 解压 zip 包
+		"[ -f /tmp/node_export.zip ] && unzip -o /tmp/node_export.zip -d /tmp/",
 
+		// 执行部署脚本
+		"bash /tmp/deploy_node_exporter.sh &> /tmp/deploy_node_exporter.log",
+	}
 	// 执行 SSH 命令
-	err = ssh.ExecuteSSHCommands(
-		h.SSHManager,
+	err = h.SSHManager.ExecuteMultipleCommands(
 		host.IPAddress,
 		host.Port,
 		credential.Username,
@@ -96,7 +100,7 @@ func (h *DeploymentAgentHandler) DeploymentAgent(c *gin.Context) {
 
 	// 响应成功
 	response.SuccessWithMessage(c,
-		fmt.Sprintf("命令执行成功"),
+		"命令执行成功",
 		gin.H{
 			"host_id":       hostID,
 			"credential_id": credentialID,
