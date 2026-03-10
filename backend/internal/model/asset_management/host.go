@@ -32,6 +32,7 @@ type Host struct {
 	GroupID          uint           `gorm:"not null" json:"group_id"`                                      // 所属主机组ID
 	Status           int8           `gorm:"default:1" json:"status"`                                       // 主机状态: 1-在线, 0-离线, -1-故障
 	MonitoringEnable int8           `gorm:"column:monitoring_enabled;default:1" json:"monitoring_enabled"` // 监控是否启用
+	MonitoringDeploy int8           `gorm:"column:monitoring_deploy;default:0" json:"monitoring_deploy"`   // 监控是否部署: 1-已部署, 0-未部署
 	LastHeartbeat    *time.Time     `json:"last_heartbeat"`                                                // 最后心跳时间
 	Description      string         `gorm:"size:500" json:"description"`                                   // 主机描述
 	CreatedBy        *uint          `json:"created_by"`                                                    // 创建人用户ID
@@ -108,6 +109,11 @@ type HostStatusUpdateRequest struct {
 // HostMonitoringUpdateRequest 更新监控状态请求
 type HostMonitoringUpdateRequest struct {
 	MonitoringEnabled int8 `json:"monitoring_enabled" binding:"required,oneof=1 2"`
+}
+
+// HostMonitoringDeployUpdateRequest 更新监控部署状态请求
+type HostMonitoringDeployUpdateRequest struct {
+	MonitoringDeploy int8 `json:"monitoring_deploy" binding:"required,oneof=0 1"`
 }
 
 // HostGroupCreateRequest 创建主机组请求

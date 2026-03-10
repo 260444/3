@@ -42,8 +42,7 @@ func InitCasbinWithGormAdapter(db *gorm.DB) error {
 	// 使用GORM适配器（存储策略到数据库）
 	adapter, err := gormadapter.NewAdapterByDB(db)
 	if err != nil {
-		logger.Logger.Error("初始化Casbin GORM适配器失败", zap.Error(err))
-		return errors.New("初始化Casbin GORM适配器失败")
+		return err
 	}
 
 	// 创建Enforcer

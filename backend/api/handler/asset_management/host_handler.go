@@ -486,3 +486,57 @@ func (h *HostHandler) TimerSyncMetrics() {
 		}
 	}()
 }
+
+// GetUndeployedHosts 获取监控未部署的主机列表
+// @Summary 获取监控未部署的主机列表
+// @Description 获取所有监控未部署的主机（monitoring_deploy = 0）
+// @Tags 主机管理
+// @Produce json
+// @Success 200 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/hosts/undeployed [get]
+// @Security Bearer
+func (h *HostHandler) GetUndeployedHosts(c *gin.Context) {
+	hosts, err := h.HostService.ListUndeployedHosts()
+	if err != nil {
+		response.Error(c, err)
+		return
+	}
+
+	response.SuccessWithMessage(c, "获取监控未部署主机列表成功", hosts)
+}
+
+// UpdateHostMonitoringDeploy 更新主机监控部署状态
+// @Summary 更新主机监控部署状态
+// @Description 更新主机的监控部署状态（monitoring_deploy）
+// @Tags 主机管理
+// @Accept json
+// @Produce json
+// @Param id path int true "主机ID"
+// @Param monitoring_deploy body assService.HostMonitoringDeployUpdateRequest true "监控部署状态"
+// @Success 200 {object} response.APIResponse
+// @Failure 400 {object} response.APIResponse
+// @Failure 404 {object} response.APIResponse
+// @Failure 500 {object} response.APIResponse
+// @Router /api/v1/hosts/{id}/monitoring-deploy [put]
+// @Security Bearer
+func (h *HostHandler) UpdateHostMonitoringDeploy(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		response.ValidationError(c, "id", "无效的主机ID")
+		return
+	}
+
+	var req assModel.HostMonitoringDeployUpdateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ValidationError(c, "请求参数", err.Error())
+		return
+	}
+
+	if err := h.HostService.UpdateHostMonitoringDeploy(uint(id), req.MonitoringDeploy); err != nil {
+		response.Error(c, err)
+		return
+	}
+
+	response.SuccessWithMessage(c, "监控部署状态更新成功", gin.H{"id": id, "monitoring_deploy": req.MonitoringDeploy})
+}

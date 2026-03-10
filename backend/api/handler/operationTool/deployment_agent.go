@@ -80,7 +80,6 @@ func (h *OperationToolsHandler) DeploymentAgentHandler(c *gin.Context) {
 	commands := []string{
 		// 解压 zip 包
 		"[ -f /tmp/node_export.zip ] && unzip -o /tmp/node_export.zip -d /tmp/",
-
 		// 执行部署脚本
 		"bash /tmp/deploy_node_exporter.sh &> /tmp/deploy_node_exporter.log",
 	}

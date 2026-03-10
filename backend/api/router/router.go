@@ -120,6 +120,8 @@ func SetupRouter(
 		protected.PUT("/hosts/:id/status", middleware.OperationLogMiddleware(operationLogService, "更新主机状态"), hostHandler.UpdateHostStatus)
 		protected.PUT("/hosts/:id/monitoring", middleware.OperationLogMiddleware(operationLogService, "更新主机监控状态"), hostHandler.UpdateHostMonitoring)
 		protected.GET("/hosts/statistics", hostHandler.GetHostStatistics)
+		protected.GET("/hosts/undeployed", hostHandler.GetUndeployedHosts)
+		protected.PUT("/hosts/:id/monitoring-deploy", middleware.OperationLogMiddleware(operationLogService, "更新主机监控部署状态"), hostHandler.UpdateHostMonitoringDeploy)
 
 		// 主机组管理相关路由
 		protected.POST("/host-groups", middleware.OperationLogMiddleware(operationLogService, "创建主机组"), hostGroupHandler.CreateHostGroup)
@@ -130,6 +132,7 @@ func SetupRouter(
 		protected.PUT("/host-groups/:id/status", middleware.OperationLogMiddleware(operationLogService, "更新主机组状态"), hostGroupHandler.UpdateHostGroupStatus)
 
 		// 主机监控指标相关路由
+		protected.GET("/host-metrics/sync", hostHandler.SyncPrometheusMetrics)
 		protected.GET("/host-metrics/history", hostHandler.GetHostMetricsHistory)
 		protected.GET("/host-metrics/latest", hostHandler.GetHostLatestMetrics)
 
@@ -143,16 +146,16 @@ func SetupRouter(
 		protected.GET("/credentials/host", credentialHandler.GetCredentialsByHost)
 
 		// SSH 相关路由（WebSocket 连接需要单独处理，不在 protected 组中）
-		protected.POST("/ssh/test", middleware.OperationLogMiddleware(operationLogService, "测试SSH连接"), sshHandler.TestSSHConnection)
+		//protected.POST("/ssh/test", middleware.OperationLogMiddleware(operationLogService, "测试SSH连接"), sshHandler.TestSSHConnection)
+		protected.POST("/api/v1/deployment-agent/:host_id/:credential_id", operationToolsHandler.DeploymentAgentHandler)
+		protected.POST("/api/v1/execute-command/:credential_id", operationToolsHandler.ExecuteCommandOnHosts)
 
 	}
 
 	// SSH WebSocket 连接（需要认证，但不在 protected 组中，因为需要特殊处理）
 	// WebSocket 升级请求不支持标准的 Authorization header，所以需要手动处理认证
 	r.GET("/api/v1/ssh/ws", sshHandler.HandleSSHWebSocket)
-	r.POST("/api/v1/deployment-agent/:host_id/:credential_id", operationToolsHandler.DeploymentAgentHandler)
-	r.POST("/api/v1/execute-command/:credential_id", operationToolsHandler.ExecuteCommandOnHosts)
-	r.GET("/api/v1/sync", hostHandler.SyncPrometheusMetrics)
+
 	hostHandler.TimerSyncMetrics()
 	return r
 }

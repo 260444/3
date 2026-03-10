@@ -287,8 +287,8 @@ type SSHCommandResult struct {
 	Success       bool   // 是否全部成功
 }
 
-// ExecuteSSHCommands 执行多条命令
-func (sshManager *SSHManager) ExecuteMultipleCommands(
+// ExecuteMultipleCommands 执行多条命令
+func (m *SSHManager) ExecuteMultipleCommands(
 	host string,
 	port uint16,
 	username string,
@@ -298,7 +298,7 @@ func (sshManager *SSHManager) ExecuteMultipleCommands(
 ) error {
 	// 建立 SSH 连接
 	portStr := strconv.FormatUint(uint64(port), 10)
-	client, err := sshManager.CreateSSHClient(host, portStr, username, password)
+	client, err := m.CreateSSHClient(host, portStr, username, password)
 	if err != nil {
 		logger.Logger.Error("SSH 连接失败", zap.String("err", err.Error()))
 		return fmt.Errorf("SSH 连接失败：%w", err)
@@ -343,7 +343,7 @@ func (m *SSHManager) CreateSFTPClient(client *ssh.Client) (*sftp.Client, error) 
 }
 
 // UploadFile 上传文件
-func (sshManager *SSHManager) UploadFile(filename, host, username, password string, port uint16) (*SSHCommandResult, error) {
+func (m *SSHManager) UploadFile(filename, host, username, password string, port uint16) (*SSHCommandResult, error) {
 	filepath := fmt.Sprintf("tools/%s", filename)
 	remotePath := fmt.Sprintf("/tmp/%s", filename)
 	// 检查文件是否存在
@@ -353,14 +353,14 @@ func (sshManager *SSHManager) UploadFile(filename, host, username, password stri
 
 	// 建立 SSH 连接
 	portStr := strconv.FormatUint(uint64(port), 10)
-	client, err := sshManager.CreateSSHClient(host, portStr, username, password)
+	client, err := m.CreateSSHClient(host, portStr, username, password)
 	if err != nil {
 		return nil, fmt.Errorf("SSH 连接失败：%w", err)
 	}
 	defer client.Close()
 
 	// 创建会话
-	sftpClient, err := sshManager.CreateSFTPClient(client)
+	sftpClient, err := m.CreateSFTPClient(client)
 	if err != nil {
 		return nil, fmt.Errorf("创建 SSH 会话失败：%w", err)
 	}
@@ -396,10 +396,11 @@ func (sshManager *SSHManager) UploadFile(filename, host, username, password stri
 	}, nil
 }
 
-func (sshManager *SSHManager) ExecuteSingleCommand(host, username, password, command string, port uint16, cmdWaitTime time.Duration) (*SSHCommandResult, error) {
+// ExecuteSingleCommand 执行单条命令
+func (m *SSHManager) ExecuteSingleCommand(host, username, password, command string, port uint16, cmdWaitTime time.Duration) (*SSHCommandResult, error) {
 	// 建立 SSH 连接
 	portStr := strconv.FormatUint(uint64(port), 10)
-	client, err := sshManager.CreateSSHClient(host, portStr, username, password)
+	client, err := m.CreateSSHClient(host, portStr, username, password)
 	if err != nil {
 		logger.Logger.Error("SSH 连接失败", zap.String("err", err.Error()))
 		return nil, fmt.Errorf("SSH 连接失败：%w", err)

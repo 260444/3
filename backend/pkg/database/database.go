@@ -13,7 +13,6 @@ package database
 
 import (
 	"backend/config"
-	model "backend/internal/model/system_manager"
 	"fmt"
 	"log"
 	"os"
@@ -93,17 +92,17 @@ func InitDB() (*gorm.DB, error) {
 	}
 
 	// 自动迁移数据库表
-	err = db.AutoMigrate(
-		&model.User{},
-		&model.Role{},
-		&model.Menu{},
-		&model.RoleMenu{},
-		&model.OperationLog{},
-		&model.Permission{},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("数据库迁移失败: %w", err)
-	}
+	//err = db.AutoMigrate(
+	//	&model.User{},
+	//	&model.Role{},
+	//	&model.Menu{},
+	//	&model.RoleMenu{},
+	//	&model.OperationLog{},
+	//	&model.Permission{},
+	//)
+	//if err != nil {
+	//	return nil, fmt.Errorf("数据库迁移失败: %w", err)
+	//}
 
 	return db, nil
 }

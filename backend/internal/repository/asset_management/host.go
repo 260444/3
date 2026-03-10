@@ -216,3 +216,17 @@ func (r *HostRepository) GetHostsWithGroup(id uint) (*assModel.Host, error) {
 func (r *HostRepository) SaveMetrics(ctx context.Context, hostID uint, metric *assModel.HostMetric) error {
 	return r.DB.Save(metric).Error
 }
+
+// ListUndeployedHosts 查询监控未部署的主机（monitoring_deploy = 0）
+func (r *HostRepository) ListUndeployedHosts() ([]assModel.Host, error) {
+	var hosts []assModel.Host
+	if err := r.DB.Where("monitoring_deploy = ?", 0).Preload("Group").Preload("Credentials").Find(&hosts).Error; err != nil {
+		return nil, err
+	}
+	return hosts, nil
+}
+
+// UpdateMonitoringDeploy 更新监控部署状态
+func (r *HostRepository) UpdateMonitoringDeploy(id uint, monitoringDeploy int8) error {
+	return r.DB.Model(&assModel.Host{}).Where("id = ?", id).Update("monitoring_deploy", monitoringDeploy).Error
+}

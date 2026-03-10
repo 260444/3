@@ -329,3 +329,29 @@ func (s *HostService) CheckHostAccess(hostID uint, userID uint) bool {
 //	}
 //	return stats, nil
 //}
+
+// ListUndeployedHosts 查询监控未部署的主机（monitoring_deploy = 0）
+func (s *HostService) ListUndeployedHosts() ([]assModel.Host, error) {
+	hosts, err := s.hostRepo.ListUndeployedHosts()
+	if err != nil {
+		return nil, response.ErrDatabaseError
+	}
+	return hosts, nil
+}
+
+// UpdateHostMonitoringDeploy 更新主机监控部署状态
+func (s *HostService) UpdateHostMonitoringDeploy(id uint, monitoringDeploy int8) error {
+	// 检查主机是否存在
+	if _, err := s.hostRepo.GetByID(id); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return response.ErrNotFound
+		}
+		return response.ErrDatabaseError
+	}
+
+	if err := s.hostRepo.UpdateMonitoringDeploy(id, monitoringDeploy); err != nil {
+		return response.ErrDatabaseError
+	}
+
+	return nil
+}

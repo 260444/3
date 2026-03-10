@@ -29,6 +29,7 @@ import (
 // @Failure 500 {object} response.APIResponse
 // @Router /api/v1/execute-command/{credential_id} [post]
 // @Security Bearer
+
 func (h *OperationToolsHandler) ExecuteCommandOnHosts(c *gin.Context) {
 	// 解析路径参数
 	credentialID, err := strconv.ParseUint(c.Param("credential_id"), 10, 32)
