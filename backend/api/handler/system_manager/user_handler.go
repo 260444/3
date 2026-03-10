@@ -1,3 +1,7 @@
+// Package system_manager 提供系统管理相关的 HTTP 处理器。
+//
+// 该包包含用户、角色、菜单、权限等管理功能的 HTTP 接口实现。
+// 所有处理器都遵循 RESTful API 设计规范。
 package system_manager
 
 import (
@@ -15,10 +19,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// UserHandler 处理用户相关的 HTTP 请求。
+//
+// 该处理器提供用户 CRUD、登录、角色分配、密码修改等功能。
 type UserHandler struct {
 	UserService *sysService.UserService
 }
 
+// NewUserHandler 创建一个新的 UserHandler 实例。
+//
+// 参数：
+//   - userService: 用户服务实例
+//
+// 返回：
+//   - *UserHandler: 用户处理器实例
 func NewUserHandler(userService *sysService.UserService) *UserHandler {
 	return &UserHandler{
 		UserService: userService,

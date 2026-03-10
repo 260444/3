@@ -6,6 +6,8 @@ import (
 	sysHandler "backend/api/handler/system_manager"
 	sysRepo "backend/internal/repository/system_manager"
 	sysService "backend/internal/service/system_manager"
+	"backend/pkg/logger"
+	"go.uber.org/zap"
 
 	assHandler "backend/api/handler/asset_management"
 	assRepo "backend/internal/repository/asset_management"
@@ -120,7 +122,7 @@ func InitializeContainer() (Container, error) {
 	redisClient, err := myredis.InitRedis()
 	if err != nil {
 		// Redis不是必需的，记录警告但不中断
-		// logger.Logger.Warn("Redis初始化失败", zap.Error(err))
+		logger.Logger.Warn("Redis初始化失败", zap.Error(err))
 		redisClient = nil
 	}
 

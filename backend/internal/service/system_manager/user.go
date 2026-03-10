@@ -1,3 +1,7 @@
+// Package system_manager 提供系统管理相关的业务逻辑服务。
+//
+// 该包包含用户服务、角色服务、菜单服务、权限服务等核心业务逻辑的实现。
+// 所有服务都依赖对应的 Repository 层进行数据访问。
 package system_manager
 
 import (
@@ -13,13 +17,23 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// UserService 用户服务
+// UserService 提供用户相关的业务逻辑处理。
+//
+// 该服务负责用户的创建、登录、信息管理、密码修改、角色分配等功能。
+// 使用 bcrypt 对密码进行加密存储。
 type UserService struct {
 	UserRepo *sysRepository.UserRepository
 	RoleRepo *sysRepository.RoleRepository
 }
 
-// NewUserService 创建用户服务
+// NewUserService 创建一个新的 UserService 实例。
+//
+// 参数：
+//   - userRepo: 用户数据访问层实例
+//   - roleRepo: 角色数据访问层实例
+//
+// 返回：
+//   - *UserService: 用户服务实例
 func NewUserService(userRepo *sysRepository.UserRepository, roleRepo *sysRepository.RoleRepository) *UserService {
 	return &UserService{
 		UserRepo: userRepo,
@@ -27,7 +41,20 @@ func NewUserService(userRepo *sysRepository.UserRepository, roleRepo *sysReposit
 	}
 }
 
-// CreateUser 创建用户 *
+// CreateUser 创建新用户。
+//
+// 该函数会验证用户名和邮箱的唯一性，并对密码进行 bcrypt 加密后存储。
+// 新创建的用户默认状态为正常（Status = 1）。
+//
+// 参数：
+//   - username: 用户名（必须唯一）
+//   - password: 密码（将被加密存储）
+//   - email: 邮箱（可选，必须唯一）
+//   - nickname: 昵称（可选）
+//
+// 返回：
+//   - *sysModel.User: 创建成功的用户实例
+//   - error: 如果用户名或邮箱已存在，返回相应错误
 func (s *UserService) CreateUser(username, password, email, nickname string) (*sysModel.User, error) {
 	// 检查用户名是否已存在
 	existingUser, err := s.UserRepo.GetByUsername(username)
@@ -71,7 +98,18 @@ func (s *UserService) CreateUser(username, password, email, nickname string) (*s
 	return user, nil
 }
 
-// Login 用户登录 *
+// Login 验证用户登录凭证并返回用户信息。
+//
+// 该函数会验证用户名和密码，检查用户状态，并更新最后登录时间。
+// 密码验证使用 bcrypt 进行比对。
+//
+// 参数：
+//   - username: 用户名
+//   - password: 明文密码
+//
+// 返回：
+//   - *sysModel.UserWithRoleInfo: 包含用户信息和角色标识符的结构体
+//   - error: 如果用户名或密码错误、用户被禁用等情况下返回错误
 func (s *UserService) Login(username, password string) (*sysModel.UserWithRoleInfo, error) {
 	UserWithRole, err := s.UserRepo.UserWithRoleInfo(username)
 	if err != nil {
@@ -97,12 +135,29 @@ func (s *UserService) Login(username, password string) (*sysModel.UserWithRoleIn
 	return UserWithRole, nil
 }
 
-// GetUserByID 根据ID获取用户 *
+// GetUserByID 根据用户 ID 获取用户信息。
+//
+// 参数：
+//   - id: 用户 ID
+//
+// 返回：
+//   - *sysModel.User: 用户实例
+//   - error: 如果用户不存在，返回错误
 func (s *UserService) GetUserByID(id uint) (*sysModel.User, error) {
 	return s.UserRepo.GetByID(id)
 }
 
-// UpdateUser 更新用户  *
+// UpdateUser 更新用户的基本信息。
+//
+// 该函数只更新用户的基本信息（用户名、邮箱、昵称、手机号、头像），
+// 不更新密码和状态。如需更新密码，请使用 ChangePassword 方法。
+//
+// 参数：
+//   - id: 用户 ID
+//   - user: 包含更新信息的用户实例
+//
+// 返回：
+//   - error: 如果用户不存在或更新失败，返回错误
 func (s *UserService) UpdateUser(id uint, user *sysModel.User) error {
 	existingUser, err := s.UserRepo.GetByID(id)
 	if err != nil {
@@ -118,7 +173,17 @@ func (s *UserService) UpdateUser(id uint, user *sysModel.User) error {
 	return s.UserRepo.Update(existingUser)
 }
 
-// ChangePassword 修改密码
+// ChangePassword 修改用户密码。
+//
+// 该函数会验证原密码的正确性，然后将新密码加密后存储。
+//
+// 参数：
+//   - id: 用户 ID
+//   - oldPassword: 原密码（明文）
+//   - newPassword: 新密码（明文）
+//
+// 返回：
+//   - error: 如果用户不存在、原密码错误或加密失败，返回错误
 func (s *UserService) ChangePassword(id uint, oldPassword, newPassword string) error {
 	user, err := s.UserRepo.GetByID(id)
 	if err != nil {
@@ -138,7 +203,16 @@ func (s *UserService) ChangePassword(id uint, oldPassword, newPassword string) e
 	return s.UserRepo.UpdatePassword(id, string(hashedPassword))
 }
 
-// AddRoleForUser 为用户分配角色 *
+// AddRoleForUser 为用户分配角色。
+//
+// 该函数会在 Casbin 中添加分组策略，并同步更新用户的 RoleID 字段。
+//
+// 参数：
+//   - username: 用户名
+//   - roleIdent: 角色标识符
+//
+// 返回：
+//   - error: 如果用户不存在或添加策略失败，返回错误
 func (s *UserService) AddRoleForUser(username string, roleIdent string) error {
 	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
@@ -171,7 +245,16 @@ func (s *UserService) AddRoleForUser(username string, roleIdent string) error {
 	return nil
 }
 
-// RemoveRoleForUser 移除用户的角色 *
+// RemoveRoleForUser 移除用户的角色。
+//
+// 该函数会从 Casbin 中删除分组策略，并同步清空用户的 RoleID 字段。
+//
+// 参数：
+//   - username: 用户名
+//   - roleIdent: 角色标识符
+//
+// 返回：
+//   - error: 如果用户不存在或删除策略失败，返回错误
 func (s *UserService) RemoveRoleForUser(username string, roleIdent string) error {
 	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
@@ -200,7 +283,16 @@ func (s *UserService) RemoveRoleForUser(username string, roleIdent string) error
 	return nil
 }
 
-// GetUserRoles 获取用户的角色列表 *
+// GetUserRoles 获取用户的角色列表。
+//
+// 该函数从 Casbin 中查询用户所属的所有角色。
+//
+// 参数：
+//   - username: 用户名
+//
+// 返回：
+//   - []string: 角色标识符列表
+//   - error: 如果用户不存在或查询失败，返回错误
 func (s *UserService) GetUserRoles(username string) ([]string, error) {
 	user, err := s.UserRepo.GetByUsername(username)
 	if err != nil {
@@ -216,17 +308,45 @@ func (s *UserService) GetUserRoles(username string) ([]string, error) {
 	return roles, err
 }
 
-// UpdateUserStatus 更新用户状态 *
+// UpdateUserStatus 更新用户状态。
+//
+// 用于启用或禁用用户账号。
+//
+// 参数：
+//   - id: 用户 ID
+//   - status: 状态值（1-正常，0-禁用）
+//
+// 返回：
+//   - error: 如果更新失败，返回错误
 func (s *UserService) UpdateUserStatus(id uint, status int) error {
 	return s.UserRepo.UpdateStatus(id, status)
 }
 
-// DeleteUser 删除用户 *
+// DeleteUser 删除用户。
+//
+// 该函数会软删除用户（通过 GORM 的 DeletedAt 字段）。
+//
+// 参数：
+//   - id: 用户 ID
+//
+// 返回：
+//   - error: 如果删除失败，返回错误
 func (s *UserService) DeleteUser(id uint) error {
 	return s.UserRepo.Delete(id)
 }
 
-// GetUsers 获取用户列表  *
+// GetUsers 获取用户列表（分页）。
+//
+// 该函数支持分页查询用户列表，并返回总记录数。
+//
+// 参数：
+//   - limit: 每页记录数
+//   - offset: 偏移量（用于分页）
+//
+// 返回：
+//   - []sysModel.User: 用户列表
+//   - int64: 总记录数
+//   - error: 如果查询失败，返回错误
 func (s *UserService) GetUsers(limit, offset int) ([]sysModel.User, int64, error) {
 	users, err := s.UserRepo.List(limit, offset)
 	if err != nil {
@@ -241,7 +361,17 @@ func (s *UserService) GetUsers(limit, offset int) ([]sysModel.User, int64, error
 	return users, total, nil
 }
 
-// ResetPassword 重置用户密码（管理员功能）
+// ResetPassword 重置用户密码（管理员功能）。
+//
+// 该函数允许管理员直接重置用户密码，无需验证原密码。
+// 新密码会被加密后存储。
+//
+// 参数：
+//   - id: 用户 ID
+//   - newPassword: 新密码（明文）
+//
+// 返回：
+//   - error: 如果用户不存在或加密失败，返回错误
 func (s *UserService) ResetPassword(id uint, newPassword string) error {
 	_, err := s.UserRepo.GetByID(id)
 	if err != nil {

@@ -1,3 +1,16 @@
+// Package casbin 提供基于 Casbin 的 RBAC 权限控制功能。
+//
+// 该包封装了 Casbin 的核心功能，包括策略管理、角色分配、权限检查等。
+// 使用 GORM 适配器将策略存储在数据库中。
+//
+// 使用示例：
+//
+//	err := casbin.InitCasbinWithGormAdapter(db)
+//	if err != nil {
+//	    log.Fatal(err)
+//	}
+//
+//	allowed, _ := casbin.Enforcer.Enforce("alice", "data1", "read")
 package casbin
 
 import (
@@ -10,9 +23,21 @@ import (
 	"gorm.io/gorm"
 )
 
+// Enforcer 是 Casbin 的全局执行器实例。
+//
+// 该实例用于执行所有权限检查和策略管理操作。
 var Enforcer *casbin.Enforcer
 
-// InitCasbinWithGormAdapter 初始化Casbin（使用GORM适配器）
+// InitCasbinWithGormAdapter 初始化 Casbin（使用 GORM 适配器）。
+//
+// 该函数会创建 Casbin Enforcer 实例，使用 GORM 适配器将策略存储在数据库中。
+// 初始化后会自动加载策略。
+//
+// 参数：
+//   - db: GORM 数据库实例
+//
+// 返回：
+//   - error: 如果初始化失败，返回错误
 func InitCasbinWithGormAdapter(db *gorm.DB) error {
 	// 使用GORM适配器（存储策略到数据库）
 	adapter, err := gormadapter.NewAdapterByDB(db)
