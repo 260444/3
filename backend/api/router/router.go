@@ -130,7 +130,6 @@ func SetupRouter(
 		protected.PUT("/host-groups/:id/status", middleware.OperationLogMiddleware(operationLogService, "更新主机组状态"), hostGroupHandler.UpdateHostGroupStatus)
 
 		// 主机监控指标相关路由
-		protected.POST("/host-metrics", middleware.OperationLogMiddleware(operationLogService, "上报主机指标"), hostHandler.ReportHostMetrics)
 		protected.GET("/host-metrics/history", hostHandler.GetHostMetricsHistory)
 		protected.GET("/host-metrics/latest", hostHandler.GetHostLatestMetrics)
 
@@ -153,8 +152,8 @@ func SetupRouter(
 	r.GET("/api/v1/ssh/ws", sshHandler.HandleSSHWebSocket)
 	r.POST("/api/v1/deployment-agent/:host_id/:credential_id", operationToolsHandler.DeploymentAgentHandler)
 	r.POST("/api/v1/execute-command/:credential_id", operationToolsHandler.ExecuteCommandOnHosts)
-	r.GET("/api/v1//sync", hostHandler.SyncPrometheusMetrics)
-
+	r.GET("/api/v1/sync", hostHandler.SyncPrometheusMetrics)
+	hostHandler.TimerSyncMetrics()
 	return r
 }
 

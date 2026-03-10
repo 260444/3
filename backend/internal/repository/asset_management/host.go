@@ -113,7 +113,7 @@ func (r *HostRepository) ListWithCredentials(page, pageSize int, hostname, ipAdd
 }
 
 // ListWithCredentials 获取主机列表（需要监控的）
-func (r *HostRepository) ListForMonitoring(ctx context.Context) ([]assModel.Host, error) {
+func (r *HostRepository) ListForMonitoring() ([]assModel.Host, error) {
 	var hosts []assModel.Host
 	if err := r.DB.Where("monitoring_enabled = ?", 1).Find(&hosts).Error; err != nil {
 		return nil, err

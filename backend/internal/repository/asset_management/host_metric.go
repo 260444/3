@@ -140,43 +140,43 @@ type PromQLResponse struct {
 }
 
 // GetCPUUsage 查询 CPU 使用率
-func (pc *HostMetricRepository) GetCPUUsage(ctx context.Context, instance string) (float64, error) {
+func (pc *HostMetricRepository) GetCPUUsage(instance string) (float64, error) {
 	query := fmt.Sprintf(`100 - (rate(node_cpu_seconds_total{mode="idle", job="%s"}[5m]) * 100)`, instance)
 	logger.Logger.Info("查询CPU使用率", zap.String("query", query))
-	return pc.querySingleValue(ctx, query)
+	return pc.querySingleValue(query)
 }
 
 // GetMemoryUsage 查询内存使用率
-func (pc *HostMetricRepository) GetMemoryUsage(ctx context.Context, instance string) (float64, error) {
+func (pc *HostMetricRepository) GetMemoryUsage(instance string) (float64, error) {
 	query := fmt.Sprintf(`(1 - (node_memory_MemAvailable_bytes{job="%s"} / node_memory_MemTotal_bytes{job="%s"})) * 100`, instance, instance)
 	logger.Logger.Info("查询内存使用率", zap.String("query", query))
-	return pc.querySingleValue(ctx, query)
+	return pc.querySingleValue(query)
 }
 
 // GetDiskUsage 查询磁盘使用率
-func (pc *HostMetricRepository) GetDiskUsage(ctx context.Context, mountpoint, instance string) (float64, error) {
+func (pc *HostMetricRepository) GetDiskUsage(mountpoint, instance string) (float64, error) {
 	query := fmt.Sprintf(`(1 - (node_filesystem_avail_bytes{job="%s",mountpoint="%s"} / node_filesystem_size_bytes{job="%s",mountpoint="%s"})) * 100`,
 		instance, mountpoint, instance, mountpoint)
 	logger.Logger.Info("查询磁盘使用率", zap.String("query", query))
-	return pc.querySingleValue(ctx, query)
+	return pc.querySingleValue(query)
 }
 
 // GetHostMetrics 查询主机监控指标（用于你的资产管理系统）
-func (pc *HostMetricRepository) GetHostMetrics(ctx context.Context, instance string) (*assModel.HostMetric, error) {
+func (pc *HostMetricRepository) GetHostMetrics(instance string) (*assModel.HostMetric, error) {
 	// CPU 使用率
-	cpuUsage, err := pc.GetCPUUsage(ctx, instance)
+	cpuUsage, err := pc.GetCPUUsage(instance)
 	if err != nil {
 		return nil, err
 	}
 
 	// 内存使用率
-	memoryUsage, err := pc.GetMemoryUsage(ctx, instance)
+	memoryUsage, err := pc.GetMemoryUsage(instance)
 	if err != nil {
 		return nil, err
 	}
 
 	// 磁盘使用率
-	diskUsage, err := pc.GetDiskUsage(ctx, "/", instance)
+	diskUsage, err := pc.GetDiskUsage("/", instance)
 	if err != nil {
 		return nil, err
 	}
@@ -189,12 +189,12 @@ func (pc *HostMetricRepository) GetHostMetrics(ctx context.Context, instance str
 	}, nil
 }
 
-func (pc *HostMetricRepository) querySingleValue(ctx context.Context, query string) (float64, error) {
+func (pc *HostMetricRepository) querySingleValue(query string) (float64, error) {
 	u, _ := url.Parse("http://localhost:9090" + "/api/v1/query")
 	q := u.Query()
 	q.Set("query", query)
 	u.RawQuery = q.Encode()
-
+	var ctx = context.Background()
 	req, _ := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
 	resp, err := pc.client.Do(req)
 	if err != nil {

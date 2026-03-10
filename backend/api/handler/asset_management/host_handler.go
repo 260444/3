@@ -3,8 +3,10 @@ package asset_management
 import (
 	assModel "backend/internal/model/asset_management"
 	assService "backend/internal/service/asset_management"
+	"backend/pkg/logger"
 	"backend/pkg/response"
 	"backend/pkg/utils"
+	"go.uber.org/zap"
 	"strconv"
 	"time"
 
@@ -363,34 +365,6 @@ func (h *HostHandler) GetHostStatistics(c *gin.Context) {
 	response.SuccessWithMessage(c, "获取主机统计信息成功", stats)
 }
 
-// ReportHostMetrics 上报主机指标
-// @Summary 上报主机指标
-// @Description 上报主机的监控指标数据
-// @Tags 主机监控
-// @Accept json
-// @Produce json
-// @Param metrics body assService.HostMetricsRequest true "指标数据"
-// @Success 200 {object} response.APIResponse
-// @Failure 400 {object} response.APIResponse
-// @Failure 500 {object} response.APIResponse
-// @Router /api/v1/host-metrics [post]
-// @Security Bearer
-func (h *HostHandler) ReportHostMetrics(c *gin.Context) {
-	var req assModel.HostMetricsRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ValidationError(c, "请求参数", err.Error())
-		return
-	}
-
-	insertedCount, err := h.HostMetricService.ReportHostMetrics(&req)
-	if err != nil {
-		response.Error(c, err)
-		return
-	}
-
-	response.SuccessWithMessage(c, "指标上报成功", gin.H{"inserted_count": insertedCount})
-}
-
 // GetHostMetricsHistory 获取主机指标历史
 // @Summary 获取主机指标历史
 // @Description 获取主机的历史监控指标数据
@@ -481,9 +455,34 @@ func (h *HostHandler) GetHostLatestMetrics(c *gin.Context) {
 // SyncPrometheusMetrics 从prometheus获取指标数据到数据库
 func (h *HostHandler) SyncPrometheusMetrics(c *gin.Context) {
 	// 获取所有主机的ID
-	err := h.HostMetricService.CreateHostMetrics(c)
+	err := h.HostMetricService.CreateHostMetrics()
 	if err != nil {
 		response.Error(c, err)
 		return
 	}
+}
+
+func (h *HostHandler) TimerSyncMetrics() {
+	go func() {
+		ticker := time.NewTicker(15 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ticker.C:
+				// 使用匿名函数包裹，防止 panic 导致协程退出
+				go func() {
+					defer func() {
+						if err := recover(); err != nil {
+							logger.Logger.Error("panic:", zap.Any("error", err))
+						}
+					}()
+					err := h.HostMetricService.CreateHostMetrics()
+					if err != nil {
+						logger.Logger.Error("获取主机指标失败", zap.Error(err))
+					}
+				}()
+			}
+		}
+	}()
 }

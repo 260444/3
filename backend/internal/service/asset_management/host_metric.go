@@ -5,7 +5,6 @@ import (
 	assRepo "backend/internal/repository/asset_management"
 	"backend/pkg/logger"
 	"backend/pkg/response"
-	"context"
 	"errors"
 	"time"
 
@@ -27,38 +26,6 @@ func NewHostMetricService(
 		hostMetricRepo: hostMetricRepo,
 		hostRepo:       hostRepo,
 	}
-}
-
-// ReportHostMetrics 上报主机指标
-func (s *HostMetricService) ReportHostMetrics(req *assModel.HostMetricsRequest) (int64, error) {
-	// 检查主机是否存在
-	if _, err := s.hostRepo.GetByID(req.HostID); err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, response.ErrValidationError
-		}
-		return 0, response.ErrDatabaseError
-	}
-
-	// 转换指标数据
-	var metrics []assModel.HostMetric
-	for _, metricDTO := range req.Metrics {
-		metric := assModel.HostMetric{
-			HostID:      req.HostID,
-			MetricType:  metricDTO.MetricType,
-			MetricName:  metricDTO.MetricName,
-			MetricValue: metricDTO.MetricValue,
-			Unit:        metricDTO.Unit,
-			RecordedAt:  time.Now(),
-		}
-		metrics = append(metrics, metric)
-	}
-
-	// 批量插入指标数据
-	if err := s.hostMetricRepo.BatchCreate(metrics); err != nil {
-		return 0, response.ErrDatabaseError
-	}
-
-	return int64(len(metrics)), nil
 }
 
 // GetHostMetricsHistory 获取主机指标历史数据
@@ -197,82 +164,9 @@ func (s *HostMetricService) GetHostMetricsOverview(hostID uint) (map[string]inte
 	return overview, nil
 }
 
-// GetAllHostsMetrics 获取所有主机的监控指标
-//func (s *HostMetricService) GetAllHostsMetrics(ctx context.Context) ([]assModel.HostMetric, error) {
-//	hosts, err := s.hostRepo.ListForMonitoring(ctx)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	var results []assModel.HostMetric
-//	for _, host := range hosts {
-//		metrics, err := s.hostMetricRepo.GetHostMetrics(ctx, host.IPAddress)
-//		if err != nil {
-//			// 记录错误但继续处理其他主机
-//			logger.Logger.Error("get host metrics failed",
-//				zap.Uint("host_id", host.ID),
-//				zap.Error(err))
-//			continue
-//		}
-//
-//		results = append(results, assModel.HostMetric{
-//			HostID:      host.ID,
-//			CPUUsage:    metrics.CPUUsage,
-//			MemoryUsage: metrics.MemoryUsage,
-//			DiskUsage:   metrics.DiskUsage,
-//			RecordedAt:  metrics.RecordedAt,
-//		})
-//	}
-//
-//	return results, nil
-//}
-
 // CreateHostMetrics 采集数据到数据库中
-//func (s *HostMetricService) CreateHostMetrics(ctx context.Context) error {
-//	hosts, err := s.hostRepo.ListForMonitoring(ctx)
-//	if err != nil {
-//		return err
-//	}
-//	var metrics []*assModel.HostMetric
-//	for _, host := range hosts {
-//		hostMetrics, err := s.hostMetricRepo.GetHostMetrics(ctx, host.IPAddress)
-//		if err != nil {
-//			logger.Logger.Error("获取主机指标数据失败",
-//				zap.Uint("host_id", host.ID),
-//				zap.Error(err))
-//			continue
-//		}
-//		metrics = append(metrics, &assModel.HostMetric{
-//			HostID:      host.ID,
-//			CPUUsage:    hostMetrics.CPUUsage,
-//			MemoryUsage: hostMetrics.MemoryUsage,
-//			DiskUsage:   hostMetrics.DiskUsage,
-//			RecordedAt:  hostMetrics.RecordedAt,
-//		})
-//
-//		//// 处理完本次循环后，metrics 自动被销毁
-//		if err := s.processMetrics(metrics); err != nil {
-//			log.Error("处理指标失败", err)
-//			continue
-//		}
-//
-//	}
-//	// 保存到数据库
-//	s.hostMetricRepo.Create(metrics)
-//
-//	if err != nil {
-//		logger.Logger.Error("save host metrics failed",
-//			zap.Uint("host_id", host.ID),
-//			zap.Error(err))
-//	}
-//	return nil
-//}
-
-// ... existing code ...
-
-// CreateHostMetrics 采集数据到数据库中
-func (s *HostMetricService) CreateHostMetrics(ctx context.Context) error {
-	hosts, err := s.hostRepo.ListForMonitoring(ctx)
+func (s *HostMetricService) CreateHostMetrics() error {
+	hosts, err := s.hostRepo.ListForMonitoring()
 	if err != nil {
 		return err
 	}
@@ -280,7 +174,7 @@ func (s *HostMetricService) CreateHostMetrics(ctx context.Context) error {
 	var allMetrics []*assModel.HostMetric
 
 	for _, host := range hosts {
-		hostMetrics, err := s.hostMetricRepo.GetHostMetrics(ctx, host.IPAddress)
+		hostMetrics, err := s.hostMetricRepo.GetHostMetrics(host.IPAddress)
 		if err != nil {
 			logger.Logger.Error("获取主机指标数据失败",
 				zap.Uint("host_id", host.ID),

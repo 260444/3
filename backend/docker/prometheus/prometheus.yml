@@ -18,14 +18,13 @@ scrape_configs:
       - targets: ['localhost:9090']
 
   # 监控主机系统指标 (Node Exporter)
-  - job_name: 'node'
+  - job_name: '192.168.84.200'
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ['192.168.84.200:9100']
 
 
   # 监控主机系统指标 (Node Exporter)
   - job_name: '10.0.1.12'
-
     static_configs:
       - targets: ['10.0.1.12:9100']
         
