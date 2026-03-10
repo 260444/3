@@ -48,7 +48,7 @@ func (m *SSHManager) CreateSSHClient(host, port, username, password string) (*ss
 			ssh.Password(password),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         10 * time.Second,
+		Timeout:         30 * time.Second, // 增加到 30 秒
 	}
 
 	address := fmt.Sprintf("%s:%s", host, port)

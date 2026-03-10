@@ -12,6 +12,7 @@ import OperationLogView from '@/views/OperationLogView.vue'
 import PermissionResourceView from '@/views/permission/PermissionResourceView.vue'
 import NoPermissionView from '@/views/NoPermissionView.vue'
 import HostManageView from '@/views/asset/host/HostManageView.vue'
+import AgentDeployView from '@/views/operationTool/AgentDeployView.vue'
 import HostGroupView from '@/views/asset/group/HostGroupView.vue'
 import CredentialManageView from '@/views/asset/credential/CredentialManageView.vue'
 import SSHTerminalView from '@/views/asset/terminal/SSHTerminalView.vue'
@@ -58,6 +59,7 @@ const componentMap: Record<string, any> = {
   'OperationLogView': OperationLogView,
   'PermissionResourceView': PermissionResourceView,
   'HostManageView': HostManageView,
+  'AgentDeployView': AgentDeployView,
   'HostGroupView': HostGroupView,
   'CredentialManageView': CredentialManageView
 }

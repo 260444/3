@@ -90,7 +90,7 @@ func (h *OperationToolsHandler) DeploymentAgentHandler(c *gin.Context) {
 		credential.Username,
 		credential.Password,
 		commands,
-		2*time.Second, // 每个命令等待 2 秒
+		10*time.Second, // 每个命令等待 10 秒
 	)
 	if err != nil {
 		response.Error(c, err)

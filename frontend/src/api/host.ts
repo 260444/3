@@ -132,3 +132,25 @@ export function getHostMetricsLatest(host_id: number) {
     params: { host_id }
   })
 }
+
+export function getUndeployedHosts() {
+  return request({
+    url: '/hosts/undeployed',
+    method: 'get'
+  })
+}
+
+export function updateHostMonitoringDeploy(id: number, monitoring_deploy: number) {
+  return request({
+    url: `/hosts/${id}/monitoring-deploy`,
+    method: 'put',
+    data: { monitoring_deploy }
+  })
+}
+
+export function deployAgent(host_id: number, credential_id: number) {
+  return request({
+    url: `/deployment-agent/${host_id}/${credential_id}`,
+    method: 'post'
+  })
+}

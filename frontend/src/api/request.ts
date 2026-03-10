@@ -4,7 +4,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 // 创建axios实例
 const request = axios.create({
   baseURL: '/api/v1', // 通过vite.config.ts中的代理配置
-  timeout: 10000
+  timeout: 120000 // 增加到 2 分钟，以适应 SSH 部署等耗时操作
 })
 
 // 请求拦截器

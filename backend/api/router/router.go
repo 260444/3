@@ -147,8 +147,8 @@ func SetupRouter(
 
 		// SSH 相关路由（WebSocket 连接需要单独处理，不在 protected 组中）
 		//protected.POST("/ssh/test", middleware.OperationLogMiddleware(operationLogService, "测试SSH连接"), sshHandler.TestSSHConnection)
-		protected.POST("/api/v1/deployment-agent/:host_id/:credential_id", operationToolsHandler.DeploymentAgentHandler)
-		protected.POST("/api/v1/execute-command/:credential_id", operationToolsHandler.ExecuteCommandOnHosts)
+		protected.POST("/deployment-agent/:host_id/:credential_id", operationToolsHandler.DeploymentAgentHandler)
+		protected.POST("/execute-command/:credential_id", operationToolsHandler.ExecuteCommandOnHosts)
 
 	}
 
